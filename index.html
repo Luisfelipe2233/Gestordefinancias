@@ -13,6 +13,11 @@
 <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%232563eb"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold">R$</text></svg>' />
 <!-- BUGFIX #16: Apple touch icon — generated at runtime as PNG via canvas (see init) -->
 <link rel="apple-touch-icon" id="appleTouchIcon" />
+<!-- Fonte premium Inter (mesma da Stripe, Linear, Vercel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+
 <!-- Firebase SDK (compat mode para uso global no IIFE existente) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
@@ -83,10 +88,51 @@
     padding: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
       Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Recursos tipográficos modernos do Inter */
+    font-feature-settings: "cv11", "ss01", "ss03";
+    font-optical-sizing: auto;
+    letter-spacing: -0.005em;
     transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  /* Títulos com letter-spacing premium */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  h2 { letter-spacing: -0.015em; }
+  h3 { letter-spacing: -0.012em; }
+
+  /* Tabular figures pra dinheiro alinhar perfeitamente em colunas */
+  .summary-tile .val,
+  .expense-value,
+  .cat-amount-line strong,
+  .cat-bottom .val,
+  .income-input-wrap input,
+  .pie-legend .vl,
+  .pie-chart text,
+  .bar-chart text,
+  .history-item .stat-val,
+  .goal-progress-info strong,
+  .goal-progress-info .pct,
+  .recurring-item .value,
+  .extras-list li .value,
+  .percent-row .pct-input,
+  .percent-total,
+  #income, #expValue, #extraValue,
+  input[inputmode="decimal"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "cv11";
+  }
+
+  /* Inputs e selects também herdam Inter */
+  input, select, textarea, button {
+    font-family: inherit;
   }
 
   .app {
@@ -120,8 +166,21 @@
     flex-shrink: 0;
   }
   .brand-icon svg { width: 22px; height: 22px; }
-  .brand h1 { font-size: 20px; margin: 0; letter-spacing: -0.015em; }
-  .brand p { margin: 1px 0 0; font-size: 12px; color: var(--text-mute); }
+  .brand h1 {
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+  }
+  .brand p {
+    margin: 1px 0 0;
+    font-size: 12px;
+    color: var(--text-mute);
+    letter-spacing: -0.005em;
+    font-weight: 500;
+  }
 
   .header-tools {
     display: flex;
@@ -288,9 +347,10 @@
   }
   .income-input-wrap input {
     padding-left: 40px;
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     color: var(--success-dark);
+    letter-spacing: -0.02em;
   }
 
   /* ==================== BUTTONS ==================== */
@@ -512,10 +572,11 @@
     font-weight: 600;
   }
   .summary-tile .val {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     margin-top: 4px;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
   .summary-tile.income .val { color: var(--success-dark); }
   .summary-tile.spent .val { color: var(--primary-dark); }
@@ -1060,14 +1121,15 @@
   }
   .login-brand-icon svg { width: 38px; height: 38px; }
   .login-title {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 38px;
+    font-weight: 800;
     margin: 0 0 4px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
     background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    line-height: 1.05;
   }
   .login-tagline {
     margin: 0 0 24px;
