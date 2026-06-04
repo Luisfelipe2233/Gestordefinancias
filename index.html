@@ -3108,19 +3108,32 @@
         const sel = g.id === defaultGid ? 'selected' : '';
         return `<option value="${g.id}" ${sel}>${escapeHtml(g.name)} (${Math.round(pct)}% — ${fmtBRL(g.current)} / ${fmtBRL(g.target)})</option>`;
       }).join('');
+      // OPT-IN explícito: default NÃO transfere, usuário precisa marcar a caixa
+      const hadDefault = state.ui.defaultGoalId && state.goals.find(g => g.id === state.ui.defaultGoalId);
       goalSection = `
         <div style="background:var(--success-soft); padding:14px; border-radius:10px; margin-bottom:14px; border-left:3px solid var(--success);">
-          <div style="font-size:13px; font-weight:600; color:var(--success-dark); margin-bottom:8px;">
-            💰 Sobrou ${fmtBRL(saved)} — transferir para uma meta?
+          <div style="font-size:13px; font-weight:600; color:var(--success-dark); margin-bottom:10px;">
+            💰 Sobraram ${fmtBRL(saved)} este mês
           </div>
-          <select id="closeMonthGoalSelect" style="margin-bottom:8px;">
-            ${goalOpts}
-            <option value="__none__">— Não transferir, só arquivar —</option>
-          </select>
-          <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-soft); cursor:pointer; user-select:none;">
-            <input type="checkbox" id="closeMonthAutoDefault" checked style="width:auto; margin:0;" />
-            Lembrar essa meta como padrão pros próximos meses
+          <label style="display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text); cursor:pointer; user-select:none; padding:10px; background:var(--surface); border-radius:8px; border:2px solid var(--border); transition:all 0.15s ease;" id="closeMonthTransferLabel">
+            <input type="checkbox" id="closeMonthTransferChk" ${hadDefault ? 'checked' : ''} style="width:auto; margin:2px 0 0; flex-shrink:0;" />
+            <span>
+              <strong>Transferir esse saldo para uma meta</strong>
+              <div style="font-size:11px; color:var(--text-mute); margin-top:2px;">
+                Sem isso marcado, o dinheiro fica só no histórico do mês fechado.
+              </div>
+            </span>
           </label>
+          <div id="closeMonthGoalOptions" style="display:${hadDefault ? 'block' : 'none'}; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);">
+            <label style="font-size:12px; color:var(--text-soft); margin-bottom:4px; display:block;">Para qual meta?</label>
+            <select id="closeMonthGoalSelect" style="margin-bottom:8px;">
+              ${goalOpts}
+            </select>
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-soft); cursor:pointer; user-select:none;">
+              <input type="checkbox" id="closeMonthAutoDefault" ${hadDefault ? 'checked' : ''} style="width:auto; margin:0;" />
+              Lembrar essa meta para os próximos meses
+            </label>
+          </div>
         </div>
       `;
     } else if (saved > 0 && !hasGoals) {
@@ -3167,16 +3180,41 @@
     // BUGFIX #12: scope to modal content
     const modal = document.getElementById('modalContent');
     modal.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
+
+    // Toggle do checkbox principal: mostra/esconde o dropdown da meta
+    const transferChk = modal.querySelector('#closeMonthTransferChk');
+    const goalOptionsDiv = modal.querySelector('#closeMonthGoalOptions');
+    const transferLabel = modal.querySelector('#closeMonthTransferLabel');
+    if (transferChk && goalOptionsDiv) {
+      // Visual feedback no label inteiro quando ativo
+      const updateLabelStyle = () => {
+        if (transferLabel) {
+          transferLabel.style.borderColor = transferChk.checked ? 'var(--success)' : 'var(--border)';
+          transferLabel.style.background = transferChk.checked ? 'var(--success-soft)' : 'var(--surface)';
+        }
+      };
+      updateLabelStyle();
+      transferChk.addEventListener('change', () => {
+        goalOptionsDiv.style.display = transferChk.checked ? 'block' : 'none';
+        updateLabelStyle();
+      });
+    }
+
     modal.querySelector('[data-act="confirm"]').addEventListener('click', () => {
-      // Get goal selection (if available)
+      // Só transfere se o checkbox principal estiver marcado
       let goalId = null;
-      const sel = modal.querySelector('#closeMonthGoalSelect');
-      const autoChk = modal.querySelector('#closeMonthAutoDefault');
-      if (sel && sel.value && sel.value !== '__none__') {
-        goalId = sel.value;
-        // Save as default if checked
-        if (autoChk && autoChk.checked) {
-          state.ui.defaultGoalId = goalId;
+      if (transferChk && transferChk.checked) {
+        const sel = modal.querySelector('#closeMonthGoalSelect');
+        const autoChk = modal.querySelector('#closeMonthAutoDefault');
+        if (sel && sel.value) {
+          goalId = sel.value;
+          // Salva como meta padrão se o usuário marcou
+          if (autoChk && autoChk.checked) {
+            state.ui.defaultGoalId = goalId;
+          } else {
+            // Se desmarcou o "lembrar", limpa a meta padrão
+            state.ui.defaultGoalId = '';
+          }
         }
       }
       closeMonth(goalId);
