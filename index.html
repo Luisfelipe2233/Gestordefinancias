@@ -732,6 +732,88 @@
   .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.55; }
   .empty-state .hint { font-size: 12px; margin-top: 6px; opacity: 0.8; }
 
+  /* ==================== ENTRADAS EXTRAS (renda) ==================== */
+  .extra-incomes-block {
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  .extra-toggle {
+    width: 100%;
+    background: var(--surface-alt);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.15s ease;
+  }
+  .extra-toggle:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .extra-toggle.open { border-style: solid; background: var(--primary-soft); color: var(--primary-dark); border-color: var(--primary); }
+  .extra-toggle .extra-total {
+    background: var(--success);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    display: none;
+  }
+  .extra-toggle .extra-total.show { display: inline-block; }
+  .extra-body {
+    display: none;
+    margin-top: 10px;
+  }
+  .extra-body.open { display: block; }
+  .extras-list {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+  }
+  .extras-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: var(--success-soft);
+    border-left: 3px solid var(--success);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .extras-list li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
+  .extras-list li .value { font-weight: 600; color: var(--success-dark); white-space: nowrap; }
+  .extras-list li .del {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    cursor: pointer;
+    margin-left: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .extras-list li .del:hover { background: var(--danger-soft); color: var(--danger); }
+  .extras-list .empty {
+    background: transparent;
+    border: none;
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 12px;
+    padding: 8px;
+    font-style: italic;
+  }
+  @media (max-width: 520px) {
+    .extra-body form > div { grid-template-columns: 1fr !important; }
+  }
+
   /* ==================== NOTES (bloco de feedback) ==================== */
   .notes-fab {
     position: fixed;
@@ -1454,6 +1536,24 @@
           💡 <strong>Primeiro passo:</strong> digite sua renda mensal aqui. Aceita vírgula (ex: <em>3500,50</em>).
           Depois escolha um método ao lado e adicione suas despesas na aba <strong>Despesas</strong>.
         </p>
+
+        <!-- ENTRADAS EXTRAS -->
+        <div class="extra-incomes-block" id="extraIncomesBlock">
+          <button type="button" class="extra-toggle" id="extraToggle">
+            <span class="extra-label">+ Adicionar entrada extra</span>
+            <span class="extra-total" id="extraTotalBadge"></span>
+          </button>
+          <div class="extra-body" id="extraBody">
+            <form id="extraForm" autocomplete="off">
+              <div style="display:grid; grid-template-columns:1fr 110px auto; gap:6px;">
+                <input type="text" id="extraName" placeholder="Ex: Bônus, Freela..." maxlength="40" required />
+                <input type="text" id="extraValue" placeholder="0,00" inputmode="decimal" required />
+                <button type="submit" class="btn-primary" style="width:auto; padding:10px 14px;">+</button>
+              </div>
+            </form>
+            <ul class="extras-list" id="extrasList"></ul>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -1776,6 +1876,7 @@
       theme: 'light',
       activeTab: 'painel',
       income: 0,
+      extraIncomes: [], // [{id, name, value, addedAt}] — entradas extras (bônus, freela, etc.)
       method: '50-30-20',
       categories: cloneCats(METHODS['50-30-20'].categories),
       expenses: [],
@@ -1944,6 +2045,15 @@
         createdAt: Number(n && n.createdAt) || Date.now(),
       }))
       .filter(n => n.text);
+    // extraIncomes
+    out.extraIncomes = (Array.isArray(data.extraIncomes) ? data.extraIncomes : [])
+      .map(x => ({
+        id: String(x && x.id || newId('x')),
+        name: String(x && x.name || '?'),
+        value: Number(x && x.value) || 0,
+        addedAt: Number(x && x.addedAt) || Date.now(),
+      }))
+      .filter(x => x.value > 0);
     // theme + income + method
     out.theme = (data.theme === 'dark' ? 'dark' : 'light');
     out.income = Number(data.income) || 0;
@@ -2001,6 +2111,17 @@
     return state.expenses
       .filter(e => e.categoryId === catId)
       .reduce((sum, e) => sum + Number(e.value || 0), 0);
+  }
+
+  // Total de entradas extras (bônus, freelance, etc.) do mês atual
+  function totalExtraIncome() {
+    return (Array.isArray(state.extraIncomes) ? state.extraIncomes : [])
+      .reduce((s, e) => s + Number(e.value || 0), 0);
+  }
+
+  // Renda efetiva = base + extras
+  function effectiveIncome() {
+    return (Number(state.income) || 0) + totalExtraIncome();
   }
 
   // ==================== AUTO-SUGGEST ====================
@@ -2237,7 +2358,7 @@
   function renderCategories() {
     const grid = document.getElementById('categoriesGrid');
     grid.innerHTML = '';
-    const income = Number(state.income) || 0;
+    const income = effectiveIncome(); // base + extras
 
     if (income <= 0) {
       grid.innerHTML = `
@@ -2299,13 +2420,22 @@
   }
 
   function renderSummary() {
-    const income = Number(state.income) || 0;
+    const income = effectiveIncome(); // base + extras
     const spent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
     const remaining = income - spent;
     document.getElementById('sumIncome').textContent = fmtBRL(income);
     document.getElementById('sumSpent').textContent = fmtBRL(spent);
     document.getElementById('sumRemaining').textContent = fmtBRL(remaining);
     document.getElementById('sumRemainingTile').classList.toggle('negative', remaining < 0);
+    // Tooltip / detalhe quando há extras
+    const extras = totalExtraIncome();
+    const tile = document.getElementById('sumRemainingTile').parentElement;
+    const incomeTile = document.querySelector('.summary-tile.income .lbl');
+    if (incomeTile) {
+      incomeTile.textContent = extras > 0
+        ? `Renda (base ${fmtBRL(state.income)} + extras ${fmtBRL(extras)})`
+        : 'Renda';
+    }
   }
 
   // ==================== RENDER: DESPESAS ====================
@@ -2572,7 +2702,7 @@
     const months = Object.keys(state.history).sort();
     // include current as last
     const current = {
-      income: state.income,
+      income: effectiveIncome(), // base + extras
       totalSpent: state.expenses.reduce((s, e) => s + Number(e.value || 0), 0),
     };
     const data = months.map(ym => ({
@@ -2940,13 +3070,21 @@
 
   function openCloseMonthModal() {
     const totalSpent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
-    const saved = state.income - totalSpent;
+    const extras = totalExtraIncome();
+    const incomeTotal = effectiveIncome();
+    const saved = incomeTotal - totalSpent;
     openModal(`
       <h3>Fechar Mês — ${capitalize(fmtMonthName(state.currentMonth))}</h3>
-      <p class="modal-sub">Os dados deste mês serão arquivados no histórico. Sua renda e categorias continuam, mas as despesas serão zeradas.</p>
+      <p class="modal-sub">Os dados deste mês serão arquivados no histórico. Sua renda base e categorias continuam. Despesas e entradas extras serão zeradas.</p>
       <div style="background:var(--surface-alt); padding:14px; border-radius:10px; margin-bottom:14px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-          <span class="muted">Renda:</span><strong>${fmtBRL(state.income)}</strong>
+          <span class="muted">Renda base:</span><strong>${fmtBRL(state.income)}</strong>
+        </div>
+        ${extras > 0 ? `<div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span class="muted">Entradas extras:</span><strong>+${fmtBRL(extras)}</strong>
+        </div>` : ''}
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; padding-top:6px; border-top:1px solid var(--border);">
+          <span class="muted">Renda total:</span><strong>${fmtBRL(incomeTotal)}</strong>
         </div>
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
           <span class="muted">Total gasto:</span><strong>${fmtBRL(totalSpent)}</strong>
@@ -3017,8 +3155,11 @@
   // ==================== CLOSE MONTH ====================
   function closeMonth() {
     const totalSpent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
+    const incomeTotal = effectiveIncome(); // base + extras
     state.history[state.currentMonth] = {
-      income: state.income,
+      income: incomeTotal, // já consolidado
+      incomeBase: state.income,
+      extraIncomes: (state.extraIncomes || []).slice(),
       method: state.method,
       categories: cloneCats(state.categories),
       expenses: state.expenses.slice(),
@@ -3027,6 +3168,7 @@
       closedAt: Date.now(),
     };
     state.expenses = [];
+    state.extraIncomes = []; // entradas extras são por mês, zera ao fechar
     // Advance current month
     const [y, m] = state.currentMonth.split('-').map(Number);
     const next = new Date(y, m, 1); // month is 0-based, +1 from m-1
@@ -3137,6 +3279,66 @@
       // Show moon when in light mode (clicking goes to dark), sun when in dark mode
       icon.innerHTML = state.theme === 'dark' ? SUN_ICON : MOON_ICON;
     }
+  }
+
+  // ==================== ENTRADAS EXTRAS ====================
+  function renderExtraIncomes() {
+    const list = document.getElementById('extrasList');
+    const badge = document.getElementById('extraTotalBadge');
+    if (!list) return;
+    const extras = Array.isArray(state.extraIncomes) ? state.extraIncomes : [];
+    const total = totalExtraIncome();
+    if (badge) {
+      badge.textContent = total > 0 ? '+ ' + fmtBRL(total) : '';
+      badge.classList.toggle('show', total > 0);
+    }
+    list.innerHTML = '';
+    if (extras.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'empty';
+      li.textContent = 'Nenhuma entrada extra ainda.';
+      list.appendChild(li);
+      return;
+    }
+    // Most recent first
+    [...extras].sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)).forEach(ex => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="name">${escapeHtml(ex.name)}</span>` +
+                     `<span class="value">+${fmtBRL(ex.value)}</span>` +
+                     `<button type="button" class="del" data-id="${ex.id}" title="Remover">×</button>`;
+      list.appendChild(li);
+    });
+    list.querySelectorAll('.del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const removed = state.extraIncomes.find(x => x.id === id);
+        state.extraIncomes = state.extraIncomes.filter(x => x.id !== id);
+        saveState();
+        renderExtraIncomes();
+        renderSummary();
+        renderCategories();
+        renderPieChart();
+        if (removed) {
+          showUndoToast(`"${removed.name}" removida.`, () => {
+            state.extraIncomes.push(removed);
+            saveState();
+            renderExtraIncomes();
+            renderSummary();
+            renderCategories();
+            renderPieChart();
+          });
+        }
+      });
+    });
+  }
+
+  function toggleExtraBlock(force) {
+    const body = document.getElementById('extraBody');
+    const toggle = document.getElementById('extraToggle');
+    const open = typeof force === 'boolean' ? force : !body.classList.contains('open');
+    body.classList.toggle('open', open);
+    toggle.classList.toggle('open', open);
+    if (open) setTimeout(() => document.getElementById('extraName').focus(), 100);
   }
 
   // ==================== NOTES (bloco de feedback) ====================
@@ -3296,6 +3498,8 @@
     renderNotes();
     const notesPanel = document.getElementById('notesPanel');
     if (notesPanel) notesPanel.classList.toggle('show', !!state.ui.notesOpen);
+    // Render entradas extras
+    renderExtraIncomes();
   }
 
   function switchTabSilent(name) {
@@ -3508,6 +3712,32 @@
 
     // Settings
     document.getElementById('settingsBtn').addEventListener('click', (e) => openSettingsMenu(e.currentTarget));
+
+    // ============ ENTRADAS EXTRAS ============
+    document.getElementById('extraToggle').addEventListener('click', () => toggleExtraBlock());
+    document.getElementById('extraForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('extraName').value.trim();
+      const value = parseNumber(document.getElementById('extraValue').value);
+      if (!name) { showToast('Digite o nome da entrada.', 'error'); return; }
+      if (value <= 0) { showToast('Valor deve ser maior que zero.', 'error'); return; }
+      if (!Array.isArray(state.extraIncomes)) state.extraIncomes = [];
+      state.extraIncomes.push({
+        id: newId('x'),
+        name,
+        value,
+        addedAt: Date.now(),
+      });
+      saveState();
+      document.getElementById('extraName').value = '';
+      document.getElementById('extraValue').value = '';
+      renderExtraIncomes();
+      renderSummary();
+      renderCategories();
+      renderPieChart();
+      showToast(`+${fmtBRL(value)} adicionado!`, 'success');
+      document.getElementById('extraName').focus();
+    });
 
     // ============ NOTES (bloco de feedback) ============
     document.getElementById('notesFab').addEventListener('click', () => toggleNotesPanel());
