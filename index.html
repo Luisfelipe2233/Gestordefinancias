@@ -1011,6 +1011,14 @@
     font-size: 12px;
     padding: 24px 8px;
   }
+  .notes-footer {
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--text-mute);
+    text-align: center;
+    border-top: 1px solid var(--border);
+    background: var(--surface-alt);
+  }
 
   /* Mobile: ajusta posição pra não cobrir conteúdo importante */
   @media (max-width: 760px) {
@@ -1774,6 +1782,7 @@
     <button id="noteAddBtn" title="Adicionar nota (Ctrl+Enter)">+</button>
   </div>
   <ul class="notes-list" id="notesList"></ul>
+  <div class="notes-footer">💌 Suas notas chegam ao autor para melhorar o app.</div>
 </div>
 
 <!-- ============ TOAST ============ -->
@@ -1786,6 +1795,10 @@
   // ==================== CONSTANTS ====================
   const STORAGE_KEY = 'gfp_state_v2';
   const OLD_STORAGE_KEY = 'gfp_state_v1';
+
+  // Webhook padrão (do autor) — testers enviam pra cá automaticamente.
+  // Usuários podem sobrescrever via configurações se quiserem usar a própria planilha.
+  const DEFAULT_NOTES_WEBHOOK = 'https://script.google.com/macros/s/AKfycbx5b-oXGclAbzhzhL02Dvq8k5djvY4WWV-M2loPfQfJl67hrcQ-OQCWNHncLRBCDoPt/exec';
 
   const COLOR_PALETTE = [
     '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
@@ -3295,9 +3308,17 @@
     const deviceName = state.deviceName || '';
     const pendingCount = (state.notes || []).filter(n => !n.syncedAt).length;
     const totalCount = (state.notes || []).length;
+    const isUsingDefault = !currentUrl && DEFAULT_NOTES_WEBHOOK;
     openModal(`
       <h3>📊 Conectar com Google Sheets</h3>
-      <p class="modal-sub">Envia suas notas/feedback automaticamente para uma planilha sua no Google Sheets.</p>
+      <p class="modal-sub">Envia suas notas/feedback automaticamente para uma planilha do Google Sheets.</p>
+
+      ${isUsingDefault ? `
+        <div style="background:var(--success-soft); padding:12px 14px; border-radius:10px; margin-bottom:14px; border-left:3px solid var(--success); font-size:13px;">
+          ✅ <strong>Já está funcionando!</strong> Suas notas vão automaticamente para a planilha do autor do app.
+          Se quiser usar sua <em>própria</em> planilha, cole uma URL personalizada abaixo.
+        </div>
+      ` : ''}
 
       <details style="margin-bottom:16px; background:var(--surface-alt); border-radius:10px; padding:12px;">
         <summary style="cursor:pointer; font-weight:600; font-size:13px; color:var(--primary-dark);">📖 Como configurar (5 minutos)</summary>
@@ -3351,9 +3372,13 @@ function doGet() {
       </div>
 
       <div class="form-row" style="margin-bottom:14px;">
-        <label>URL do webhook (Apps Script)</label>
+        <label>URL do webhook (personalizada — opcional)</label>
         <input type="text" id="syncUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(currentUrl)}" />
-        <div style="font-size:11px; color:var(--text-mute); margin-top:4px;">Deixa em branco pra desativar a sincronização.</div>
+        <div style="font-size:11px; color:var(--text-mute); margin-top:4px;">
+          ${isUsingDefault
+            ? 'Deixe em branco para continuar usando a planilha do autor (atual). Cole uma URL própria pra redirecionar para a sua.'
+            : 'Cole uma URL personalizada de Apps Script. Deixe em branco para usar a do autor por padrão.'}
+        </div>
       </div>
 
       ${totalCount > 0 ? `<div style="background:var(--primary-soft); padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
@@ -3707,8 +3732,16 @@ function doGet() {
   }
 
   // ==================== SINCRONIZAÇÃO COM GOOGLE SHEETS ====================
+  // Retorna a URL ativa: configurada manualmente OU padrão do autor
+  function getActiveWebhookUrl() {
+    const custom = (state.notesWebhookUrl || '').trim();
+    if (custom) return custom;
+    if (DEFAULT_NOTES_WEBHOOK && DEFAULT_NOTES_WEBHOOK !== '') return DEFAULT_NOTES_WEBHOOK;
+    return '';
+  }
+
   function syncNoteToSheet(note) {
-    const url = (state.notesWebhookUrl || '').trim();
+    const url = getActiveWebhookUrl();
     if (!url) return; // não configurado, ignora silenciosamente
     const payload = {
       text: note.text,
@@ -3755,7 +3788,7 @@ function doGet() {
 
   // Sincroniza TODAS as notas que ainda não foram enviadas
   function syncAllPendingNotes() {
-    const url = (state.notesWebhookUrl || '').trim();
+    const url = getActiveWebhookUrl();
     if (!url) {
       showToast('Configure a URL do Google Sheets primeiro.', 'error');
       return;
@@ -3854,8 +3887,8 @@ function doGet() {
     renderNotes();
     const notesPanel = document.getElementById('notesPanel');
     if (notesPanel) notesPanel.classList.toggle('show', !!state.ui.notesOpen);
-    // Status inicial do sync
-    setSyncStatus((state.notesWebhookUrl && state.notesWebhookUrl.trim()) ? 'idle' : 'off');
+    // Status inicial do sync (idle se houver URL ativa — configurada OU padrão)
+    setSyncStatus(getActiveWebhookUrl() ? 'idle' : 'off');
     // Render entradas extras
     renderExtraIncomes();
   }
