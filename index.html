@@ -732,6 +732,21 @@
   .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.55; }
   .empty-state .hint { font-size: 12px; margin-top: 6px; opacity: 0.8; }
 
+  /* ==================== META PADRÃO (badge) ==================== */
+  .default-goal-badge {
+    display: inline-block;
+    background: var(--warning);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+
   /* ==================== ENTRADAS EXTRAS (renda) ==================== */
   .extra-incomes-block {
     margin-top: 14px;
@@ -1891,6 +1906,7 @@
         search: '',
         filter: 'all',
         notesOpen: false,
+        defaultGoalId: '', // meta padrão para receber o saldo ao fechar o mês
       },
     };
   }
@@ -2552,11 +2568,13 @@
           deadlineLabel = `Prazo: ${deadlineStr} (vencido há ${-daysLeft} dias)`;
         }
       }
+      const isDefault = state.ui.defaultGoalId === goal.id;
       card.innerHTML = `
         <div class="goal-head">
           <div class="goal-name">
             <span class="dot" style="background:${goal.color}"></span>
             ${escapeHtml(goal.name)}
+            ${isDefault ? '<span class="default-goal-badge" title="Meta padrão — recebe o saldo ao fechar o mês">⭐ padrão</span>' : ''}
           </div>
           <div class="goal-actions">
             <button data-action="edit" data-id="${goal.id}" title="Editar / Excluir">✎</button>
@@ -3049,12 +3067,15 @@
         if (!confirm(`Excluir a meta "${goal.name}"?`)) return;
         // BUGFIX #14: undo for goal deletion
         const backup = { ...goal };
+        const wasDefault = state.ui.defaultGoalId === goal.id;
         state.goals = state.goals.filter(g => g.id !== goal.id);
+        if (wasDefault) state.ui.defaultGoalId = ''; // limpa meta padrão se foi a deletada
         saveState();
         renderGoals();
         closeModal();
         showUndoToast(`Meta "${backup.name}" excluída.`, () => {
           state.goals.push(backup);
+          if (wasDefault) state.ui.defaultGoalId = backup.id; // restaura como padrão
           saveState();
           renderGoals();
           showToast('Meta restaurada.', 'success');
@@ -3073,6 +3094,49 @@
     const extras = totalExtraIncome();
     const incomeTotal = effectiveIncome();
     const saved = incomeTotal - totalSpent;
+    const hasGoals = Array.isArray(state.goals) && state.goals.length > 0;
+    const canTransfer = saved > 0 && hasGoals;
+    // Decide a default selected goal: last-used if still exists, else first
+    const defaultGid = (state.ui.defaultGoalId && state.goals.find(g => g.id === state.ui.defaultGoalId))
+      ? state.ui.defaultGoalId
+      : (hasGoals ? state.goals[0].id : '');
+
+    let goalSection = '';
+    if (canTransfer) {
+      const goalOpts = state.goals.map(g => {
+        const pct = g.target > 0 ? Math.min((g.current / g.target) * 100, 100) : 0;
+        const sel = g.id === defaultGid ? 'selected' : '';
+        return `<option value="${g.id}" ${sel}>${escapeHtml(g.name)} (${Math.round(pct)}% — ${fmtBRL(g.current)} / ${fmtBRL(g.target)})</option>`;
+      }).join('');
+      goalSection = `
+        <div style="background:var(--success-soft); padding:14px; border-radius:10px; margin-bottom:14px; border-left:3px solid var(--success);">
+          <div style="font-size:13px; font-weight:600; color:var(--success-dark); margin-bottom:8px;">
+            💰 Sobrou ${fmtBRL(saved)} — transferir para uma meta?
+          </div>
+          <select id="closeMonthGoalSelect" style="margin-bottom:8px;">
+            ${goalOpts}
+            <option value="__none__">— Não transferir, só arquivar —</option>
+          </select>
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-soft); cursor:pointer; user-select:none;">
+            <input type="checkbox" id="closeMonthAutoDefault" checked style="width:auto; margin:0;" />
+            Lembrar essa meta como padrão pros próximos meses
+          </label>
+        </div>
+      `;
+    } else if (saved > 0 && !hasGoals) {
+      goalSection = `
+        <div style="background:var(--primary-soft); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
+          💡 Você ainda não tem metas. Crie uma na aba <strong>Metas</strong> antes de fechar pra guardar o saldo automaticamente.
+        </div>
+      `;
+    } else if (saved <= 0) {
+      goalSection = `
+        <div style="background:var(--danger-bg); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--danger);">
+          ⚠ Não houve sobra este mês — nada será transferido pra metas.
+        </div>
+      `;
+    }
+
     openModal(`
       <h3>Fechar Mês — ${capitalize(fmtMonthName(state.currentMonth))}</h3>
       <p class="modal-sub">Os dados deste mês serão arquivados no histórico. Sua renda base e categorias continuam. Despesas e entradas extras serão zeradas.</p>
@@ -3094,16 +3158,28 @@
           <strong style="color:${saved >= 0 ? 'var(--success-dark)' : 'var(--danger)'}">${fmtBRL(saved)}</strong>
         </div>
       </div>
+      ${goalSection}
       <div class="modal-actions">
         <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
         <button type="button" class="btn-primary" data-act="confirm">✓ Fechar Mês</button>
       </div>
     `);
-    // BUGFIX #12: scope to modal content (avoids matching stale buttons elsewhere)
+    // BUGFIX #12: scope to modal content
     const modal = document.getElementById('modalContent');
     modal.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
     modal.querySelector('[data-act="confirm"]').addEventListener('click', () => {
-      closeMonth();
+      // Get goal selection (if available)
+      let goalId = null;
+      const sel = modal.querySelector('#closeMonthGoalSelect');
+      const autoChk = modal.querySelector('#closeMonthAutoDefault');
+      if (sel && sel.value && sel.value !== '__none__') {
+        goalId = sel.value;
+        // Save as default if checked
+        if (autoChk && autoChk.checked) {
+          state.ui.defaultGoalId = goalId;
+        }
+      }
+      closeMonth(goalId);
       closeModal();
     });
   }
@@ -3153,11 +3229,21 @@
   }
 
   // ==================== CLOSE MONTH ====================
-  function closeMonth() {
+  function closeMonth(transferToGoalId) {
     const totalSpent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
     const incomeTotal = effectiveIncome(); // base + extras
+    const saved = incomeTotal - totalSpent;
+    // Transferir saldo para meta, se solicitado e saldo positivo
+    let transferred = null;
+    if (transferToGoalId && saved > 0) {
+      const goal = state.goals.find(g => g.id === transferToGoalId);
+      if (goal) {
+        goal.current = Number(goal.current || 0) + saved;
+        transferred = { name: goal.name, amount: saved };
+      }
+    }
     state.history[state.currentMonth] = {
-      income: incomeTotal, // já consolidado
+      income: incomeTotal,
       incomeBase: state.income,
       extraIncomes: (state.extraIncomes || []).slice(),
       method: state.method,
@@ -3165,6 +3251,8 @@
       expenses: state.expenses.slice(),
       totalSpent,
       expenseCount: state.expenses.length,
+      transferredToGoalId: transferToGoalId || null,
+      transferredAmount: transferred ? transferred.amount : 0,
       closedAt: Date.now(),
     };
     state.expenses = [];
@@ -3177,7 +3265,11 @@
     state.recurring.forEach(r => applyRecurringForCurrentMonth(r));
     saveState();
     renderAll();
-    showToast(`Mês fechado! Bem-vindo ao ${capitalize(fmtMonthName(state.currentMonth))}.`, 'success');
+    if (transferred) {
+      showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} transferido pra "${transferred.name}".`, 'success');
+    } else {
+      showToast(`Mês fechado! Bem-vindo ao ${capitalize(fmtMonthName(state.currentMonth))}.`, 'success');
+    }
   }
 
   function applyRecurringForCurrentMonth(rec) {
