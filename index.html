@@ -790,12 +790,198 @@
 
   .empty-state {
     text-align: center;
-    padding: 36px 20px;
+    padding: 56px 24px;
     color: var(--text-mute);
     font-size: 14px;
   }
   .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.55; }
   .empty-state .hint { font-size: 12px; margin-top: 6px; opacity: 0.8; }
+
+  /* ==================== EMPTY STATES ILUSTRADOS (E) ==================== */
+  .empty-state .empty-illust-wrap {
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 22px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .empty-state .empty-illust-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--success-soft) 100%);
+    z-index: 0;
+  }
+  .empty-state .empty-illust-wrap::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--success-soft) 100%);
+    opacity: 0.4;
+    z-index: -1;
+    animation: emptyPulse 3.5s ease-in-out infinite;
+  }
+  @keyframes emptyPulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.12); opacity: 0.15; }
+  }
+  .empty-state .empty-illust {
+    width: 56px;
+    height: 56px;
+    color: var(--primary);
+    position: relative;
+    z-index: 1;
+    animation: emptyFloat 4s ease-in-out infinite;
+  }
+  @keyframes emptyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .empty-state h3 {
+    font-size: 17px;
+    margin: 0 0 6px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.015em;
+  }
+  .empty-state .empty-desc {
+    font-size: 14px;
+    color: var(--text-mute);
+    max-width: 340px;
+    margin: 0 auto;
+    line-height: 1.55;
+  }
+  .empty-state .empty-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: transform 0.15s var(--ease-out-cubic), background 0.18s ease;
+  }
+  .empty-state .empty-cta:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  .empty-state .empty-cta:active { transform: scale(0.96); }
+
+  /* ==================== DARK MODE REFINADO (G) ==================== */
+  [data-theme="dark"] .card,
+  [data-theme="dark"] .summary-tile,
+  [data-theme="dark"] .cat-card,
+  [data-theme="dark"] .goal-card,
+  [data-theme="dark"] .history-item,
+  [data-theme="dark"] .chart-card {
+    background: linear-gradient(180deg, var(--surface) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+  [data-theme="dark"] .cat-card:hover,
+  [data-theme="dark"] .goal-card:hover,
+  [data-theme="dark"] .history-item:hover {
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 0 0 1px var(--primary-soft),
+      0 0 20px rgba(59, 130, 246, 0.15);
+  }
+  [data-theme="dark"] body {
+    background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.06) 0%, var(--bg) 60%);
+    background-attachment: fixed;
+  }
+  [data-theme="dark"] .brand-icon {
+    box-shadow:
+      var(--shadow-md),
+      0 0 24px rgba(59, 130, 246, 0.35);
+  }
+  [data-theme="dark"] .tab-btn.active {
+    box-shadow:
+      0 2px 12px rgba(59, 130, 246, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+  [data-theme="dark"] .btn-primary {
+    box-shadow:
+      0 2px 8px rgba(59, 130, 246, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+  [data-theme="dark"] .btn-primary:hover {
+    box-shadow:
+      0 4px 14px rgba(59, 130, 246, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+  [data-theme="dark"] .login-card {
+    background: linear-gradient(180deg, var(--surface) 0%, rgba(30, 41, 59, 0.9) 100%);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+  [data-theme="dark"] .login-google-btn {
+    background: #fff;
+    color: #1a2238;
+  }
+  [data-theme="dark"] .login-google-btn:hover {
+    background: #f0f3f9;
+  }
+  [data-theme="dark"] .login-screen {
+    background:
+      radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(52, 211, 153, 0.08) 0%, transparent 50%),
+      var(--bg);
+  }
+
+  /* ==================== MICROCELEBRAÇÕES (F) ==================== */
+  /* Texto flutuante "+R$" */
+  .floating-money {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99999;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    will-change: transform, opacity;
+    font-variant-numeric: tabular-nums;
+  }
+  .floating-money.positive { color: var(--success-dark); }
+  .floating-money.negative { color: var(--danger); }
+
+  /* Sparkle no theme toggle */
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99999;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #fff 0%, var(--warning) 70%, transparent 100%);
+    border-radius: 50%;
+    will-change: transform, opacity;
+  }
+
+  /* Goal card próximo à conclusão pulsa sutilmente */
+  .goal-card.near-complete .goal-progress-bar {
+    box-shadow: 0 0 12px currentColor;
+    animation: goalPulse 2s ease-in-out infinite;
+  }
+  @keyframes goalPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.15); }
+  }
+
+  /* Cat card "estourou" — shake sutil ao aparecer */
+  @keyframes overShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-1px); }
+  }
+  .cat-card.over { animation: cardSlideUp 0.45s var(--ease-out-smooth) both, overShake 0.5s ease 0.4s; }
 
   /* ==================== META PADRÃO (badge) ==================== */
   .default-goal-badge {
@@ -2892,11 +3078,9 @@
     const income = effectiveIncome(); // base + extras
 
     if (income <= 0) {
-      grid.innerHTML = `
-        <div class="empty-state" style="grid-column: 1/-1;">
-          <div class="icon">💰</div>
-          <div>Digite sua renda mensal acima pra ver o orçamento de cada pote.</div>
-        </div>`;
+      grid.innerHTML = `<div style="grid-column: 1/-1;">${
+        emptyStateHtml('wallet', 'Comece pela renda', 'Digite seu salário ou receita mensal lá em cima para ver o orçamento distribuído em cada categoria.', 'Digitar renda', 'focusIncome')
+      }</div>`;
       renderSummary();
       return;
     }
@@ -3010,12 +3194,21 @@
     list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     if (list.length === 0) {
-      ul.innerHTML = `
-        <li class="empty-state">
-          <div class="icon">📝</div>
-          <div>${state.expenses.length === 0 ? 'Nenhuma despesa registrada ainda.' : 'Nenhuma despesa encontrada com esses filtros.'}</div>
-          <div class="hint">${state.expenses.length === 0 ? 'Use o formulário acima pra adicionar a primeira.' : 'Tente limpar a busca ou trocar o filtro.'}</div>
-        </li>`;
+      if (state.expenses.length === 0) {
+        ul.innerHTML = '<li>' + emptyStateHtml(
+          'receipt',
+          'Nenhuma despesa ainda',
+          'Comece registrando seu primeiro gasto do mês. Pode ser o café, o iFood, o que for — eu sugiro a categoria automaticamente.',
+          'Adicionar despesa',
+          'goToExpenses'
+        ) + '</li>';
+      } else {
+        ul.innerHTML = '<li>' + emptyStateHtml(
+          'receipt',
+          'Nenhum resultado',
+          'Nenhuma despesa bate com os filtros que você aplicou. Tenta limpar a busca ou mudar a categoria.'
+        ) + '</li>';
+      }
       return;
     }
 
@@ -3055,12 +3248,13 @@
     const ul = document.getElementById('recurringList');
     ul.innerHTML = '';
     if (state.recurring.length === 0) {
-      ul.innerHTML = `
-        <li class="empty-state">
-          <div class="icon">↻</div>
-          <div>Nenhuma despesa recorrente.</div>
-          <div class="hint">Cadastre coisas como aluguel, Netflix, internet pra não digitar todo mês.</div>
-        </li>`;
+      ul.innerHTML = '<li>' + emptyStateHtml(
+        'recurring',
+        'Sem recorrentes',
+        'Cadastre seus gastos fixos (aluguel, Netflix, internet) e elas viram automáticas todo mês.',
+        'Adicionar recorrente',
+        'addRecurring'
+      ) + '</li>';
       return;
     }
     state.recurring.forEach(rec => {
@@ -3088,19 +3282,23 @@
     const grid = document.getElementById('goalsGrid');
     grid.innerHTML = '';
     if (state.goals.length === 0) {
-      grid.innerHTML = `
-        <div class="empty-state" style="grid-column: 1/-1;">
-          <div class="icon">🎯</div>
-          <div>Nenhuma meta cadastrada ainda.</div>
-          <div class="hint">Defina objetivos como "viagem", "carro novo", "reserva de emergência".</div>
-        </div>`;
+      grid.innerHTML = `<div style="grid-column: 1/-1;">${
+        emptyStateHtml(
+          'target',
+          'Você tem um sonho?',
+          'Crie uma meta de poupança com valor objetivo e prazo. A cada mês fechado com sobra, você pode jogar pra ela automaticamente.',
+          'Criar primeira meta',
+          'addGoal'
+        )
+      }</div>`;
       return;
     }
     state.goals.forEach(goal => {
       const pct = goal.target > 0 ? Math.min((goal.current / goal.target) * 100, 100) : 0;
       const remaining = Math.max(0, goal.target - goal.current);
       const card = document.createElement('div');
-      card.className = 'goal-card';
+      const isNearComplete = pct >= 85 && pct < 100;
+      card.className = 'goal-card' + (isNearComplete ? ' near-complete' : '');
       const deadlineStr = goal.deadline ? formatDateBR(goal.deadline) : null;
       let deadlineLabel = '';
       if (deadlineStr) {
@@ -3187,12 +3385,11 @@
     ul.innerHTML = '';
     const months = Object.keys(state.history).sort().reverse();
     if (months.length === 0) {
-      ul.innerHTML = `
-        <li class="empty-state">
-          <div class="icon">📈</div>
-          <div>Nenhum mês fechado ainda.</div>
-          <div class="hint">Quando fechar o mês atual, ele vai aparecer aqui.</div>
-        </li>`;
+      ul.innerHTML = '<li>' + emptyStateHtml(
+        'archive',
+        'Histórico vazio',
+        'Quando você fechar o mês atual (botão acima), ele vai pra cá arquivado. Útil pra acompanhar evolução ao longo do tempo.'
+      ) + '</li>';
       return;
     }
     months.forEach(ym => {
@@ -4118,6 +4315,9 @@ function doGet() {
     state.theme = state.theme === 'light' ? 'dark' : 'light';
     applyTheme();
     saveState();
+    // ✨ Sparkles ao redor do botão
+    const btn = document.getElementById('themeBtn');
+    if (btn) sparkleAround(btn, 10);
     showToast(state.theme === 'dark' ? '🌙 Tema escuro ativado.' : '☀ Tema claro ativado.', 'success');
   }
 
@@ -4240,6 +4440,131 @@ function doGet() {
     }
   }
 
+  // ==================== MICROCELEBRAÇÕES (F) ====================
+  // Texto "+R$ XX" flutua e some
+  function floatingMoney(amount, sourceEl, isPositive) {
+    const el = document.createElement('div');
+    el.className = 'floating-money ' + (isPositive ? 'positive' : 'negative');
+    el.textContent = (isPositive ? '+' : '-') + fmtBRL(Math.abs(amount));
+    let x = window.innerWidth / 2, y = window.innerHeight / 2;
+    if (sourceEl && sourceEl.getBoundingClientRect) {
+      const rect = sourceEl.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.transform = 'translate(-50%, -50%)';
+    document.body.appendChild(el);
+    const start = performance.now();
+    const duration = 1400;
+    function tick(now) {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      if (t >= 1) { el.remove(); return; }
+      const eased = 1 - Math.pow(1 - t, 2);
+      const upY = -90 * eased;
+      const scale = 1 + 0.15 * Math.sin(t * Math.PI);
+      const opacity = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
+      el.style.transform = `translate(-50%, calc(-50% + ${upY}px)) scale(${scale})`;
+      el.style.opacity = String(opacity);
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // Sparkles dispersam (theme toggle, goal achievement, etc.)
+  function sparkleAround(sourceEl, count) {
+    count = count || 12;
+    let originX = window.innerWidth / 2, originY = window.innerHeight / 2;
+    if (sourceEl && sourceEl.getBoundingClientRect) {
+      const r = sourceEl.getBoundingClientRect();
+      originX = r.left + r.width / 2;
+      originY = r.top + r.height / 2;
+    }
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'sparkle';
+      el.style.left = originX + 'px';
+      el.style.top = originY + 'px';
+      el.style.transform = 'translate(-50%, -50%)';
+      document.body.appendChild(el);
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const distance = 40 + Math.random() * 40;
+      const duration = 600 + Math.random() * 300;
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        if (t >= 1) { el.remove(); return; }
+        const eased = 1 - Math.pow(1 - t, 3);
+        const x = Math.cos(angle) * distance * eased;
+        const y = Math.sin(angle) * distance * eased;
+        const scale = 1 - t;
+        el.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+        el.style.opacity = String(1 - t);
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+  }
+
+  // ==================== ÍCONES SVG PARA EMPTY STATES (E) ====================
+  const EMPTY_ICONS = {
+    wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>',
+    receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2z"/><path d="M16 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg>',
+    recurring: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>',
+    target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+    archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>',
+    notepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
+    barChart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+  };
+
+  function emptyStateHtml(iconKey, title, desc, ctaText, ctaAction) {
+    const cta = ctaText && ctaAction
+      ? `<button class="empty-cta" data-empty-cta="${ctaAction}">${escapeHtml(ctaText)} →</button>`
+      : '';
+    return `<div class="empty-state empty-state-illustrated">
+      <div class="empty-illust-wrap">
+        <div class="empty-illust">${EMPTY_ICONS[iconKey] || EMPTY_ICONS.notepad}</div>
+      </div>
+      <h3>${escapeHtml(title)}</h3>
+      <p class="empty-desc">${escapeHtml(desc)}</p>
+      ${cta}
+    </div>`;
+  }
+
+  // Wire up CTAs (delegação no body)
+  document.addEventListener('click', (e) => {
+    const cta = e.target.closest('[data-empty-cta]');
+    if (!cta) return;
+    const action = cta.dataset.emptyCta;
+    if (action === 'focusIncome') {
+      switchTab('painel');
+      setTimeout(() => {
+        const el = document.getElementById('income');
+        if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      }, 200);
+    } else if (action === 'goToExpenses') {
+      switchTab('despesas');
+      setTimeout(() => {
+        const el = document.getElementById('expName');
+        if (el) el.focus();
+      }, 300);
+    } else if (action === 'addGoal') {
+      switchTab('metas');
+      setTimeout(() => {
+        const btn = document.getElementById('addGoalBtn');
+        if (btn) btn.click();
+      }, 300);
+    } else if (action === 'addRecurring') {
+      switchTab('despesas');
+      setTimeout(() => {
+        const btn = document.getElementById('addRecurringBtn');
+        if (btn) btn.click();
+      }, 300);
+    }
+  });
+
   // ==================== NOTES (bloco de feedback) ====================
   function renderNotes() {
     const list = document.getElementById('notesList');
@@ -4252,7 +4577,14 @@ function doGet() {
     if (notes.length === 0) {
       const li = document.createElement('li');
       li.className = 'notes-empty';
-      li.innerHTML = '✨ Sem notas ainda<br/>Escreva acima ideias do que melhorar pra depois.';
+      li.style.padding = '24px 12px';
+      li.innerHTML = `
+        <div style="width:54px; height:54px; margin:0 auto 12px; border-radius:50%; background:linear-gradient(135deg,var(--primary-soft),var(--success-soft)); display:flex; align-items:center; justify-content:center; color:var(--primary);">
+          ${EMPTY_ICONS.notepad}
+        </div>
+        <div style="font-weight:600; color:var(--text); margin-bottom:4px;">Sem notas ainda</div>
+        <div style="font-size:12px;">Escreva acima ideias do que melhorar pra depois.</div>
+      `;
       list.appendChild(li);
       return;
     }
@@ -4619,6 +4951,9 @@ function doGet() {
       });
       teach(name, categoryId);
       saveState();
+      // 💸 Microcelebração: "-R$" sobe do botão
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) floatingMoney(value, submitBtn, false);
       document.getElementById('expName').value = '';
       document.getElementById('expValue').value = '';
       document.getElementById('expDate').value = todayISO();
@@ -4705,6 +5040,9 @@ function doGet() {
         addedAt: Date.now(),
       });
       saveState();
+      // 💰 Microcelebração: "+R$" sobe do botão verde
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) floatingMoney(value, submitBtn, true);
       document.getElementById('extraName').value = '';
       document.getElementById('extraValue').value = '';
       renderExtraIncomes();
