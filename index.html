@@ -8,11 +8,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Finanças" />
-<title>Gestão Financeira Pessoal</title>
+<title>Munny — Gestor de finanças</title>
 <link rel="manifest" href='data:application/manifest+json,{"name":"Gestão Financeira Pessoal","short_name":"Finanças","start_url":".","display":"standalone","background_color":"%23f5f7fb","theme_color":"%232563eb","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%232563eb%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}' />
 <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%232563eb"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold">R$</text></svg>' />
 <!-- BUGFIX #16: Apple touch icon — generated at runtime as PNG via canvas (see init) -->
 <link rel="apple-touch-icon" id="appleTouchIcon" />
+<!-- Firebase SDK (compat mode para uso global no IIFE existente) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <style>
   /* ==================== THEME ==================== */
   :root, [data-theme="light"] {
@@ -829,6 +833,173 @@
     .extra-body form > div { grid-template-columns: 1fr !important; }
   }
 
+  /* ==================== TELA DE LOGIN ==================== */
+  .login-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, var(--bg) 0%, var(--surface-alt) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 9999;
+    overflow-y: auto;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    animation: loginFadeIn 0.4s ease;
+  }
+  @keyframes loginFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .login-brand-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    margin: 0 auto 18px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+  }
+  .login-brand-icon svg { width: 38px; height: 38px; }
+  .login-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .login-tagline {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+  .login-desc {
+    margin: 0 0 28px;
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .login-google-btn {
+    width: 100%;
+    background: #fff;
+    color: #1a2238;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .login-google-btn:hover {
+    background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .login-google-btn:active { transform: translateY(0); }
+  .login-google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .login-footer {
+    margin: 22px 0 0;
+    font-size: 11px;
+    color: var(--text-mute);
+    line-height: 1.5;
+  }
+  .login-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+    color: var(--text-soft);
+    font-size: 14px;
+  }
+  .login-loading.show { display: flex; }
+  .login-loading.hidden { display: none; }
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* User info na settings */
+  .user-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface-alt);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .user-info-bar img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .user-info-bar .user-info-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .user-info-bar .user-info-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .user-info-bar .user-info-email {
+    font-size: 11px;
+    color: var(--text-mute);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Cloud sync indicator no header */
+  .cloud-sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--surface-alt);
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 500;
+    margin-left: 8px;
+  }
+  .cloud-sync-badge.syncing { color: var(--warning); }
+  .cloud-sync-badge.ok { color: var(--success-dark); }
+  .cloud-sync-badge.error { color: var(--danger); }
+
   /* ==================== NOTES (bloco de feedback) ==================== */
   .notes-fab {
     position: fixed;
@@ -1518,7 +1689,37 @@
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- ============ TELA DE LOGIN ============ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1v22"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </div>
+    <h1 class="login-title">Munny</h1>
+    <p class="login-tagline">Seu money de um jeito mais leve.</p>
+    <p class="login-desc">Entre com sua conta Google para acessar seu painel financeiro. Seus dados ficam salvos em qualquer dispositivo.</p>
+    <button class="login-google-btn" id="googleLoginBtn" type="button">
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+      </svg>
+      <span>Entrar com Google</span>
+    </button>
+    <p class="login-footer">Ao continuar você concorda com nossos Termos. Seus dados financeiros ficam privados — só você acessa.</p>
+    <div class="login-loading hidden" id="loginLoading">
+      <div class="spinner"></div>
+      <span>Entrando...</span>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none;">
 
   <!-- ============ HEADER ============ -->
   <header class="app-header">
@@ -1530,7 +1731,7 @@
         </svg>
       </div>
       <div>
-        <h1>Gestão Financeira</h1>
+        <h1>Munny <span class="cloud-sync-badge" id="cloudSyncBadge">☁ na nuvem</span></h1>
         <p id="currentPeriodLabel">—</p>
       </div>
     </div>
@@ -1799,6 +2000,40 @@
   // Webhook padrão (do autor) — testers enviam pra cá automaticamente.
   // Usuários podem sobrescrever via configurações se quiserem usar a própria planilha.
   const DEFAULT_NOTES_WEBHOOK = 'https://script.google.com/macros/s/AKfycbx5b-oXGclAbzhzhL02Dvq8k5djvY4WWV-M2loPfQfJl67hrcQ-OQCWNHncLRBCDoPt/exec';
+
+  // ==================== FIREBASE INIT ====================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAI5EOG5h616-GDATCMxOdGcdya6TTRAYw",
+    authDomain: "munny-d72cd.firebaseapp.com",
+    projectId: "munny-d72cd",
+    storageBucket: "munny-d72cd.firebasestorage.app",
+    messagingSenderId: "893434197602",
+    appId: "1:893434197602:web:5746a33be558f14170433b",
+    measurementId: "G-BXP39XGNNQ"
+  };
+
+  let firebaseApp = null;
+  let auth = null;
+  let db = null;
+  let currentUser = null;
+  let userDocRef = null;
+  let unsubscribeUserDoc = null;
+  let isApplyingRemoteUpdate = false;
+  const sessionId = Math.random().toString(36).slice(2, 12);
+
+  try {
+    if (typeof firebase !== 'undefined') {
+      firebaseApp = firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.firestore();
+      // Habilita persistência offline (Firestore guarda em IndexedDB)
+      db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        console.warn('Persistência offline não habilitada:', err.code);
+      });
+    }
+  } catch (e) {
+    console.error('Erro inicializando Firebase:', e);
+  }
 
   const COLOR_PALETTE = [
     '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
@@ -3259,6 +3494,15 @@
     openModal(`
       <h3>Configurações</h3>
       <p class="modal-sub">Backup, tema e ajustes gerais.</p>
+      ${currentUser ? `
+        <div class="user-info-bar">
+          ${currentUser.photoURL ? `<img src="${escapeHtml(currentUser.photoURL)}" alt="" referrerpolicy="no-referrer" />` : '<div style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">' + escapeHtml((currentUser.displayName || currentUser.email || '?').charAt(0).toUpperCase()) + '</div>'}
+          <div class="user-info-text">
+            <div class="user-info-name">${escapeHtml(currentUser.displayName || 'Sem nome')}</div>
+            <div class="user-info-email">${escapeHtml(currentUser.email || '')}</div>
+          </div>
+        </div>
+      ` : ''}
       <div class="settings-menu" style="border:none; padding:0; box-shadow:none;">
         <div class="label">Backup</div>
         <button class="item" data-act="export">📥 Exportar Backup (.json)</button>
@@ -3269,6 +3513,11 @@
         <div class="divider"></div>
         <div class="label">Sincronização</div>
         <button class="item" data-act="syncConfig">📊 Conectar com Google Sheets (notas)</button>
+        ${currentUser ? `
+          <div class="divider"></div>
+          <div class="label">Conta</div>
+          <button class="item" data-act="logout">↩ Sair da conta</button>
+        ` : ''}
         <div class="divider"></div>
         <div class="label">Zona de perigo</div>
         <button class="item danger" data-act="reset">🗑 Apagar todos os dados</button>
@@ -3291,6 +3540,8 @@
     });
     modal.querySelector('[data-act="theme"]').addEventListener('click', () => { toggleTheme(); closeModal(); });
     modal.querySelector('[data-act="syncConfig"]').addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
+    const logoutBtn = modal.querySelector('[data-act="logout"]');
+    if (logoutBtn) logoutBtn.addEventListener('click', () => { closeModal(); logout(); });
     modal.querySelector('[data-act="reset"]').addEventListener('click', () => {
       if (!confirm('Tem certeza que quer apagar TUDO? (renda, despesas, metas, histórico)\n\nFaça um backup antes (Exportar) se quiser ter como voltar.')) return;
       localStorage.removeItem(STORAGE_KEY);
@@ -4184,6 +4435,159 @@ function doGet() {
     } catch (e) { /* canvas/toDataURL unavailable: silently skip */ }
   }
 
+  // ==================== AUTH (login com Google) ====================
+  function showLoginScreen() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
+  function showMainApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+  }
+
+  function loginWithGoogle() {
+    if (!auth) {
+      showToast('Firebase não inicializou. Recarregue a página.', 'error');
+      return;
+    }
+    const btn = document.getElementById('googleLoginBtn');
+    const loading = document.getElementById('loginLoading');
+    btn.disabled = true;
+    loading.classList.remove('hidden');
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+      .then(() => {
+        // onAuthStateChanged vai tratar
+      })
+      .catch((err) => {
+        btn.disabled = false;
+        loading.classList.add('hidden');
+        if (err.code === 'auth/popup-closed-by-user') {
+          // Usuário cancelou, silencioso
+          return;
+        }
+        console.error('Erro no login:', err);
+        showToast('Erro ao entrar: ' + (err.message || err.code), 'error');
+      });
+  }
+
+  function logout() {
+    if (!auth) return;
+    if (!confirm('Sair da sua conta? Seus dados na nuvem ficam guardados.')) return;
+    if (unsubscribeUserDoc) { unsubscribeUserDoc(); unsubscribeUserDoc = null; }
+    auth.signOut().then(() => {
+      // Limpa estado local
+      state = defaultState();
+      currentUser = null;
+      userDocRef = null;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      showLoginScreen();
+      showToast('Saiu da conta.', 'success');
+    });
+  }
+
+  // ==================== CLOUD SYNC ====================
+  let cloudSaveTimer = null;
+  function scheduleCloudSave() {
+    if (!currentUser || !userDocRef) return;
+    if (isApplyingRemoteUpdate) return; // não escreve enquanto aplicamos uma atualização vinda da nuvem
+    if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+    setCloudSyncStatus('syncing');
+    cloudSaveTimer = setTimeout(() => saveStateToCloud(), 1500);
+  }
+
+  function saveStateToCloud() {
+    if (!currentUser || !userDocRef) return;
+    const payload = JSON.parse(JSON.stringify(state)); // deep clone, remove referências
+    payload.lastModifiedAt = firebase.firestore.FieldValue.serverTimestamp();
+    payload.lastModifiedBy = sessionId;
+    userDocRef.set(payload)
+      .then(() => setCloudSyncStatus('ok'))
+      .catch((err) => {
+        console.error('Erro salvando na nuvem:', err);
+        setCloudSyncStatus('error');
+      });
+  }
+
+  function setCloudSyncStatus(status) {
+    const badge = document.getElementById('cloudSyncBadge');
+    if (!badge) return;
+    badge.className = 'cloud-sync-badge ' + status;
+    if (status === 'syncing') badge.innerHTML = '☁ sincronizando...';
+    else if (status === 'ok') badge.innerHTML = '☁ sincronizado';
+    else if (status === 'error') badge.innerHTML = '⚠ erro de sync';
+    else badge.innerHTML = '☁ na nuvem';
+    // Volta pro normal depois de OK
+    if (status === 'ok') {
+      setTimeout(() => {
+        if (badge.classList.contains('ok')) {
+          badge.className = 'cloud-sync-badge';
+          badge.innerHTML = '☁ na nuvem';
+        }
+      }, 2500);
+    }
+  }
+
+  async function loadUserData(user) {
+    if (!db) return;
+    userDocRef = db.collection('users').doc(user.uid);
+    try {
+      const doc = await userDocRef.get();
+      if (doc.exists) {
+        // Já tem dados na nuvem — substitui local
+        const cloudData = doc.data();
+        isApplyingRemoteUpdate = true;
+        state = sanitizeImportedData(cloudData);
+        // Preserva alguns campos locais (ex: nome do dispositivo) se a nuvem não tiver
+        if (!state.deviceName) state.deviceName = '';
+        ensureRecurringForCurrentMonth();
+        saveState();
+        renderAll();
+        applyTheme();
+        isApplyingRemoteUpdate = false;
+      } else {
+        // Primeira vez logando — verifica se tem dados locais pra migrar
+        const hasLocalData = state.income > 0 || state.expenses.length > 0 ||
+                             state.goals.length > 0 || state.history && Object.keys(state.history).length > 0;
+        if (hasLocalData) {
+          // Mantém estado atual e sobe pra nuvem
+          await saveStateToCloud();
+          showToast('Bem-vindo! Seus dados locais foram salvos na sua conta.', 'success');
+        } else {
+          // Usuário novo zero — cria documento inicial
+          state = defaultState();
+          await saveStateToCloud();
+          showToast('Bem-vindo ao Munny! 💰', 'success');
+        }
+      }
+      // Configura listener em tempo real (sync entre dispositivos)
+      if (unsubscribeUserDoc) unsubscribeUserDoc();
+      unsubscribeUserDoc = userDocRef.onSnapshot((snapshot) => {
+        if (!snapshot.exists) return;
+        if (snapshot.metadata.hasPendingWrites) return; // mudança local
+        const remoteData = snapshot.data();
+        if (remoteData.lastModifiedBy === sessionId) return; // foi esta sessão
+        // Outra sessão/dispositivo mudou — aplica
+        isApplyingRemoteUpdate = true;
+        state = sanitizeImportedData(remoteData);
+        renderAll();
+        applyTheme();
+        isApplyingRemoteUpdate = false;
+        setCloudSyncStatus('ok');
+      });
+    } catch (err) {
+      console.error('Erro carregando dados:', err);
+      showToast('Erro ao carregar dados da nuvem.', 'error');
+    }
+  }
+
+  // Hook: cada saveState dispara cloud sync (se logado)
+  const originalSaveState = saveState;
+  saveState = function() {
+    originalSaveState.apply(this, arguments);
+    if (currentUser && !isApplyingRemoteUpdate) scheduleCloudSave();
+  };
+
   // ==================== INIT ====================
   storageAvailable = checkStorageAvailable();
   loadState();
@@ -4194,6 +4598,33 @@ function doGet() {
   generateAppleTouchIcon();
   if (!storageAvailable) {
     setTimeout(() => showToast('⚠ Armazenamento bloqueado (modo anônimo?). Seus dados NÃO serão salvos.', 'error'), 600);
+  }
+
+  // Login button
+  const loginBtn = document.getElementById('googleLoginBtn');
+  if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
+
+  // Auth state listener — controla login screen vs app
+  if (auth) {
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        showMainApp();
+        updateUserInfoBar(user);
+        await loadUserData(user);
+      } else {
+        currentUser = null;
+        showLoginScreen();
+      }
+    });
+  } else {
+    // Firebase não disponível — mostra a app mesmo (modo offline)
+    showMainApp();
+    console.warn('Firebase não disponível, rodando em modo offline-only.');
+  }
+
+  function updateUserInfoBar(user) {
+    // Será usado quando o menu settings abrir
   }
 })();
 </script>
