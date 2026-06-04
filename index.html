@@ -908,6 +908,18 @@
     align-items: center;
     gap: 6px;
   }
+  .notes-sync-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: background 0.2s ease;
+  }
+  .notes-sync-status.idle { background: var(--border); }
+  .notes-sync-status.syncing { background: var(--warning); animation: pulse 1s infinite; }
+  .notes-sync-status.ok { background: var(--success); }
+  .notes-sync-status.error { background: var(--danger); }
+  .notes-sync-status.off { background: var(--text-mute); opacity: 0.5; }
   .notes-header .notes-close {
     background: transparent;
     border: none;
@@ -1752,7 +1764,9 @@
 </button>
 <div class="notes-panel" id="notesPanel" role="dialog" aria-label="Bloco de notas">
   <div class="notes-header">
-    <h3>📝 Notas / Feedback</h3>
+    <h3>📝 Notas / Feedback
+      <span class="notes-sync-status idle" id="notesSyncStatus" title="Sincronização"></span>
+    </h3>
     <button class="notes-close" id="notesClose" aria-label="Fechar">×</button>
   </div>
   <div class="notes-input-row">
@@ -1900,7 +1914,9 @@
       history: {}, // 'YYYY-MM' → snapshot
       learned: {}, // expenseName.lower → categoryId
       currentMonth: nowYM(),
-      notes: [], // [{id, text, createdAt}] — bloco de notas pessoal
+      notes: [], // [{id, text, createdAt, syncedAt}] — bloco de notas pessoal
+      notesWebhookUrl: '', // URL do Google Apps Script para sincronizar notas com Sheets
+      deviceName: '', // nome do dispositivo (aparece junto com a nota)
       ui: {
         showPercentEditor: false,
         search: '',
@@ -2061,6 +2077,9 @@
         createdAt: Number(n && n.createdAt) || Date.now(),
       }))
       .filter(n => n.text);
+    // sync settings
+    out.notesWebhookUrl = typeof data.notesWebhookUrl === 'string' ? data.notesWebhookUrl : '';
+    out.deviceName = typeof data.deviceName === 'string' ? data.deviceName : '';
     // extraIncomes
     out.extraIncomes = (Array.isArray(data.extraIncomes) ? data.extraIncomes : [])
       .map(x => ({
@@ -3235,6 +3254,9 @@
         <div class="label">Aparência</div>
         <button class="item" data-act="theme">🎨 Alternar tema (claro/escuro)</button>
         <div class="divider"></div>
+        <div class="label">Sincronização</div>
+        <button class="item" data-act="syncConfig">📊 Conectar com Google Sheets (notas)</button>
+        <div class="divider"></div>
         <div class="label">Zona de perigo</div>
         <button class="item danger" data-act="reset">🗑 Apagar todos os dados</button>
       </div>
@@ -3255,6 +3277,7 @@
       if (file) { importBackup(file); closeModal(); }
     });
     modal.querySelector('[data-act="theme"]').addEventListener('click', () => { toggleTheme(); closeModal(); });
+    modal.querySelector('[data-act="syncConfig"]').addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
     modal.querySelector('[data-act="reset"]').addEventListener('click', () => {
       if (!confirm('Tem certeza que quer apagar TUDO? (renda, despesas, metas, histórico)\n\nFaça um backup antes (Exportar) se quiser ter como voltar.')) return;
       localStorage.removeItem(STORAGE_KEY);
@@ -3263,6 +3286,142 @@
       renderAll();
       closeModal();
       showToast('Tudo apagado. Recomeçando do zero.', 'success');
+    });
+  }
+
+  // ==================== SYNC CONFIG MODAL ====================
+  function openSyncConfigModal() {
+    const currentUrl = state.notesWebhookUrl || '';
+    const deviceName = state.deviceName || '';
+    const pendingCount = (state.notes || []).filter(n => !n.syncedAt).length;
+    const totalCount = (state.notes || []).length;
+    openModal(`
+      <h3>📊 Conectar com Google Sheets</h3>
+      <p class="modal-sub">Envia suas notas/feedback automaticamente para uma planilha sua no Google Sheets.</p>
+
+      <details style="margin-bottom:16px; background:var(--surface-alt); border-radius:10px; padding:12px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:13px; color:var(--primary-dark);">📖 Como configurar (5 minutos)</summary>
+        <ol style="font-size:13px; color:var(--text-soft); margin:10px 0 0; padding-left:20px; line-height:1.7;">
+          <li>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--primary);">sheets.new</a> — cria uma planilha em branco.</li>
+          <li>Dá um nome pra ela (ex: "Feedback Gestão Financeira").</li>
+          <li>No menu da planilha: <strong>Extensões → Apps Script</strong>.</li>
+          <li>Apaga o código que aparecer e cola o <strong>script abaixo</strong>.</li>
+          <li>Clica em <strong>"Implantar" → "Nova implantação"</strong>.</li>
+          <li>Em "Tipo": escolha <strong>"App da Web"</strong>.</li>
+          <li>Configure: <em>Executar como: Eu</em> / <em>Quem pode acessar: Qualquer pessoa</em>.</li>
+          <li>Clica em <strong>Implantar</strong> → autoriza o acesso.</li>
+          <li>Copia a <strong>URL gerada</strong> (termina com <code>/exec</code>).</li>
+          <li>Cola a URL no campo abaixo e clica em <strong>Salvar e testar</strong>.</li>
+        </ol>
+      </details>
+
+      <details style="margin-bottom:16px; background:var(--surface-alt); border-radius:10px; padding:12px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:13px; color:var(--primary-dark);">📋 Script pra copiar (Apps Script)</summary>
+        <button type="button" id="copyScriptBtn" class="btn-secondary" style="margin:10px 0; width:auto; padding:6px 14px; font-size:12px;">📋 Copiar script</button>
+        <textarea id="gasScript" readonly style="width:100%; min-height:180px; font-family:monospace; font-size:11px; line-height:1.4; padding:10px;">function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['Data/Hora', 'Nota', 'Dispositivo', 'Navegador', 'ID']);
+      sheet.getRange(1, 1, 1, 5).setFontWeight('bold').setBackground('#f0f3f9');
+    }
+    sheet.appendRow([
+      new Date(data.createdAt || Date.now()),
+      data.text || '',
+      data.device || '',
+      data.userAgent || '',
+      data.noteId || ''
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({ok: true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ok: false, error: String(err)}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+function doGet() {
+  return ContentService.createTextOutput('Gestao Financeira webhook OK');
+}</textarea>
+      </details>
+
+      <div class="form-row" style="margin-bottom:14px;">
+        <label>Nome do dispositivo (aparece na planilha)</label>
+        <input type="text" id="syncDeviceName" placeholder="Ex: Meu Celular, PC de casa..." value="${escapeHtml(deviceName)}" maxlength="40" />
+      </div>
+
+      <div class="form-row" style="margin-bottom:14px;">
+        <label>URL do webhook (Apps Script)</label>
+        <input type="text" id="syncUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(currentUrl)}" />
+        <div style="font-size:11px; color:var(--text-mute); margin-top:4px;">Deixa em branco pra desativar a sincronização.</div>
+      </div>
+
+      ${totalCount > 0 ? `<div style="background:var(--primary-soft); padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
+        💡 Você tem <strong>${totalCount}</strong> nota(s) no total, <strong>${pendingCount}</strong> ainda não sincronizada(s).
+      </div>` : ''}
+
+      <div class="modal-actions" style="flex-wrap:wrap; gap:6px;">
+        <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
+        ${pendingCount > 0 && currentUrl ? '<button type="button" class="btn-primary" data-act="syncAll" style="background:var(--success); width:auto;">Sincronizar pendentes</button>' : ''}
+        <button type="button" class="btn-primary" data-act="save">Salvar e testar</button>
+      </div>
+    `);
+    const modal = document.getElementById('modalContent');
+    modal.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
+
+    // Copy script button
+    modal.querySelector('#copyScriptBtn').addEventListener('click', () => {
+      const ta = modal.querySelector('#gasScript');
+      ta.select();
+      try {
+        navigator.clipboard.writeText(ta.value).then(() => {
+          showToast('Script copiado! Cole no Apps Script.', 'success');
+        });
+      } catch (e) {
+        document.execCommand('copy');
+        showToast('Script copiado!', 'success');
+      }
+    });
+
+    // Sync all pending
+    const syncAllBtn = modal.querySelector('[data-act="syncAll"]');
+    if (syncAllBtn) {
+      syncAllBtn.addEventListener('click', () => {
+        const newUrl = modal.querySelector('#syncUrl').value.trim();
+        const newDevice = modal.querySelector('#syncDeviceName').value.trim();
+        state.notesWebhookUrl = newUrl;
+        state.deviceName = newDevice;
+        saveState();
+        syncAllPendingNotes();
+        closeModal();
+      });
+    }
+
+    // Save
+    modal.querySelector('[data-act="save"]').addEventListener('click', () => {
+      const newUrl = modal.querySelector('#syncUrl').value.trim();
+      const newDevice = modal.querySelector('#syncDeviceName').value.trim();
+      if (newUrl && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec\/?$/.test(newUrl)) {
+        if (!confirm('A URL não parece ser de um Google Apps Script (deve terminar com /exec). Salvar mesmo assim?')) return;
+      }
+      state.notesWebhookUrl = newUrl;
+      state.deviceName = newDevice;
+      saveState();
+      if (newUrl) {
+        // Manda uma nota de teste
+        const testNote = {
+          id: newId('test'),
+          text: '✅ Teste de conexão — configuração ok!',
+          createdAt: Date.now(),
+          syncedAt: 0,
+        };
+        syncNoteToSheet(testNote);
+        showToast('URL salva. Confira sua planilha em alguns segundos.', 'success');
+      } else {
+        setSyncStatus('off');
+        showToast('Sincronização desativada.', 'success');
+      }
+      closeModal();
     });
   }
 
@@ -3532,15 +3691,82 @@
     const text = (inp.value || '').trim();
     if (!text) return;
     if (!Array.isArray(state.notes)) state.notes = [];
-    state.notes.push({
+    const note = {
       id: newId('n'),
       text,
       createdAt: Date.now(),
-    });
+      syncedAt: 0,
+    };
+    state.notes.push(note);
     inp.value = '';
     inp.style.height = 'auto';
     saveState();
     renderNotes();
+    // Enviar pro Google Sheets (se configurado)
+    syncNoteToSheet(note);
+  }
+
+  // ==================== SINCRONIZAÇÃO COM GOOGLE SHEETS ====================
+  function syncNoteToSheet(note) {
+    const url = (state.notesWebhookUrl || '').trim();
+    if (!url) return; // não configurado, ignora silenciosamente
+    const payload = {
+      text: note.text,
+      createdAt: new Date(note.createdAt).toISOString(),
+      device: state.deviceName || '',
+      userAgent: navigator.userAgent || '',
+      noteId: note.id,
+    };
+    // Atualiza UI: marca como "sincronizando"
+    setSyncStatus('syncing');
+    // Usa text/plain pra não disparar CORS preflight (truque comum com GAS)
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    })
+      .then(() => {
+        note.syncedAt = Date.now();
+        saveState();
+        setSyncStatus('ok');
+        renderNotes();
+      })
+      .catch(() => {
+        setSyncStatus('error');
+      });
+  }
+
+  function setSyncStatus(status) {
+    const el = document.getElementById('notesSyncStatus');
+    if (!el) return;
+    el.className = 'notes-sync-status ' + status;
+    el.title = status === 'syncing' ? 'Enviando...' :
+               status === 'ok' ? 'Sincronizado com Google Sheets' :
+               status === 'error' ? 'Falha ao enviar (verifique a URL)' :
+               status === 'off' ? 'Sincronização desligada' : '';
+    // Volta pro normal depois de uns segundos se foi ok
+    if (status === 'ok') {
+      setTimeout(() => {
+        if (el.classList.contains('ok')) el.className = 'notes-sync-status idle';
+      }, 2500);
+    }
+  }
+
+  // Sincroniza TODAS as notas que ainda não foram enviadas
+  function syncAllPendingNotes() {
+    const url = (state.notesWebhookUrl || '').trim();
+    if (!url) {
+      showToast('Configure a URL do Google Sheets primeiro.', 'error');
+      return;
+    }
+    const pending = (state.notes || []).filter(n => !n.syncedAt);
+    if (pending.length === 0) {
+      showToast('Tudo já está sincronizado!', 'success');
+      return;
+    }
+    showToast(`Enviando ${pending.length} nota(s)...`, 'success');
+    pending.forEach(n => syncNoteToSheet(n));
   }
 
   // ==================== TOAST ====================
@@ -3628,6 +3854,8 @@
     renderNotes();
     const notesPanel = document.getElementById('notesPanel');
     if (notesPanel) notesPanel.classList.toggle('show', !!state.ui.notesOpen);
+    // Status inicial do sync
+    setSyncStatus((state.notesWebhookUrl && state.notesWebhookUrl.trim()) ? 'idle' : 'off');
     // Render entradas extras
     renderExtraIncomes();
   }
