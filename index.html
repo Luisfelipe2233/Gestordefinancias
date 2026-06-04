@@ -833,6 +833,192 @@
     .extra-body form > div { grid-template-columns: 1fr !important; }
   }
 
+  /* ==================== MICROANIMAÇÕES ==================== */
+  /* Easings premium */
+  :root {
+    --ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  /* Card stagger no painel — entram em cascata */
+  @keyframes cardSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .cat-card {
+    animation: cardSlideUp 0.45s var(--ease-out-smooth) both;
+  }
+  .cat-card:nth-child(1) { animation-delay: 0.00s; }
+  .cat-card:nth-child(2) { animation-delay: 0.05s; }
+  .cat-card:nth-child(3) { animation-delay: 0.10s; }
+  .cat-card:nth-child(4) { animation-delay: 0.15s; }
+  .cat-card:nth-child(5) { animation-delay: 0.20s; }
+  .cat-card:nth-child(6) { animation-delay: 0.25s; }
+  .cat-card:nth-child(n+7) { animation-delay: 0.30s; }
+
+  /* Goal cards e history items também ganham stagger */
+  .goal-card, .history-item {
+    animation: cardSlideUp 0.4s var(--ease-out-smooth) both;
+  }
+  .goal-card:nth-child(1) { animation-delay: 0.00s; }
+  .goal-card:nth-child(2) { animation-delay: 0.06s; }
+  .goal-card:nth-child(3) { animation-delay: 0.12s; }
+  .goal-card:nth-child(n+4) { animation-delay: 0.18s; }
+
+  /* Summary tiles também */
+  .summary-tile {
+    animation: cardSlideUp 0.5s var(--ease-out-smooth) both;
+  }
+  .summary-tile:nth-child(1) { animation-delay: 0.00s; }
+  .summary-tile:nth-child(2) { animation-delay: 0.08s; }
+  .summary-tile:nth-child(3) { animation-delay: 0.16s; }
+
+  /* Hover refinado nos cards */
+  .cat-card { transition: transform 0.25s var(--ease-out-smooth), box-shadow 0.25s var(--ease-out-smooth); }
+  .cat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .goal-card { transition: transform 0.25s var(--ease-out-smooth), box-shadow 0.25s var(--ease-out-smooth); }
+  .goal-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .history-item { transition: transform 0.25s var(--ease-out-smooth), box-shadow 0.25s var(--ease-out-smooth); }
+  .history-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  /* Botões com escala sutil ao clicar */
+  .btn-primary, .btn-secondary, .btn-danger, .btn-ghost,
+  .method-btn, .icon-btn, .tab-btn, .login-google-btn {
+    transition: transform 0.15s var(--ease-out-cubic),
+                background-color 0.18s ease,
+                border-color 0.18s ease,
+                color 0.18s ease,
+                box-shadow 0.18s ease;
+  }
+  .btn-primary:active, .btn-secondary:active, .btn-danger:active,
+  .btn-ghost:active, .method-btn:active, .icon-btn:active,
+  .tab-btn:active, .login-google-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* Progress bars com easing premium */
+  .progress-bar, .goal-progress-bar {
+    transition: width 0.6s var(--ease-out-bounce), background-color 0.3s ease;
+  }
+
+  /* Animação da pizza: cada fatia surge com delay */
+  @keyframes pieSliceIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .pie-chart path {
+    transform-origin: 100px 100px;
+    animation: pieSliceIn 0.6s var(--ease-out-bounce) both;
+  }
+  .pie-chart path:nth-of-type(1) { animation-delay: 0.05s; }
+  .pie-chart path:nth-of-type(2) { animation-delay: 0.12s; }
+  .pie-chart path:nth-of-type(3) { animation-delay: 0.19s; }
+  .pie-chart path:nth-of-type(4) { animation-delay: 0.26s; }
+  .pie-chart path:nth-of-type(5) { animation-delay: 0.33s; }
+  .pie-chart path:nth-of-type(6) { animation-delay: 0.40s; }
+  .pie-chart path:nth-of-type(n+7) { animation-delay: 0.47s; }
+  .pie-chart .pie-center, .pie-chart .pie-sub {
+    animation: fadeIn 0.5s ease 0.5s both;
+  }
+
+  /* Animação das barras: crescem de baixo pra cima */
+  @keyframes barGrow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+  .bar-chart .bar {
+    transform-origin: bottom;
+    animation: barGrow 0.7s var(--ease-out-bounce) both;
+  }
+  .bar-chart .bar:nth-of-type(1) { animation-delay: 0.05s; }
+  .bar-chart .bar:nth-of-type(2) { animation-delay: 0.12s; }
+  .bar-chart .bar:nth-of-type(3) { animation-delay: 0.19s; }
+  .bar-chart .bar:nth-of-type(4) { animation-delay: 0.26s; }
+  .bar-chart .bar:nth-of-type(5) { animation-delay: 0.33s; }
+  .bar-chart .bar:nth-of-type(6) { animation-delay: 0.40s; }
+  .bar-chart .bar:nth-of-type(n+7) { animation-delay: 0.47s; }
+
+  /* Toast com bounce sutil */
+  .toast {
+    transition: opacity 0.25s ease, transform 0.4s var(--ease-out-bounce);
+  }
+
+  /* Tab panel: slide + fade */
+  @keyframes tabFadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tab-panel {
+    animation: tabFadeSlide 0.35s var(--ease-out-smooth);
+  }
+
+  /* Listas de despesas e recorrentes — sutil entrada */
+  .expense-item, .recurring-item, .extras-list li, .notes-list li {
+    animation: cardSlideUp 0.3s var(--ease-out-smooth) both;
+  }
+
+  /* Categoria — barra de progresso com glow ao perto de 100% */
+  .cat-card.warning .progress-bar { box-shadow: 0 0 8px rgba(245, 158, 11, 0.35); }
+  .cat-card.over .progress-bar { box-shadow: 0 0 12px rgba(239, 68, 68, 0.45); }
+
+  /* Modal entry refinado */
+  .modal {
+    animation: modalIn 0.35s var(--ease-out-bounce);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Method buttons — shine sutil ao hover */
+  .method-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .method-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s var(--ease-out-cubic);
+    pointer-events: none;
+  }
+  .method-btn:hover::after { transform: translateX(100%); }
+
+  /* Brand icon — pulse sutil no logo */
+  .brand-icon {
+    transition: transform 0.3s var(--ease-out-bounce);
+  }
+  .brand-icon:hover {
+    transform: scale(1.08) rotate(-3deg);
+  }
+
+  /* Number counter — sutil shake ao mudar grande valor */
+  .summary-tile .val {
+    transition: color 0.3s ease;
+  }
+  .summary-tile.income .val, .summary-tile.spent .val, .summary-tile.remaining .val {
+    display: inline-block;
+  }
+
+  /* Cloud sync badge — pulsa quando syncing */
+  @keyframes syncPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .cloud-sync-badge.syncing { animation: syncPulse 1.2s ease infinite; }
+
+  /* Reduz movimento se usuário preferir */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   /* ==================== TELA DE LOGIN ==================== */
   .login-screen {
     position: fixed;
@@ -2702,13 +2888,41 @@
     renderSummary();
   }
 
+  // Anima um número de um valor inicial até um final (usado nos summary tiles)
+  function animateNumber(el, from, to, duration, formatter) {
+    if (!el) return;
+    duration = duration || 700;
+    formatter = formatter || fmtBRL;
+    const start = performance.now();
+    const delta = to - from;
+    // Se diferença pequena, só atualiza
+    if (Math.abs(delta) < 0.5) { el.textContent = formatter(to); return; }
+    function tick(now) {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      // ease-out-cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      const value = from + delta * eased;
+      el.textContent = formatter(value);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // Cache dos valores anteriores pra animar a transição
+  const _lastSummaryValues = { income: 0, spent: 0, remaining: 0 };
+
   function renderSummary() {
     const income = effectiveIncome(); // base + extras
     const spent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
     const remaining = income - spent;
-    document.getElementById('sumIncome').textContent = fmtBRL(income);
-    document.getElementById('sumSpent').textContent = fmtBRL(spent);
-    document.getElementById('sumRemaining').textContent = fmtBRL(remaining);
+    // Anima a transição dos números
+    animateNumber(document.getElementById('sumIncome'), _lastSummaryValues.income, income);
+    animateNumber(document.getElementById('sumSpent'), _lastSummaryValues.spent, spent);
+    animateNumber(document.getElementById('sumRemaining'), _lastSummaryValues.remaining, remaining);
+    _lastSummaryValues.income = income;
+    _lastSummaryValues.spent = spent;
+    _lastSummaryValues.remaining = remaining;
     document.getElementById('sumRemainingTile').classList.toggle('negative', remaining < 0);
     // Tooltip / detalhe quando há extras
     const extras = totalExtraIncome();
@@ -2888,10 +3102,18 @@
             return;
           }
           const g = state.goals.find(g => g.id === id);
+          const wasComplete = g.current >= g.target;
           g.current = Math.max(0, (g.current || 0) + v);
+          const isNowComplete = g.current >= g.target;
           saveState();
           renderGoals();
           showToast(`+${fmtBRL(v)} guardado em "${g.name}".`, 'success');
+          // 🎉 Confete se bateu a meta agora
+          if (!wasComplete && isNowComplete) {
+            const rect = btn.getBoundingClientRect();
+            emitConfetti({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, count: 36 });
+            setTimeout(() => showToast(`🎉 Meta "${g.name}" atingida! Parabéns!`, 'success'), 800);
+          }
         }
       });
     });
@@ -3740,6 +3962,8 @@ function doGet() {
     renderAll();
     if (transferred) {
       showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} transferido pra "${transferred.name}".`, 'success');
+      // 🎉 Confete porque transferiu pra meta
+      setTimeout(() => emitConfetti({ count: 30 }), 100);
     } else {
       showToast(`Mês fechado! Bem-vindo ao ${capitalize(fmtMonthName(state.currentMonth))}.`, 'success');
     }
@@ -3904,6 +4128,54 @@ function doGet() {
     body.classList.toggle('open', open);
     toggle.classList.toggle('open', open);
     if (open) setTimeout(() => document.getElementById('extraName').focus(), 100);
+  }
+
+  // ==================== CONFETE SUTIL ====================
+  // Emite partículas leves do centro pra cima, usado quando bate meta
+  function emitConfetti(opts) {
+    opts = opts || {};
+    const colors = opts.colors || ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+    const count = opts.count || 22;
+    const originX = opts.x != null ? opts.x : window.innerWidth / 2;
+    const originY = opts.y != null ? opts.y : window.innerHeight / 2;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+      const velocity = 80 + Math.random() * 80;
+      const vx = Math.cos(angle) * velocity;
+      const vy = Math.sin(angle) * velocity - 60;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = 6 + Math.random() * 6;
+      el.style.cssText = `
+        position: fixed;
+        left: ${originX}px;
+        top: ${originY}px;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        pointer-events: none;
+        z-index: 99999;
+        transform: translate(-50%, -50%);
+        will-change: transform, opacity;
+      `;
+      document.body.appendChild(el);
+      const duration = 1100 + Math.random() * 500;
+      const startTime = performance.now();
+      const rotateSpeed = (Math.random() - 0.5) * 720;
+      function animate(now) {
+        const elapsed = now - startTime;
+        const t = elapsed / duration;
+        if (t >= 1) { el.remove(); return; }
+        const x = vx * t;
+        const y = vy * t + 200 * t * t; // gravity
+        const opacity = 1 - t;
+        el.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${rotateSpeed * t}deg)`;
+        el.style.opacity = String(opacity);
+        requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+    }
   }
 
   // ==================== NOTES (bloco de feedback) ====================
