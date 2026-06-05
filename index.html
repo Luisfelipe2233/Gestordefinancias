@@ -463,18 +463,18 @@
 
   /* ==================== BARRA DE DISTRIBUIÇÃO VISUAL ==================== */
   .distribution-bar {
-    margin-top: 14px;
-    padding: 16px;
+    margin-top: 12px;
+    padding: 12px 14px;
     background: var(--surface-alt);
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--border);
   }
   .distribution-bar-header {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 10px;
-    font-size: 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
     color: var(--text-mute);
     font-weight: 600;
     text-transform: uppercase;
@@ -482,7 +482,7 @@
   }
   .distribution-bar-header .income-display {
     color: var(--text);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     text-transform: none;
     letter-spacing: -0.01em;
@@ -490,8 +490,8 @@
   }
   .distribution-stack {
     display: flex;
-    height: 28px;
-    border-radius: 8px;
+    height: 22px;
+    border-radius: 6px;
     overflow: hidden;
     background: var(--border);
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
@@ -526,9 +526,9 @@
   .distribution-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 14px;
-    margin-top: 12px;
-    font-size: 12px;
+    gap: 6px 12px;
+    margin-top: 10px;
+    font-size: 11px;
   }
   .distribution-legend-item {
     display: inline-flex;
@@ -553,45 +553,37 @@
     padding: 18px;
   }
 
-  /* ==================== EDITOR DE CATEGORIAS (redesenho) ==================== */
+  /* ==================== EDITOR DE CATEGORIAS (compacto) ==================== */
   .percent-editor {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 12px;
-    margin-top: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 6px;
+    margin-top: 12px;
   }
   .percent-row {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px 14px 12px;
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .percent-row:hover { border-color: var(--border-strong); }
-  .percent-row-top {
-    display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
+    padding: 6px 8px;
+    background: var(--surface-alt);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease;
   }
-  .percent-row-bottom {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .percent-row .pct-spacer { flex: 1; }
+  .percent-row:hover { border-color: var(--border); }
   .percent-row .row-value-display {
-    font-size: 13px;
+    font-size: 11px;
     color: var(--text-mute);
     font-weight: 500;
     font-variant-numeric: tabular-nums;
-    margin-left: auto;
+    margin: 0 2px;
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
   }
   .percent-row .row-value-display strong {
-    color: var(--text);
-    font-weight: 700;
+    color: var(--text-soft);
+    font-weight: 600;
   }
   .percent-row .swatch-input,
   .percent-row .color-swatch-btn {
@@ -607,28 +599,26 @@
   .percent-row .pct-name-input {
     flex: 1;
     min-width: 0;
-    padding: 8px 10px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-weight: 500;
     text-align: left;
     background: transparent;
     border: 1px solid transparent;
-    letter-spacing: -0.01em;
   }
   .percent-row .pct-name-input:focus {
-    background: var(--surface-alt);
+    background: var(--surface);
     border-color: var(--border);
   }
   .percent-row .pct-input {
-    width: 90px;
-    padding: 8px 10px;
-    font-size: 15px;
-    font-weight: 700;
+    width: 56px;
+    padding: 6px 6px;
+    font-size: 13px;
+    font-weight: 600;
     text-align: right;
-    background: var(--surface-alt);
+    background: var(--surface);
     border-color: var(--border);
   }
-  .percent-row .pct-input:focus { background: var(--surface); }
   .percent-row .pct-del {
     background: transparent;
     border: none;
@@ -648,15 +638,15 @@
     border: 1px solid transparent;
     color: var(--text-mute);
     cursor: pointer;
-    padding: 4px 5px;
-    border-radius: 6px;
+    padding: 3px 4px;
+    border-radius: 5px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     transition: all 0.15s ease;
   }
-  .pct-lock svg { width: 16px; height: 16px; display: block; }
+  .pct-lock svg { width: 13px; height: 13px; display: block; }
   .pct-lock:hover {
     background: var(--primary-soft);
     color: var(--primary);
@@ -701,14 +691,14 @@
     background: transparent;
     border: none;
     color: var(--text-mute);
-    padding: 4px 8px;
+    padding: 3px 7px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     font-family: inherit;
     transition: all 0.15s ease;
-    min-width: 24px;
+    min-width: 22px;
   }
   .mode-toggle button.active {
     background: var(--primary);
@@ -3846,23 +3836,23 @@
 
       const row = document.createElement('div');
       row.className = 'percent-row' + (isLocked ? ' locked' : '');
+      // Linha única compacta, com R$ display sutil entre o input e os botões de ação
+      const valueRefHtml = (income > 0 || mode === 'fixed')
+        ? `<span class="row-value-display" title="Valor em R$ desta categoria">${valueDisplay}</span>`
+        : '';
       row.innerHTML = `
-        <div class="percent-row-top">
-          <button type="button" class="color-swatch-btn" data-idx="${idx}" style="background:${cat.color}" title="Mudar cor" aria-label="Mudar cor"></button>
-          <input type="text" class="pct-name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" placeholder="Nome" maxlength="40" ${isLocked ? 'readonly' : ''} />
-          <button type="button" class="pct-lock ${isLocked ? 'locked' : ''}" data-lock-idx="${idx}" title="${isLocked ? 'Desbloquear (permite ajuste automático)' : 'Bloquear (protege de mudanças)'}" aria-label="${isLocked ? 'Desbloquear' : 'Bloquear'}">
-            ${isLocked ? ICONS.lock : ICONS.unlock}
-          </button>
-          <button type="button" class="pct-del" data-idx="${idx}" title="Excluir categoria">×</button>
+        <button type="button" class="color-swatch-btn" data-idx="${idx}" style="background:${cat.color}" title="Mudar cor" aria-label="Mudar cor"></button>
+        <input type="text" class="pct-name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" placeholder="Nome" maxlength="40" ${isLocked ? 'readonly' : ''} />
+        <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" ${isLocked ? 'readonly' : ''} />
+        <div class="mode-toggle">
+          <button type="button" data-mode-idx="${idx}" data-mode-val="pct" class="${mode === 'pct' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Porcentagem da renda">%</button>
+          <button type="button" data-mode-idx="${idx}" data-mode-val="fixed" class="${mode === 'fixed' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Valor fixo em reais">R$</button>
         </div>
-        <div class="percent-row-bottom">
-          <div class="mode-toggle">
-            <button type="button" data-mode-idx="${idx}" data-mode-val="pct" class="${mode === 'pct' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Porcentagem da renda">%</button>
-            <button type="button" data-mode-idx="${idx}" data-mode-val="fixed" class="${mode === 'fixed' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Valor fixo em reais">R$</button>
-          </div>
-          <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" ${isLocked ? 'readonly' : ''} />
-          <div class="row-value-display">${valueDisplay}</div>
-        </div>
+        ${valueRefHtml}
+        <button type="button" class="pct-lock ${isLocked ? 'locked' : ''}" data-lock-idx="${idx}" title="${isLocked ? 'Desbloquear' : 'Bloquear'}" aria-label="${isLocked ? 'Desbloquear' : 'Bloquear'}">
+          ${isLocked ? ICONS.lock : ICONS.unlock}
+        </button>
+        <button type="button" class="pct-del" data-idx="${idx}" title="Excluir categoria">×</button>
       `;
       wrap.appendChild(row);
     });
