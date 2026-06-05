@@ -1266,76 +1266,267 @@
     }
   }
 
-  /* ==================== TELA DE LOGIN ==================== */
+  /* ==================== TELA DE LOGIN (redesign A) ==================== */
   .login-screen {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, var(--bg) 0%, var(--surface-alt) 100%);
+    background:
+      radial-gradient(ellipse 80% 80% at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 60% at 80% 100%, rgba(16, 185, 129, 0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 60% at 20% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 70%),
+      var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 32px 20px;
     z-index: 9999;
     overflow-y: auto;
   }
+
+  /* Bolhas decorativas flutuantes no fundo */
+  .login-bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+    opacity: 0.04;
+    filter: blur(40px);
+    animation: bubbleFloat 18s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .login-bubble.b1 { width: 280px; height: 280px; top: 10%; left: 8%; animation-delay: 0s; }
+  .login-bubble.b2 { width: 200px; height: 200px; top: 60%; right: 12%; animation-delay: -6s; background: linear-gradient(135deg, var(--warning) 0%, var(--success) 100%); opacity: 0.05; }
+  .login-bubble.b3 { width: 160px; height: 160px; bottom: 15%; left: 35%; animation-delay: -12s; background: linear-gradient(135deg, #8b5cf6 0%, var(--primary) 100%); opacity: 0.04; }
+  @keyframes bubbleFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.05); }
+    66% { transform: translate(-20px, 25px) scale(0.95); }
+  }
+  [data-theme="dark"] .login-bubble { opacity: 0.15; }
+
+  .login-container {
+    position: relative;
+    max-width: 920px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    z-index: 1;
+  }
+  @media (max-width: 820px) {
+    .login-container {
+      grid-template-columns: 1fr;
+      max-width: 460px;
+      gap: 32px;
+    }
+  }
+
+  /* HERO SIDE — fala sobre o produto */
+  .login-hero {
+    animation: heroFadeIn 0.6s var(--ease-out-smooth) 0.05s both;
+  }
+  @keyframes heroFadeIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @media (max-width: 820px) {
+    .login-hero { text-align: center; }
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
+
+  .login-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    border: 1px solid rgba(37, 99, 235, 0.15);
+  }
+  .login-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--success);
+    animation: badgeBlink 2s ease-in-out infinite;
+  }
+  @keyframes badgeBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .login-hero h1 {
+    font-size: 64px;
+    font-weight: 800;
+    margin: 0 0 12px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 8s ease infinite;
+    background-size: 200% auto;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @media (max-width: 820px) { .login-hero h1 { font-size: 52px; } }
+  @media (max-width: 480px) { .login-hero h1 { font-size: 44px; } }
+
+  .login-hero-tagline {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 14px;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  @media (max-width: 820px) { .login-hero-tagline { font-size: 19px; } }
+
+  .login-hero-desc {
+    font-size: 15px;
+    color: var(--text-soft);
+    margin: 0 0 28px;
+    line-height: 1.55;
+    max-width: 420px;
+  }
+  @media (max-width: 820px) { .login-hero-desc { margin-left: auto; margin-right: auto; } }
+
+  /* Features mini-cards */
+  .login-features {
+    display: grid;
+    gap: 14px;
+    margin-top: 28px;
+  }
+  .login-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0;
+    text-align: left;
+  }
+  .login-feature-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--success-soft) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+  .login-feature-icon svg { width: 18px; height: 18px; }
+  .login-feature-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+    letter-spacing: -0.005em;
+  }
+  .login-feature-text span {
+    font-size: 13px;
+    color: var(--text-mute);
+    line-height: 1.45;
+  }
+
+  /* LOGIN CARD SIDE */
   .login-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 40px 32px;
-    max-width: 420px;
+    border-radius: 24px;
+    padding: 36px 32px;
     width: 100%;
-    box-shadow: var(--shadow-lg);
+    box-shadow:
+      0 20px 60px rgba(15, 23, 42, 0.08),
+      0 1px 0 rgba(255, 255, 255, 0.6) inset;
     text-align: center;
-    animation: loginFadeIn 0.4s ease;
+    position: relative;
+    animation: cardFadeIn 0.6s var(--ease-out-smooth) 0.15s both;
   }
-  @keyframes loginFadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
+
+  /* Brilho sutil ao redor do card */
+  .login-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+    opacity: 0.12;
+    filter: blur(20px);
+    z-index: -1;
+  }
+
   .login-brand-icon {
-    width: 72px;
-    height: 72px;
-    border-radius: 20px;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     margin: 0 auto 18px;
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
+    position: relative;
   }
-  .login-brand-icon svg { width: 38px; height: 38px; }
-  .login-title {
-    font-size: 38px;
-    font-weight: 800;
-    margin: 0 0 4px;
-    letter-spacing: -0.035em;
+  .login-brand-icon::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 24px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.05;
+    opacity: 0.25;
+    filter: blur(10px);
+    z-index: -1;
+    animation: iconGlow 3s ease-in-out infinite;
   }
+  @keyframes iconGlow {
+    0%, 100% { opacity: 0.25; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.05); }
+  }
+  .login-brand-icon svg { width: 32px; height: 32px; }
+
+  .login-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.025em;
+    color: var(--text);
+  }
+
   .login-tagline {
     margin: 0 0 24px;
     font-size: 14px;
-    color: var(--text-soft);
-    font-style: italic;
+    color: var(--text-mute);
   }
-  .login-desc {
-    margin: 0 0 28px;
-    color: var(--text-soft);
-    font-size: 14px;
-    line-height: 1.5;
-  }
+
+  .login-desc { display: none; }
+
+  /* Login com Google premium */
   .login-google-btn {
     width: 100%;
     background: #fff;
     color: #1a2238;
-    border: 1px solid var(--border-strong);
-    border-radius: 10px;
-    padding: 14px 16px;
+    border: 1.5px solid #e3e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
     font-size: 15px;
     font-weight: 600;
     font-family: inherit;
@@ -1344,22 +1535,54 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    transition: all 0.15s ease;
-    box-shadow: var(--shadow-sm);
+    transition: all 0.2s var(--ease-out-smooth);
+    box-shadow:
+      0 1px 3px rgba(15, 23, 42, 0.04),
+      0 4px 12px rgba(15, 23, 42, 0.06);
+    position: relative;
+    overflow: hidden;
   }
+  .login-google-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.8s var(--ease-out-cubic);
+    pointer-events: none;
+  }
+  .login-google-btn:hover::before { transform: translateX(100%); }
   .login-google-btn:hover {
-    background: #f8fafc;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow:
+      0 2px 6px rgba(15, 23, 42, 0.06),
+      0 10px 28px rgba(37, 99, 235, 0.18);
   }
   .login-google-btn:active { transform: translateY(0); }
-  .login-google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .login-google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .login-trust {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin: 18px 0 0;
+    padding: 10px 14px;
+    background: var(--surface-alt);
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--text-soft);
+  }
+  .login-trust svg { width: 14px; height: 14px; color: var(--success); flex-shrink: 0; }
+
   .login-footer {
-    margin: 22px 0 0;
+    margin: 16px 0 0;
     font-size: 11px;
     color: var(--text-mute);
-    line-height: 1.5;
+    line-height: 1.55;
   }
+
   .login-loading {
     display: flex;
     align-items: center;
@@ -1369,17 +1592,30 @@
     color: var(--text-soft);
     font-size: 14px;
   }
-  .login-loading.show { display: flex; }
   .login-loading.hidden { display: none; }
   .spinner {
     width: 18px;
     height: 18px;
-    border: 2px solid var(--border);
+    border: 2.5px solid var(--border);
     border-top-color: var(--primary);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Made with ❤ */
+  .login-credit {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--text-mute);
+    opacity: 0.7;
+    text-align: center;
+  }
+  .login-credit a { color: var(--primary); text-decoration: none; }
+  .login-credit a:hover { text-decoration: underline; }
 
   /* User info na settings */
   .user-info-bar {
@@ -2124,32 +2360,104 @@
 </head>
 <body>
 
-<!-- ============ TELA DE LOGIN ============ -->
+<!-- ============ TELA DE LOGIN (redesign) ============ -->
 <div class="login-screen" id="loginScreen">
-  <div class="login-card">
-    <div class="login-brand-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 1v22"/>
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-      </svg>
+  <div class="login-bubble b1"></div>
+  <div class="login-bubble b2"></div>
+  <div class="login-bubble b3"></div>
+
+  <div class="login-container">
+
+    <!-- HERO — fala sobre o produto -->
+    <div class="login-hero">
+      <div class="login-badge">Grátis para sempre</div>
+      <h1>Munny</h1>
+      <p class="login-hero-tagline">Seu dinheiro, sob controle. Sem planilhas, sem complicação.</p>
+      <p class="login-hero-desc">Gestor financeiro que cabe no bolso. Distribua sua renda nos métodos 50/30/20 ou 6 Potes, defina metas, e acompanhe tudo de qualquer dispositivo.</p>
+
+      <div class="login-features">
+        <div class="login-feature">
+          <div class="login-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/>
+              <path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+            </svg>
+          </div>
+          <div class="login-feature-text">
+            <strong>Controle visual</strong>
+            <span>Veja quanto pode gastar em cada categoria, em tempo real.</span>
+          </div>
+        </div>
+
+        <div class="login-feature">
+          <div class="login-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+            </svg>
+          </div>
+          <div class="login-feature-text">
+            <strong>Metas que viram realidade</strong>
+            <span>Defina objetivos e veja o quanto falta — ou supere antes do prazo.</span>
+          </div>
+        </div>
+
+        <div class="login-feature">
+          <div class="login-feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+            </svg>
+          </div>
+          <div class="login-feature-text">
+            <strong>Sincronizado entre dispositivos</strong>
+            <span>Adicione despesa no celular, veja no PC. Tudo na nuvem com login Google.</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <h1 class="login-title">Munny</h1>
-    <p class="login-tagline">Seu money de um jeito mais leve.</p>
-    <p class="login-desc">Entre com sua conta Google para acessar seu painel financeiro. Seus dados ficam salvos em qualquer dispositivo.</p>
-    <button class="login-google-btn" id="googleLoginBtn" type="button">
-      <svg width="20" height="20" viewBox="0 0 48 48">
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
-      </svg>
-      <span>Entrar com Google</span>
-    </button>
-    <p class="login-footer">Ao continuar você concorda com nossos Termos. Seus dados financeiros ficam privados — só você acessa.</p>
-    <div class="login-loading hidden" id="loginLoading">
-      <div class="spinner"></div>
-      <span>Entrando...</span>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+      <div class="login-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1v22"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <h2 class="login-title">Bem-vindo</h2>
+      <p class="login-tagline">Entre com sua conta Google em 1 clique.</p>
+
+      <button class="login-google-btn" id="googleLoginBtn" type="button">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+          <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+          <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+          <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+        </svg>
+        <span>Entrar com Google</span>
+      </button>
+
+      <div class="login-trust">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>Seus dados ficam privados — só você acessa.</span>
+      </div>
+
+      <p class="login-footer">Ao continuar você concorda com nossos Termos e Política de Privacidade.</p>
+
+      <div class="login-loading hidden" id="loginLoading">
+        <div class="spinner"></div>
+        <span>Entrando...</span>
+      </div>
     </div>
+
+  </div>
+
+  <div class="login-credit">
+    Feito com ❤ por <a href="https://github.com/Luisfelipe2233" target="_blank" rel="noopener">Luis Felipe</a>
   </div>
 </div>
 
