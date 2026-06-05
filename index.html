@@ -1721,6 +1721,148 @@
     white-space: nowrap;
   }
 
+  /* Streak badge no header */
+  .streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    background: linear-gradient(135deg, #fb923c, #f59e0b);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 6px;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+    cursor: pointer;
+    transition: transform 0.15s var(--ease-out-bounce);
+  }
+  .streak-badge:hover { transform: scale(1.08); }
+
+  /* ==================== MODAL DE CONQUISTAS ==================== */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .achievement-card {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+    transition: all 0.2s var(--ease-out-smooth);
+    position: relative;
+  }
+  .achievement-card.locked {
+    opacity: 0.4;
+    filter: grayscale(0.8);
+  }
+  .achievement-card.unlocked {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-alt) 100%);
+    border-color: var(--primary);
+  }
+  .achievement-card.unlocked:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .achievement-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    display: block;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+  }
+  .achievement-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+    line-height: 1.2;
+  }
+  .achievement-desc {
+    font-size: 11px;
+    color: var(--text-mute);
+    line-height: 1.35;
+  }
+  .achievement-card.unlocked .achievement-date {
+    font-size: 10px;
+    color: var(--primary-dark);
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .achievement-progress-bar {
+    background: var(--surface-alt);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .achievement-progress-bar .icon {
+    font-size: 26px;
+  }
+  .achievement-progress-bar .info {
+    flex: 1;
+  }
+  .achievement-progress-bar .count {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    letter-spacing: -0.02em;
+  }
+  .achievement-progress-bar .label {
+    font-size: 12px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .achievement-progress-bar .bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .achievement-progress-bar .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--success));
+    border-radius: 999px;
+    transition: width 0.6s var(--ease-out-bounce);
+  }
+
+  /* Stats card no modal */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .stat-card {
+    background: var(--surface-alt);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .stat-card .stat-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .stat-lbl {
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
   /* Cloud sync indicator no header */
   .cloud-sync-badge {
     display: inline-flex;
@@ -2541,7 +2683,10 @@
         </svg>
       </div>
       <div>
-        <h1>Munny <span class="cloud-sync-badge" id="cloudSyncBadge">☁ na nuvem</span></h1>
+        <h1>Munny
+          <span class="cloud-sync-badge" id="cloudSyncBadge">☁ na nuvem</span>
+          <span class="streak-badge" id="streakBadge" title="Dias seguidos usando o Munny" style="display:none;">🔥 <span id="streakDays">0</span></span>
+        </h1>
         <p id="currentPeriodLabel">—</p>
       </div>
     </div>
@@ -2817,6 +2962,31 @@
   // Usuários podem sobrescrever via configurações se quiserem usar a própria planilha.
   const DEFAULT_NOTES_WEBHOOK = 'https://script.google.com/macros/s/AKfycbx5b-oXGclAbzhzhL02Dvq8k5djvY4WWV-M2loPfQfJl67hrcQ-OQCWNHncLRBCDoPt/exec';
 
+  // ==================== CONQUISTAS ====================
+  // Definições de todas as conquistas — adicionar novas é fácil
+  const ACHIEVEMENTS = [
+    { id: 'income_set', name: 'Renda Definida', desc: 'Configure sua renda mensal pela primeira vez', icon: '💰', check: (s) => Number(s.income || 0) > 0 },
+    { id: 'first_expense', name: 'Primeiro Passo', desc: 'Registre sua primeira despesa', icon: '💸', check: (s) => (s.expenses || []).length >= 1 },
+    { id: 'first_goal', name: 'Sonhador', desc: 'Crie sua primeira meta de poupança', icon: '🎯', check: (s) => (s.goals || []).length >= 1 },
+    { id: 'first_recurring', name: 'Automação Ativa', desc: 'Configure sua primeira despesa recorrente', icon: '🔄', check: (s) => (s.recurring || []).length >= 1 },
+    { id: 'first_extra', name: 'Bônus Recebido', desc: 'Adicione sua primeira entrada extra', icon: '🎁', check: (s) => (s.extraIncomes || []).length >= 1 },
+    { id: 'first_month_closed', name: 'Mês Fechado', desc: 'Arquive seu primeiro mês', icon: '📅', check: (s) => Object.keys(s.history || {}).length >= 1 },
+    { id: 'expense_10', name: 'Pegou o Ritmo', desc: 'Registre 10 despesas', icon: '📊', check: (s) => (s.expenses || []).length >= 10 },
+    { id: 'expense_50', name: 'Disciplinado', desc: 'Registre 50 despesas', icon: '✍', check: (s) => (s.expenses || []).length >= 50 },
+    { id: 'recurring_3', name: 'Tudo Automatizado', desc: 'Configure 3 despesas recorrentes', icon: '⚙', check: (s) => (s.recurring || []).length >= 3 },
+    { id: 'months_3', name: 'Constante', desc: 'Feche 3 meses consecutivos', icon: '🔥', check: (s) => Object.keys(s.history || {}).length >= 3 },
+    { id: 'months_6', name: 'Semestre Completo', desc: 'Feche 6 meses', icon: '📈', check: (s) => Object.keys(s.history || {}).length >= 6 },
+    { id: 'months_12', name: 'Ano Fechado', desc: 'Feche 12 meses', icon: '🏆', check: (s) => Object.keys(s.history || {}).length >= 12 },
+    { id: 'goal_completed', name: 'Sonho Realizado', desc: 'Atinja uma meta de poupança 100%', icon: '⭐', check: (s) => (s.goals || []).some(g => Number(g.target) > 0 && Number(g.current || 0) >= Number(g.target)) },
+    { id: 'goal_3', name: 'Visionário', desc: 'Crie 3 metas diferentes', icon: '🌟', check: (s) => (s.goals || []).length >= 3 },
+    { id: 'saved_1k', name: 'Investidor Iniciante', desc: 'Acumule R$ 1.000 em metas', icon: '💎', check: (s) => (s.goals || []).reduce((sum, g) => sum + Number(g.current || 0), 0) >= 1000 },
+    { id: 'saved_10k', name: 'Cinco Dígitos', desc: 'Acumule R$ 10.000 em metas', icon: '💠', check: (s) => (s.goals || []).reduce((sum, g) => sum + Number(g.current || 0), 0) >= 10000 },
+    { id: 'fixed_amount', name: 'Calculista', desc: 'Use modo R$ fixo em uma categoria', icon: '🧮', check: (s) => (s.categories || []).some(c => c.mode === 'fixed') },
+    { id: 'dark_mode', name: 'Coruja Financeira', desc: 'Use o tema escuro', icon: '🌙', check: (s) => s.theme === 'dark' },
+    { id: 'feedback_sent', name: 'Voz Ativa', desc: 'Deixe sua primeira nota de feedback', icon: '📝', check: (s) => (s.notes || []).length >= 1 },
+    { id: 'method_explorer', name: 'Explorador', desc: 'Experimente os 3 métodos de orçamento', icon: '🧭', check: (s) => Array.isArray(s._methodsTried) && s._methodsTried.length >= 3 },
+  ];
+
   // ==================== FIREBASE INIT ====================
   const firebaseConfig = {
     apiKey: "AIzaSyAI5EOG5h616-GDATCMxOdGcdya6TTRAYw",
@@ -2981,6 +3151,9 @@
       notes: [], // [{id, text, createdAt, syncedAt}] — bloco de notas pessoal
       notesWebhookUrl: '', // URL do Google Apps Script para sincronizar notas com Sheets
       deviceName: '', // nome do dispositivo (aparece junto com a nota)
+      achievements: { unlocked: {} }, // { unlocked: { 'first_expense': { at: timestamp } } }
+      streak: { current: 0, longest: 0, lastVisit: '' }, // contagem de dias seguidos
+      _methodsTried: [], // métodos já experimentados (para conquista 'method_explorer')
       ui: {
         showPercentEditor: false,
         search: '',
@@ -4449,6 +4622,9 @@
         <div class="label">Aparência</div>
         <button class="item" data-act="theme">🎨 Alternar tema (claro/escuro)</button>
         <div class="divider"></div>
+        <div class="label">Engajamento</div>
+        <button class="item" data-act="achievements">🏆 Conquistas e Stats</button>
+        <div class="divider"></div>
         <div class="label">Sincronização</div>
         <button class="item" data-act="syncConfig">📊 Conectar com Google Sheets (notas)</button>
         ${currentUser ? `
@@ -4478,6 +4654,8 @@
     });
     modal.querySelector('[data-act="theme"]').addEventListener('click', () => { toggleTheme(); closeModal(); });
     modal.querySelector('[data-act="syncConfig"]').addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
+    const achBtn = modal.querySelector('[data-act="achievements"]');
+    if (achBtn) achBtn.addEventListener('click', () => { closeModal(); openAchievementsModal(); });
     const logoutBtn = modal.querySelector('[data-act="logout"]');
     if (logoutBtn) logoutBtn.addEventListener('click', () => { closeModal(); logout(); });
     modal.querySelector('[data-act="reset"]').addEventListener('click', () => {
@@ -4489,6 +4667,97 @@
       closeModal();
       showToast('Tudo apagado. Recomeçando do zero.', 'success');
     });
+  }
+
+  // ==================== ACHIEVEMENTS MODAL ====================
+  function openAchievementsModal() {
+    ensureAchievementsShape();
+    const unlockedIds = state.achievements.unlocked || {};
+    const totalCount = ACHIEVEMENTS.length;
+    const unlockedCount = Object.keys(unlockedIds).length;
+    const pctDone = (unlockedCount / totalCount) * 100;
+
+    // Calcular stats interessantes
+    const totalSpent = (state.expenses || []).reduce((s, e) => s + Number(e.value || 0), 0);
+    const totalHistorySpent = Object.values(state.history || {}).reduce((s, h) => s + Number(h.totalSpent || 0), 0);
+    const lifetimeSpent = totalSpent + totalHistorySpent;
+    const totalGoalsSaved = (state.goals || []).reduce((s, g) => s + Number(g.current || 0), 0);
+    const monthsClosed = Object.keys(state.history || {}).length;
+    const totalIncomeHistory = Object.values(state.history || {}).reduce((s, h) => s + Number(h.income || 0), 0);
+    const totalSavedHistory = totalIncomeHistory - totalHistorySpent;
+
+    const streakDays = (state.streak && state.streak.current) || 0;
+    const longestStreak = (state.streak && state.streak.longest) || 0;
+
+    // Cards de conquistas (unlocked primeiro)
+    const cards = ACHIEVEMENTS.map(ach => {
+      const isUnlocked = !!unlockedIds[ach.id];
+      const date = isUnlocked && unlockedIds[ach.id].at
+        ? new Date(unlockedIds[ach.id].at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+        : '';
+      return {
+        isUnlocked,
+        date,
+        html: `<div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+          <span class="achievement-icon">${ach.icon}</span>
+          <div class="achievement-name">${escapeHtml(ach.name)}</div>
+          <div class="achievement-desc">${escapeHtml(ach.desc)}</div>
+          ${isUnlocked ? `<div class="achievement-date">${date}</div>` : ''}
+        </div>`
+      };
+    });
+    // Sort: unlocked first (most recent first), then locked
+    cards.sort((a, b) => {
+      if (a.isUnlocked !== b.isUnlocked) return a.isUnlocked ? -1 : 1;
+      return 0;
+    });
+
+    openModal(`
+      <h3>🏆 Conquistas e Stats</h3>
+      <p class="modal-sub">Acompanhe seu progresso e desbloqueie marcos.</p>
+
+      <div class="achievement-progress-bar">
+        <div class="icon">🏆</div>
+        <div class="info">
+          <div><span class="count">${unlockedCount}</span> <span style="color:var(--text-mute); font-weight:500; font-size:14px;">/ ${totalCount}</span></div>
+          <div class="label">conquistas desbloqueadas</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${pctDone}%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val">🔥 ${streakDays}</div>
+          <div class="stat-lbl">Streak atual${longestStreak > streakDays ? ` (recorde: ${longestStreak})` : ''}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">${monthsClosed}</div>
+          <div class="stat-lbl">Meses fechados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:var(--success-dark);">${fmtBRL(totalGoalsSaved)}</div>
+          <div class="stat-lbl">Em metas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:var(--success-dark);">${fmtBRL(Math.max(0, totalSavedHistory))}</div>
+          <div class="stat-lbl">Já poupado</div>
+        </div>
+      </div>
+
+      <h4 style="margin:0 0 4px; font-size:14px; letter-spacing:-0.01em;">Conquistas</h4>
+      <p style="margin:0 0 4px; font-size:12px; color:var(--text-mute);">Toque em uma desbloqueada pra relembrar.</p>
+      <div class="achievements-grid">
+        ${cards.map(c => c.html).join('')}
+      </div>
+
+      <div class="modal-actions" style="margin-top:18px;">
+        <button type="button" class="btn-secondary" data-act="close" style="width:100%;">Fechar</button>
+      </div>
+    `);
+    const modal = document.getElementById('modalContent');
+    modal.querySelector('[data-act="close"]').addEventListener('click', closeModal);
   }
 
   // ==================== SYNC CONFIG MODAL ====================
@@ -4897,6 +5166,79 @@ function doGet() {
     }
   }
 
+  // ==================== CONQUISTAS & STREAKS ====================
+  function ensureAchievementsShape() {
+    if (!state.achievements || typeof state.achievements !== 'object') {
+      state.achievements = { unlocked: {} };
+    }
+    if (!state.achievements.unlocked) state.achievements.unlocked = {};
+    if (!state.streak) state.streak = { current: 0, longest: 0, lastVisit: '' };
+    if (!Array.isArray(state._methodsTried)) state._methodsTried = [];
+  }
+
+  // Verifica se há novas conquistas pra desbloquear, notifica e salva
+  function checkAchievements() {
+    ensureAchievementsShape();
+    const newlyUnlocked = [];
+    ACHIEVEMENTS.forEach(ach => {
+      if (state.achievements.unlocked[ach.id]) return; // já tem
+      try {
+        if (ach.check(state)) {
+          state.achievements.unlocked[ach.id] = { at: Date.now() };
+          newlyUnlocked.push(ach);
+        }
+      } catch (e) { /* check falhou, ignora */ }
+    });
+    if (newlyUnlocked.length > 0) {
+      saveState();
+      // Notifica uma de cada vez com delay
+      newlyUnlocked.forEach((ach, i) => {
+        setTimeout(() => notifyAchievementUnlocked(ach), i * 1400);
+      });
+    }
+    return newlyUnlocked;
+  }
+
+  function notifyAchievementUnlocked(ach) {
+    // Toast bonito com a conquista
+    const el = document.getElementById('toast');
+    el.innerHTML = '';
+    el.appendChild(document.createTextNode(`🏆 Conquista: ${ach.icon} ${ach.name}`));
+    el.className = 'toast show success';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = 'toast'; }, 3500);
+    // Sparkles do canto superior direito (onde tem o badge de stats)
+    setTimeout(() => {
+      sparkleAround(document.querySelector('.brand-icon'), 16);
+    }, 200);
+  }
+
+  // Atualiza o streak no carregamento do app
+  function updateStreak() {
+    ensureAchievementsShape();
+    const today = todayISO();
+    const last = state.streak.lastVisit;
+    if (last === today) return; // já contou hoje
+    if (!last) {
+      // primeira vez
+      state.streak.current = 1;
+      state.streak.longest = Math.max(state.streak.longest || 0, 1);
+    } else {
+      // Calcula diferença de dias
+      const lastDate = new Date(last);
+      const todayDate = new Date(today);
+      const diffDays = Math.round((todayDate - lastDate) / 86400000);
+      if (diffDays === 1) {
+        state.streak.current += 1;
+        state.streak.longest = Math.max(state.streak.longest || 0, state.streak.current);
+      } else {
+        state.streak.current = 1;
+      }
+    }
+    state.streak.lastVisit = today;
+    saveState();
+  }
+
   // ==================== MICROCELEBRAÇÕES (F) ====================
   // Texto "+R$ XX" flutua e some
   function floatingMoney(amount, sourceEl, isPositive) {
@@ -5265,6 +5607,19 @@ function doGet() {
     setSyncStatus(getActiveWebhookUrl() ? 'idle' : 'off');
     // Render entradas extras
     renderExtraIncomes();
+    // Streak badge no header
+    const streakBadge = document.getElementById('streakBadge');
+    const streakDaysEl = document.getElementById('streakDays');
+    if (streakBadge && streakDaysEl) {
+      const days = (state.streak && state.streak.current) || 0;
+      if (days >= 2) {
+        streakBadge.style.display = 'inline-flex';
+        streakDaysEl.textContent = String(days);
+        streakBadge.onclick = () => openAchievementsModal();
+      } else {
+        streakBadge.style.display = 'none';
+      }
+    }
   }
 
   function switchTabSilent(name) {
@@ -5303,6 +5658,7 @@ function doGet() {
         if (!confirm(msg)) return;
         // Try to keep old category names if possible (custom only)
         state.method = method;
+        trackMethodTried(method);
         const oldCats = state.categories;
         state.categories = cloneCats(METHODS[method].categories);
         // remap expenses by category name similarity
@@ -5741,21 +6097,40 @@ function doGet() {
     }
   }
 
-  // Hook: cada saveState dispara cloud sync (se logado)
+  // Hook: cada saveState dispara cloud sync (se logado) + check de conquistas
   const originalSaveState = saveState;
+  let _isCheckingAchievements = false;
   saveState = function() {
     originalSaveState.apply(this, arguments);
     if (currentUser && !isApplyingRemoteUpdate) scheduleCloudSave();
+    // Check conquistas (mas evita recursão)
+    if (!_isCheckingAchievements && !isApplyingRemoteUpdate) {
+      _isCheckingAchievements = true;
+      try { checkAchievements(); } catch (e) {}
+      _isCheckingAchievements = false;
+    }
   };
+
+  // Rastreia método experimentado (para conquista 'method_explorer')
+  function trackMethodTried(method) {
+    ensureAchievementsShape();
+    if (!state._methodsTried.includes(method)) {
+      state._methodsTried.push(method);
+    }
+  }
 
   // ==================== INIT ====================
   storageAvailable = checkStorageAvailable();
   loadState();
+  ensureAchievementsShape();
+  updateStreak();
   applyTheme();
   ensureRecurringForCurrentMonth();
   setupEvents();
   renderAll();
   generateAppleTouchIcon();
+  // Check conquistas iniciais (caso o user já cumpra alguma sem ter notado)
+  setTimeout(() => checkAchievements(), 800);
   if (!storageAvailable) {
     setTimeout(() => showToast('⚠ Armazenamento bloqueado (modo anônimo?). Seus dados NÃO serão salvos.', 'error'), 600);
   }
