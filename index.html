@@ -248,7 +248,18 @@
     color: #fff;
     box-shadow: var(--shadow-sm);
   }
-  .tab-btn .tab-icon { font-size: 16px; line-height: 1; }
+  .tab-btn .tab-icon {
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tab-btn .tab-icon svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+  }
 
   .tab-panel { display: none; animation: fadeIn 0.18s ease; }
   .tab-panel.active { display: block; }
@@ -1768,10 +1779,28 @@
     box-shadow: var(--shadow-md);
   }
   .achievement-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--success-soft) 100%);
+    border-radius: 50%;
+    color: var(--primary);
+    transition: transform 0.25s var(--ease-out-bounce);
+  }
+  .achievement-icon svg {
+    width: 28px;
+    height: 28px;
     display: block;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+  }
+  .achievement-card.unlocked:hover .achievement-icon {
+    transform: scale(1.1) rotate(-4deg);
+  }
+  .achievement-card.locked .achievement-icon {
+    background: var(--surface-alt);
+    color: var(--text-mute);
   }
   .achievement-name {
     font-size: 13px;
@@ -2496,8 +2525,25 @@
     font-family: inherit;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
+  .settings-menu .item .menu-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--text-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .settings-menu .item .menu-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+  .settings-menu .item.danger .menu-icon { color: var(--danger); }
+  .settings-menu .item:hover .menu-icon { color: var(--primary); }
+  .settings-menu .item.danger:hover .menu-icon { color: var(--danger); }
   .settings-menu .item:hover { background: var(--surface-alt); }
   .settings-menu .item.danger { color: var(--danger); }
   .settings-menu .item.danger:hover { background: var(--danger-soft); }
@@ -2684,8 +2730,14 @@
       </div>
       <div>
         <h1>Munny
-          <span class="cloud-sync-badge" id="cloudSyncBadge">☁ na nuvem</span>
-          <span class="streak-badge" id="streakBadge" title="Dias seguidos usando o Munny" style="display:none;">🔥 <span id="streakDays">0</span></span>
+          <span class="cloud-sync-badge" id="cloudSyncBadge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:3px;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            <span>na nuvem</span>
+          </span>
+          <span class="streak-badge" id="streakBadge" title="Dias seguidos usando o Munny" style="display:none;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span id="streakDays">0</span>
+          </span>
         </h1>
         <p id="currentPeriodLabel">—</p>
       </div>
@@ -2707,10 +2759,10 @@
 
   <!-- ============ TABS ============ -->
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="painel" role="tab"><span class="tab-icon">📊</span><span class="tab-text">Painel</span></button>
-    <button class="tab-btn" data-tab="despesas" role="tab"><span class="tab-icon">💸</span><span class="tab-text">Despesas</span></button>
-    <button class="tab-btn" data-tab="metas" role="tab"><span class="tab-icon">🎯</span><span class="tab-text">Metas</span></button>
-    <button class="tab-btn" data-tab="historico" role="tab"><span class="tab-icon">📈</span><span class="tab-text">Histórico</span></button>
+    <button class="tab-btn active" data-tab="painel" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-text">Painel</span></button>
+    <button class="tab-btn" data-tab="despesas" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg></span><span class="tab-text">Despesas</span></button>
+    <button class="tab-btn" data-tab="metas" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="tab-text">Metas</span></button>
+    <button class="tab-btn" data-tab="historico" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span><span class="tab-text">Histórico</span></button>
   </nav>
 
   <!-- ============ PAINEL ============ -->
@@ -2894,7 +2946,10 @@
           <div class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.06em;">Período atual</div>
           <div style="font-weight:600; font-size:17px; text-transform:capitalize;" id="currentMonthName">—</div>
         </div>
-        <button class="btn-secondary" id="closeMonthBtn" type="button">✓ Fechar Mês</button>
+        <button class="btn-secondary" id="closeMonthBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:6px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
+          Fechar Mês
+        </button>
       </div>
     </div>
 
@@ -2929,12 +2984,14 @@
 
 <!-- ============ BLOCO DE NOTAS (feedback pessoal) ============ -->
 <button class="notes-fab" id="notesFab" title="Bloco de notas" aria-label="Abrir bloco de notas">
-  📝
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
   <span class="notes-count" id="notesCount">0</span>
 </button>
 <div class="notes-panel" id="notesPanel" role="dialog" aria-label="Bloco de notas">
   <div class="notes-header">
-    <h3>📝 Notas / Feedback
+    <h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+      Notas / Feedback
       <span class="notes-sync-status idle" id="notesSyncStatus" title="Sincronização"></span>
     </h3>
     <button class="notes-close" id="notesClose" aria-label="Fechar">×</button>
@@ -2944,7 +3001,10 @@
     <button id="noteAddBtn" title="Adicionar nota (Ctrl+Enter)">+</button>
   </div>
   <ul class="notes-list" id="notesList"></ul>
-  <div class="notes-footer">💌 Suas notas chegam ao autor para melhorar o app.</div>
+  <div class="notes-footer">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Suas notas chegam ao autor para melhorar o app.
+  </div>
 </div>
 
 <!-- ============ TOAST ============ -->
@@ -2961,6 +3021,69 @@
   // Webhook padrão (do autor) — testers enviam pra cá automaticamente.
   // Usuários podem sobrescrever via configurações se quiserem usar a própria planilha.
   const DEFAULT_NOTES_WEBHOOK = 'https://script.google.com/macros/s/AKfycbx5b-oXGclAbzhzhL02Dvq8k5djvY4WWV-M2loPfQfJl67hrcQ-OQCWNHncLRBCDoPt/exec';
+
+  // ==================== ÍCONES SVG (Lucide-style) ====================
+  // Substituem emojis pra dar visual de produto premium (Stripe/Linear/Notion)
+  const ICONS = {
+    // Navegação principal
+    home:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    barChart:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+    receipt:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>',
+    target:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+    trendingUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
+    // Settings menu
+    download:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    upload:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+    palette:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125 0-.937.748-1.688 1.687-1.688h1.997c3.103 0 5.643-2.539 5.643-5.642C22 6.31 17.524 2 12 2z"/></svg>',
+    sheets:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>',
+    trophy:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+    logOut:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+    trash:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+    check:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    calendar:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    calendarCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>',
+    // Achievements
+    dollarSign: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    arrowDownCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>',
+    refresh:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    gift:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>',
+    list:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+    edit:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+    settings:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+    flame:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+    starOutline:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    sparkles:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 12h14M7 7l10 10M17 7L7 17"/></svg>',
+    gem:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/><line x1="11" y1="3" x2="8" y2="9"/><line x1="13" y1="3" x2="16" y2="9"/><line x1="2" y1="9" x2="22" y2="9"/></svg>',
+    diamond:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" transform="rotate(45 12 12)"/></svg>',
+    calculator: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="18" x2="12.01" y2="18"/><line x1="16" y1="18" x2="16.01" y2="18"/></svg>',
+    moon:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+    messageSquare: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    compass:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+  };
+
+  // Mapeia ID de conquista pra ícone SVG
+  const ACHIEVEMENT_ICON_MAP = {
+    income_set: 'dollarSign',
+    first_expense: 'arrowDownCircle',
+    first_goal: 'target',
+    first_recurring: 'refresh',
+    first_extra: 'gift',
+    first_month_closed: 'calendarCheck',
+    expense_10: 'list',
+    expense_50: 'edit',
+    recurring_3: 'settings',
+    months_3: 'flame',
+    months_6: 'trendingUp',
+    months_12: 'trophy',
+    goal_completed: 'starOutline',
+    goal_3: 'sparkles',
+    saved_1k: 'gem',
+    saved_10k: 'diamond',
+    fixed_amount: 'calculator',
+    dark_mode: 'moon',
+    feedback_sent: 'messageSquare',
+    method_explorer: 'compass',
+  };
 
   // ==================== CONQUISTAS ====================
   // Definições de todas as conquistas — adicionar novas é fácil
@@ -4616,25 +4739,25 @@
       ` : ''}
       <div class="settings-menu" style="border:none; padding:0; box-shadow:none;">
         <div class="label">Backup</div>
-        <button class="item" data-act="export">📥 Exportar Backup (.json)</button>
-        <button class="item" data-act="import">📤 Importar Backup</button>
+        <button class="item" data-act="export"><span class="menu-icon">${ICONS.download}</span><span>Exportar Backup (.json)</span></button>
+        <button class="item" data-act="import"><span class="menu-icon">${ICONS.upload}</span><span>Importar Backup</span></button>
         <div class="divider"></div>
         <div class="label">Aparência</div>
-        <button class="item" data-act="theme">🎨 Alternar tema (claro/escuro)</button>
+        <button class="item" data-act="theme"><span class="menu-icon">${ICONS.palette}</span><span>Alternar tema (claro/escuro)</span></button>
         <div class="divider"></div>
         <div class="label">Engajamento</div>
-        <button class="item" data-act="achievements">🏆 Conquistas e Stats</button>
+        <button class="item" data-act="achievements"><span class="menu-icon">${ICONS.trophy}</span><span>Conquistas e Stats</span></button>
         <div class="divider"></div>
         <div class="label">Sincronização</div>
-        <button class="item" data-act="syncConfig">📊 Conectar com Google Sheets (notas)</button>
+        <button class="item" data-act="syncConfig"><span class="menu-icon">${ICONS.sheets}</span><span>Conectar com Google Sheets (notas)</span></button>
         ${currentUser ? `
           <div class="divider"></div>
           <div class="label">Conta</div>
-          <button class="item" data-act="logout">↩ Sair da conta</button>
+          <button class="item" data-act="logout"><span class="menu-icon">${ICONS.logOut}</span><span>Sair da conta</span></button>
         ` : ''}
         <div class="divider"></div>
         <div class="label">Zona de perigo</div>
-        <button class="item danger" data-act="reset">🗑 Apagar todos os dados</button>
+        <button class="item danger" data-act="reset"><span class="menu-icon">${ICONS.trash}</span><span>Apagar todos os dados</span></button>
       </div>
       <input type="file" id="importFileInput" accept=".json,application/json" style="display:none" />
       <div class="modal-actions">
@@ -4695,11 +4818,13 @@
       const date = isUnlocked && unlockedIds[ach.id].at
         ? new Date(unlockedIds[ach.id].at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
         : '';
+      const iconKey = ACHIEVEMENT_ICON_MAP[ach.id] || 'starOutline';
+      const iconSvg = ICONS[iconKey] || ICONS.starOutline;
       return {
         isUnlocked,
         date,
         html: `<div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
-          <span class="achievement-icon">${ach.icon}</span>
+          <span class="achievement-icon">${iconSvg}</span>
           <div class="achievement-name">${escapeHtml(ach.name)}</div>
           <div class="achievement-desc">${escapeHtml(ach.desc)}</div>
           ${isUnlocked ? `<div class="achievement-date">${date}</div>` : ''}
@@ -5200,10 +5325,16 @@ function doGet() {
   }
 
   function notifyAchievementUnlocked(ach) {
-    // Toast bonito com a conquista
+    // Toast bonito com a conquista (SVG inline)
     const el = document.getElementById('toast');
-    el.innerHTML = '';
-    el.appendChild(document.createTextNode(`🏆 Conquista: ${ach.icon} ${ach.name}`));
+    const iconKey = ACHIEVEMENT_ICON_MAP[ach.id] || 'starOutline';
+    const iconSvg = ICONS[iconKey] || ICONS.starOutline;
+    el.innerHTML = `
+      <span style="display:inline-flex; align-items:center; gap:8px;">
+        <span style="width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;">${iconSvg.replace('viewBox="0 0 24 24"', 'viewBox="0 0 24 24" width="18" height="18"')}</span>
+        <span><strong>Conquista:</strong> ${escapeHtml(ach.name)}</span>
+      </span>
+    `;
     el.className = 'toast show success';
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { el.className = 'toast'; }, 3500);
