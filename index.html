@@ -461,140 +461,21 @@
   }
   .collapse-content.open { max-height: 1500px; }
 
-  /* ==================== BARRA DE DISTRIBUIÇÃO VISUAL ==================== */
-  .distribution-bar {
-    margin-top: 14px;
-    padding: 16px;
-    background: var(--surface-alt);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-  }
-  .distribution-bar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 10px;
-    font-size: 12px;
-    color: var(--text-mute);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .distribution-bar-header .income-display {
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 700;
-    text-transform: none;
-    letter-spacing: -0.01em;
-    font-variant-numeric: tabular-nums;
-  }
-  .distribution-stack {
-    display: flex;
-    height: 28px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--border);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
-  }
-  .distribution-segment {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    color: #fff;
-    font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    overflow: hidden;
-    white-space: nowrap;
-    transition: flex 0.5s var(--ease-out-bounce);
-    position: relative;
-    cursor: default;
-  }
-  .distribution-segment.locked::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-image: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 6px,
-      rgba(255,255,255,0.15) 6px,
-      rgba(255,255,255,0.15) 12px
-    );
-    pointer-events: none;
-  }
-  .distribution-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    margin-top: 12px;
-    font-size: 12px;
-  }
-  .distribution-legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-soft);
-  }
-  .distribution-legend-item .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-  }
-  .distribution-legend-item strong {
-    color: var(--text);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .distribution-bar.empty {
-    text-align: center;
-    color: var(--text-mute);
-    font-size: 13px;
-    padding: 18px;
-  }
-
-  /* ==================== EDITOR DE CATEGORIAS (redesenho) ==================== */
   .percent-editor {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 12px;
-    margin-top: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
   }
   .percent-row {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px 14px 12px;
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .percent-row:hover { border-color: var(--border-strong); }
-  .percent-row-top {
-    display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
+    padding: 8px 10px;
+    background: var(--surface-alt);
+    border-radius: 10px;
   }
-  .percent-row-bottom {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .percent-row .pct-spacer { flex: 1; }
-  .percent-row .row-value-display {
-    font-size: 13px;
-    color: var(--text-mute);
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    margin-left: auto;
-  }
-  .percent-row .row-value-display strong {
-    color: var(--text);
-    font-weight: 700;
-  }
-  .percent-row .swatch-input,
-  .percent-row .color-swatch-btn {
+  .percent-row .swatch-input {
     width: 22px;
     height: 22px;
     border-radius: 50%;
@@ -607,28 +488,24 @@
   .percent-row .pct-name-input {
     flex: 1;
     min-width: 0;
-    padding: 8px 10px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 6px 8px;
+    font-size: 14px;
+    font-weight: 500;
     text-align: left;
     background: transparent;
     border: 1px solid transparent;
-    letter-spacing: -0.01em;
   }
   .percent-row .pct-name-input:focus {
-    background: var(--surface-alt);
+    background: var(--surface);
     border-color: var(--border);
   }
   .percent-row .pct-input {
-    width: 90px;
-    padding: 8px 10px;
-    font-size: 15px;
-    font-weight: 700;
+    width: 64px;
+    padding: 6px 8px;
+    font-size: 14px;
+    font-weight: 600;
     text-align: right;
-    background: var(--surface-alt);
-    border-color: var(--border);
   }
-  .percent-row .pct-input:focus { background: var(--surface); }
   .percent-row .pct-del {
     background: transparent;
     border: none;
@@ -2992,16 +2869,6 @@
             <span class="method-desc">Defina suas próprias categorias.</span>
           </button>
         </div>
-        <!-- Barra visual de distribuição (sempre visível) -->
-        <div class="distribution-bar" id="distributionBar">
-          <div class="distribution-bar-header">
-            <span>Como sua renda é dividida</span>
-            <span class="income-display" id="distributionIncomeLabel">R$ 0,00</span>
-          </div>
-          <div class="distribution-stack" id="distributionStack"></div>
-          <div class="distribution-legend" id="distributionLegend"></div>
-        </div>
-
         <button class="collapse-toggle" id="percentToggle" type="button">
           <span class="chev">▼</span> Personalizar nomes, cores e %
         </button>
@@ -3837,32 +3704,20 @@
         ? (value > 0 ? value.toFixed(2).replace('.', ',') : '')
         : value;
       const isLocked = !!cat.locked;
-      const income = Number(state.income) || 0;
-      // Calcula valor em R$ para exibir como referência
-      const budgetRS = mode === 'fixed' ? (Number(cat.fixedAmount) || 0) : (income * (Number(cat.pct) || 0) / 100);
-      const valueDisplay = income > 0 || mode === 'fixed'
-        ? `<strong>${fmtBRL(budgetRS)}</strong>`
-        : '<span style="font-size:11px;">defina renda</span>';
-
       const row = document.createElement('div');
       row.className = 'percent-row' + (isLocked ? ' locked' : '');
       row.innerHTML = `
-        <div class="percent-row-top">
-          <button type="button" class="color-swatch-btn" data-idx="${idx}" style="background:${cat.color}" title="Mudar cor" aria-label="Mudar cor"></button>
-          <input type="text" class="pct-name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" placeholder="Nome" maxlength="40" ${isLocked ? 'readonly' : ''} />
-          <button type="button" class="pct-lock ${isLocked ? 'locked' : ''}" data-lock-idx="${idx}" title="${isLocked ? 'Desbloquear (permite ajuste automático)' : 'Bloquear (protege de mudanças)'}" aria-label="${isLocked ? 'Desbloquear' : 'Bloquear'}">
-            ${isLocked ? ICONS.lock : ICONS.unlock}
-          </button>
-          <button type="button" class="pct-del" data-idx="${idx}" title="Excluir categoria">×</button>
+        <button type="button" class="color-swatch-btn" data-idx="${idx}" style="background:${cat.color}" title="Mudar cor" aria-label="Mudar cor"></button>
+        <input type="text" class="pct-name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" placeholder="Nome" maxlength="40" ${isLocked ? 'readonly' : ''} />
+        <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" ${isLocked ? 'readonly' : ''} />
+        <div class="mode-toggle">
+          <button type="button" data-mode-idx="${idx}" data-mode-val="pct" class="${mode === 'pct' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Porcentagem da renda">%</button>
+          <button type="button" data-mode-idx="${idx}" data-mode-val="fixed" class="${mode === 'fixed' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Valor fixo em reais">R$</button>
         </div>
-        <div class="percent-row-bottom">
-          <div class="mode-toggle">
-            <button type="button" data-mode-idx="${idx}" data-mode-val="pct" class="${mode === 'pct' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Porcentagem da renda">%</button>
-            <button type="button" data-mode-idx="${idx}" data-mode-val="fixed" class="${mode === 'fixed' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Valor fixo em reais">R$</button>
-          </div>
-          <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" ${isLocked ? 'readonly' : ''} />
-          <div class="row-value-display">${valueDisplay}</div>
-        </div>
+        <button type="button" class="pct-lock ${isLocked ? 'locked' : ''}" data-lock-idx="${idx}" title="${isLocked ? 'Desbloquear (permite ajuste automático)' : 'Bloquear (protege de mudanças)'}" aria-label="${isLocked ? 'Desbloquear' : 'Bloquear'}">
+          ${isLocked ? ICONS.lock : ICONS.unlock}
+        </button>
+        <button type="button" class="pct-del" data-idx="${idx}" title="Excluir categoria">×</button>
       `;
       wrap.appendChild(row);
     });
@@ -3904,7 +3759,6 @@
         }
         saveState();
         renderPercentTotal();
-        renderDistributionBar();
         renderCategories();
       });
     });
@@ -3969,70 +3823,6 @@
       });
     });
     renderPercentTotal();
-    renderDistributionBar();
-  }
-
-  // Renderiza a barra horizontal visual de distribuição
-  function renderDistributionBar() {
-    const stack = document.getElementById('distributionStack');
-    const legend = document.getElementById('distributionLegend');
-    const incomeLabel = document.getElementById('distributionIncomeLabel');
-    if (!stack || !legend || !incomeLabel) return;
-
-    const income = Number(state.income) || 0;
-    incomeLabel.textContent = income > 0 ? fmtBRL(income) : 'Defina sua renda';
-
-    // Calcula valor R$ de cada categoria
-    const segments = state.categories.map(cat => {
-      const value = cat.mode === 'fixed'
-        ? (Number(cat.fixedAmount) || 0)
-        : (income * (Number(cat.pct) || 0) / 100);
-      const pctOfIncome = income > 0 ? (value / income) * 100 : (Number(cat.pct) || 0);
-      return {
-        cat,
-        value,
-        pctOfIncome,
-      };
-    });
-
-    const totalUsed = segments.reduce((s, seg) => s + seg.value, 0);
-    const totalPct = segments.reduce((s, seg) => s + seg.pctOfIncome, 0);
-
-    // Renderiza segmentos da barra (proporcionais ao valor)
-    if (income <= 0 && totalUsed <= 0) {
-      stack.innerHTML = '<div style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:11px;">Digite sua renda ou defina valores fixos</div>';
-      legend.innerHTML = '';
-      return;
-    }
-
-    const referenceTotal = Math.max(income, totalUsed);
-    stack.innerHTML = segments.map(seg => {
-      const flex = referenceTotal > 0 ? (seg.value / referenceTotal) : 0;
-      if (flex <= 0) return '';
-      const showLabel = flex >= 0.08; // só mostra label se tiver espaço
-      const lockedClass = seg.cat.locked ? ' locked' : '';
-      const label = showLabel
-        ? `${seg.pctOfIncome.toFixed(0)}%`
-        : '';
-      return `<div class="distribution-segment${lockedClass}" style="flex:${flex}; background:${seg.cat.color};" title="${escapeHtml(seg.cat.name)}: ${fmtBRL(seg.value)} (${seg.pctOfIncome.toFixed(1)}%)">${label}</div>`;
-    }).join('');
-
-    // Mostra sobra (não distribuído)
-    if (income > totalUsed && (income - totalUsed) / income > 0.005) {
-      const remaining = income - totalUsed;
-      const flex = remaining / referenceTotal;
-      stack.innerHTML += `<div class="distribution-segment" style="flex:${flex}; background:var(--border); color:var(--text-mute); text-shadow:none;" title="Sobra: ${fmtBRL(remaining)}">${flex >= 0.08 ? 'sobra' : ''}</div>`;
-    }
-
-    // Legenda
-    legend.innerHTML = segments.map(seg => {
-      const lockMarker = seg.cat.locked ? ' <span style="color:var(--warning);">🔒</span>'.replace('🔒', ICONS.lock.replace('viewBox="0 0 24 24"', 'viewBox="0 0 24 24" width="10" height="10" style="vertical-align:middle;"')) : '';
-      return `<div class="distribution-legend-item">
-        <span class="dot" style="background:${seg.cat.color}"></span>
-        <span>${escapeHtml(seg.cat.name)}${lockMarker}</span>
-        <strong>${seg.pctOfIncome.toFixed(1)}%</strong>
-      </div>`;
-    }).join('');
   }
 
   function renderPercentTotal() {
@@ -6058,8 +5848,6 @@ function doGet() {
       state.income = parseNumber(e.target.value);
       saveState();
       renderCategories();
-      renderDistributionBar();
-      renderPercentEditor(); // atualiza R$ displays nos cards
     });
 
     // Method
