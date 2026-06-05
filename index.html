@@ -508,6 +508,74 @@
   .percent-row .pct-del:hover { color: var(--danger); background: var(--danger-soft); }
   .percent-row .unit { font-size: 12px; color: var(--text-mute); }
 
+  /* Toggle de modo (% vs R$) por linha */
+  .mode-toggle {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .mode-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    min-width: 24px;
+  }
+  .mode-toggle button.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+  }
+  .mode-toggle button:not(.active):hover {
+    color: var(--text);
+  }
+
+  /* Badge "fixo" no card de categoria */
+  .cat-pct.fixed-mode {
+    background: var(--success-soft);
+    color: var(--success-dark);
+    font-weight: 600;
+  }
+
+  /* Atalho global pra escolher modo padrão */
+  .mode-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--surface-alt);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-soft);
+    flex-wrap: wrap;
+  }
+  .mode-shortcut button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .mode-shortcut button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
   .percent-total {
     margin-top: 12px;
     font-size: 13px;
@@ -2563,6 +2631,12 @@
               <button type="button" id="normalizeBtn">Ajustar pra 100%</button>
             </div>
           </div>
+          <div class="mode-shortcut">
+            <span>Atalho:</span>
+            <button type="button" id="allPctBtn">Tudo em %</button>
+            <button type="button" id="allFixedBtn">Tudo em R$ fixo</button>
+            <span style="margin-left:auto; opacity:0.7;">Misture livremente!</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2989,12 +3063,14 @@
   function sanitizeImportedData(data) {
     const fresh = defaultState();
     const out = Object.assign({}, fresh, data);
-    // categories: each must have id, name, pct, color
+    // categories: each must have id, name, pct, color, mode, fixedAmount
     out.categories = (Array.isArray(data.categories) ? data.categories : [])
       .map((c, i) => ({
         id: String(c && c.id || ('c_' + i)),
         name: String(c && c.name || 'Categoria ' + (i + 1)),
         pct: Number(c && c.pct) || 0,
+        mode: (c && c.mode === 'fixed') ? 'fixed' : 'pct',
+        fixedAmount: Number(c && c.fixedAmount) || 0,
         color: typeof c?.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.color)
           ? c.color
           : COLOR_PALETTE[i % COLOR_PALETTE.length],
@@ -3270,13 +3346,21 @@
     const wrap = document.getElementById('percentEditor');
     wrap.innerHTML = '';
     state.categories.forEach((cat, idx) => {
+      const mode = cat.mode === 'fixed' ? 'fixed' : 'pct';
+      const value = mode === 'fixed' ? (Number(cat.fixedAmount) || 0) : (Number(cat.pct) || 0);
+      const displayValue = mode === 'fixed'
+        ? (value > 0 ? value.toFixed(2).replace('.', ',') : '')
+        : value;
       const row = document.createElement('div');
       row.className = 'percent-row';
       row.innerHTML = `
         <button type="button" class="color-swatch-btn" data-idx="${idx}" style="background:${cat.color}" title="Mudar cor" aria-label="Mudar cor"></button>
         <input type="text" class="pct-name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" placeholder="Nome" maxlength="40" />
-        <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${cat.pct}" />
-        <span class="unit">%</span>
+        <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" />
+        <div class="mode-toggle">
+          <button type="button" data-mode-idx="${idx}" data-mode-val="pct" class="${mode === 'pct' ? 'active' : ''}" title="Porcentagem da renda">%</button>
+          <button type="button" data-mode-idx="${idx}" data-mode-val="fixed" class="${mode === 'fixed' ? 'active' : ''}" title="Valor fixo em reais">R$</button>
+        </div>
         <button type="button" class="pct-del" data-idx="${idx}" title="Excluir categoria">×</button>
       `;
       wrap.appendChild(row);
@@ -3310,10 +3394,46 @@
     wrap.querySelectorAll('.pct-input').forEach(inp => {
       inp.addEventListener('input', (e) => {
         const idx = +e.target.dataset.idx;
-        state.categories[idx].pct = parseNumber(e.target.value);
+        const cat = state.categories[idx];
+        const val = parseNumber(e.target.value);
+        if (cat.mode === 'fixed') {
+          cat.fixedAmount = val;
+        } else {
+          cat.pct = val;
+        }
         saveState();
         renderPercentTotal();
         renderCategories();
+      });
+    });
+
+    // Toggle de modo % vs R$
+    wrap.querySelectorAll('[data-mode-idx]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = +btn.dataset.modeIdx;
+        const newMode = btn.dataset.modeVal;
+        const cat = state.categories[idx];
+        if (cat.mode === newMode || (!cat.mode && newMode === 'pct')) return; // já está
+        // Converter valor entre modos (preserva intenção do usuário)
+        const income = Number(state.income) || 0;
+        if (newMode === 'fixed') {
+          // % → R$: calcula o valor com base na renda atual
+          if (income > 0 && (cat.pct || 0) > 0) {
+            cat.fixedAmount = (income * (cat.pct || 0)) / 100;
+          }
+          cat.mode = 'fixed';
+        } else {
+          // R$ → %: calcula a porcentagem equivalente
+          if (income > 0 && (cat.fixedAmount || 0) > 0) {
+            cat.pct = Math.round(((cat.fixedAmount || 0) / income) * 1000) / 10;
+          }
+          cat.mode = 'pct';
+        }
+        saveState();
+        renderPercentEditor();
+        renderPercentTotal();
+        renderCategories();
+        renderPieChart();
       });
     });
     wrap.querySelectorAll('.pct-del').forEach(btn => {
@@ -3340,17 +3460,39 @@
   }
 
   function renderPercentTotal() {
-    const total = state.categories.reduce((s, c) => s + Number(c.pct || 0), 0);
+    const income = Number(state.income) || 0;
+    let pctTotal = 0;
+    let fixedTotal = 0;
+    state.categories.forEach(c => {
+      if (c.mode === 'fixed') fixedTotal += Number(c.fixedAmount) || 0;
+      else pctTotal += Number(c.pct) || 0;
+    });
+    // Calcula o equivalente em % do que está em R$ fixo
+    const fixedAsPct = income > 0 ? (fixedTotal / income) * 100 : 0;
+    const grandTotalPct = pctTotal + fixedAsPct;
+    const rounded = Math.round(grandTotalPct * 10) / 10;
     const el = document.getElementById('percentTotal');
     const span = el.querySelector('.total-text');
-    const rounded = Math.round(total * 10) / 10;
     el.classList.remove('error', 'ok');
-    if (Math.abs(rounded - 100) < 0.01) {
+    let label;
+    if (fixedTotal > 0 && pctTotal > 0) {
+      label = `${pctTotal.toFixed(1)}% + ${fmtBRL(fixedTotal)} (~${rounded}% total)`;
+    } else if (fixedTotal > 0) {
+      label = `${fmtBRL(fixedTotal)} fixo (${rounded}% da renda)`;
+    } else {
+      label = `Total: ${rounded}%`;
+    }
+    if (income > 0 && Math.abs(grandTotalPct - 100) < 0.5) {
       el.classList.add('ok');
-      span.textContent = `Total: ${rounded}% ✓`;
+      span.textContent = label + ' ✓';
+    } else if (income === 0) {
+      span.textContent = label + ' (digite renda para validar)';
+    } else if (grandTotalPct > 100) {
+      el.classList.add('error');
+      span.textContent = label + ' — passou de 100%!';
     } else {
       el.classList.add('error');
-      span.textContent = `Total: ${rounded}% (ideal: 100%)`;
+      span.textContent = label + ' (ideal: 100%)';
     }
   }
 
@@ -3394,7 +3536,10 @@
     }
 
     state.categories.forEach(cat => {
-      const budget = income * (Number(cat.pct) || 0) / 100;
+      // Orçamento por categoria: % da renda OU valor fixo em R$
+      const budget = cat.mode === 'fixed'
+        ? (Number(cat.fixedAmount) || 0)
+        : (income * (Number(cat.pct) || 0) / 100);
       const spent = spentByCategory(cat.id);
       const remaining = budget - spent;
       const pctUsed = budget > 0 ? (spent / budget) * 100 : 0;
@@ -3410,6 +3555,10 @@
 
       const statusLabel = status === 'over' ? 'Estourou' : 'Atenção';
 
+      const badgeText = cat.mode === 'fixed'
+        ? 'R$ fixo'
+        : ((cat.pct || 0) + '%');
+      const badgeClass = cat.mode === 'fixed' ? 'cat-pct fixed-mode' : 'cat-pct';
       card.innerHTML = `
         <div class="top-row">
           <div class="cat-name">
@@ -3418,7 +3567,7 @@
           </div>
           <div class="cat-tags">
             <span class="status-tag">${statusLabel}</span>
-            <span class="cat-pct">${cat.pct}%</span>
+            <span class="${badgeClass}">${badgeText}</span>
           </div>
         </div>
         <div class="cat-amount-line">
@@ -5237,6 +5386,37 @@ function doGet() {
       saveState();
       renderAll();
       showToast('Porcentagens ajustadas pra somar 100%.', 'success');
+    });
+
+    // Atalhos: tudo em % ou tudo em R$
+    document.getElementById('allPctBtn').addEventListener('click', () => {
+      const income = Number(state.income) || 0;
+      state.categories.forEach(c => {
+        if (c.mode === 'fixed' && income > 0 && (c.fixedAmount || 0) > 0) {
+          c.pct = Math.round(((c.fixedAmount || 0) / income) * 1000) / 10;
+        }
+        c.mode = 'pct';
+      });
+      saveState();
+      renderAll();
+      showToast('Todas as categorias agora estão em %.', 'success');
+    });
+
+    document.getElementById('allFixedBtn').addEventListener('click', () => {
+      const income = Number(state.income) || 0;
+      state.categories.forEach(c => {
+        if (c.mode !== 'fixed' && income > 0 && (c.pct || 0) > 0) {
+          c.fixedAmount = (income * (c.pct || 0)) / 100;
+        }
+        c.mode = 'fixed';
+      });
+      saveState();
+      renderAll();
+      if (income === 0) {
+        showToast('Defina os valores em R$ pra cada categoria!', 'success');
+      } else {
+        showToast('Todas as categorias agora estão em R$ fixo.', 'success');
+      }
     });
 
     // Expense form
