@@ -461,6 +461,47 @@
   }
   .collapse-content.open { max-height: 1500px; }
 
+  /* ==================== HELPER + TOGGLE ADVANCED ==================== */
+  .editor-helper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 12px 0 8px;
+    padding: 8px 12px;
+    background: var(--primary-soft);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-soft);
+    line-height: 1.45;
+  }
+  .editor-helper-text strong { color: var(--text); font-weight: 600; }
+  .editor-advanced-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-soft);
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .editor-advanced-toggle input { width: auto; margin: 0; cursor: pointer; }
+
+  /* Por padrão (modo simples), esconde controles avançados */
+  body:not(.advanced-mode) .mode-toggle,
+  body:not(.advanced-mode) .pct-lock,
+  body:not(.advanced-mode) #advancedShortcuts {
+    display: none !important;
+  }
+
+  /* No modo simples, deixa o input do valor um pouco mais largo */
+  body:not(.advanced-mode) .percent-row .pct-input {
+    width: 64px;
+  }
+
   /* ==================== BARRA DE DISTRIBUIÇÃO VISUAL ==================== */
   .distribution-bar {
     margin-top: 12px;
@@ -2996,6 +3037,13 @@
           <span class="chev">▼</span> Personalizar nomes, cores e %
         </button>
         <div class="collapse-content" id="percentCollapse">
+          <div class="editor-helper">
+            <span class="editor-helper-text">💡 Edite o <strong>nome</strong>, <strong>cor</strong> e <strong>porcentagem</strong> de cada categoria. Total deve dar 100%.</span>
+            <label class="editor-advanced-toggle">
+              <input type="checkbox" id="advancedModeToggle" />
+              <span>Modo avançado</span>
+            </label>
+          </div>
           <div class="percent-editor" id="percentEditor"></div>
           <div class="percent-total" id="percentTotal">
             <span class="total-text">Total: 0%</span>
@@ -3004,7 +3052,7 @@
               <button type="button" id="normalizeBtn">Ajustar pra 100%</button>
             </div>
           </div>
-          <div class="mode-shortcut">
+          <div class="mode-shortcut" id="advancedShortcuts">
             <span>Atalho:</span>
             <button type="button" id="allPctBtn">Tudo em %</button>
             <button type="button" id="allFixedBtn">Tudo em R$ fixo</button>
@@ -3461,6 +3509,7 @@
         filter: 'all',
         notesOpen: false,
         defaultGoalId: '', // meta padrão para receber o saldo ao fechar o mês
+        advancedMode: false, // mostra controles avançados (R$ fixo, cadeado, atalhos)
       },
     };
   }
@@ -3963,6 +4012,21 @@
   }
 
   // Renderiza a barra horizontal visual de distribuição
+  // Aplica modo avançado (mostra/esconde controles R$, lock, atalhos)
+  function applyAdvancedMode() {
+    // Auto-detect: se o usuário já tem alguma categoria em modo R$ ou bloqueada,
+    // força advancedMode = true (não dá pra esconder controles que estão em uso)
+    const hasFixed = (state.categories || []).some(c => c.mode === 'fixed');
+    const hasLocked = (state.categories || []).some(c => c.locked);
+    if (hasFixed || hasLocked) {
+      state.ui.advancedMode = true;
+    }
+    const isAdvanced = !!(state.ui && state.ui.advancedMode);
+    document.body.classList.toggle('advanced-mode', isAdvanced);
+    const chk = document.getElementById('advancedModeToggle');
+    if (chk) chk.checked = isAdvanced;
+  }
+
   function renderDistributionBar() {
     const stack = document.getElementById('distributionStack');
     const legend = document.getElementById('distributionLegend');
@@ -6012,6 +6076,7 @@ function doGet() {
     setSyncStatus(getActiveWebhookUrl() ? 'idle' : 'off');
     // Render entradas extras
     renderExtraIncomes();
+    applyAdvancedMode();
     // Streak badge no header
     const streakBadge = document.getElementById('streakBadge');
     const streakDaysEl = document.getElementById('streakDays');
@@ -6194,6 +6259,16 @@ function doGet() {
         : 'Porcentagens ajustadas pra somar 100%.';
       showToast(msg, 'success');
     });
+
+    // Toggle Modo avançado
+    const advChk = document.getElementById('advancedModeToggle');
+    if (advChk) {
+      advChk.addEventListener('change', () => {
+        state.ui.advancedMode = advChk.checked;
+        saveState();
+        applyAdvancedMode();
+      });
+    }
 
     // Atalhos: tudo em % ou tudo em R$
     document.getElementById('allPctBtn').addEventListener('click', () => {
