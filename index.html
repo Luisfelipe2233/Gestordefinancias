@@ -2415,40 +2415,152 @@
     color: var(--text-mute);
     font-size: 12px;
   }
-  .chart-wrap {
-    display: grid;
-    grid-template-columns: minmax(180px, 220px) 1fr;
-    gap: 18px;
-    align-items: center;
-  }
-  @media (max-width: 600px) { .chart-wrap { grid-template-columns: 1fr; } }
-
-  .pie-chart { width: 100%; max-width: 220px; aspect-ratio: 1; margin: 0 auto; }
-  .pie-chart .pie-center {
-    font-weight: 700;
-    fill: var(--text);
-  }
-  .pie-chart .pie-sub {
-    font-size: 11px;
-    fill: var(--text-mute);
-  }
-  .pie-legend { display: flex; flex-direction: column; gap: 8px; }
-  .pie-legend .item {
+  /* ===== Pie chart (versão premium) ===== */
+  .pie-top-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--success-soft) 100%);
+    border-radius: 12px;
+    margin-bottom: 14px;
     font-size: 13px;
   }
-  .pie-legend .item .swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
+  .pie-top-badge .top-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
+  }
+  .pie-top-badge .top-info { flex: 1; min-width: 0; }
+  .pie-top-badge .top-label {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .pie-top-badge .top-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .pie-top-badge .top-value {
+    text-align: right;
     flex-shrink: 0;
   }
-  .pie-legend .item .nm { flex: 1; }
-  .pie-legend .item .vl {
+  .pie-top-badge .top-value-amount {
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .pie-top-badge .top-value-pct {
+    font-size: 11px;
+    color: var(--text-soft);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+  }
+
+  .chart-wrap {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  @media (max-width: 600px) { .chart-wrap { grid-template-columns: 1fr; gap: 20px; } }
+
+  .pie-chart {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1;
+    margin: 0 auto;
+    filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.08));
+  }
+  [data-theme="dark"] .pie-chart {
+    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.18));
+  }
+  .pie-chart .pie-center {
+    font-weight: 800;
+    fill: var(--text);
+    letter-spacing: -0.02em;
+    font-size: 16px;
+  }
+  .pie-chart .pie-sub {
+    font-size: 10px;
+    fill: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  /* Legend como mini-cards com barra */
+  .pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pie-legend .item {
+    display: grid;
+    grid-template-columns: 12px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 12px;
+    background: var(--surface-alt);
+    border-radius: 8px;
+    font-size: 13px;
+    transition: transform 0.15s ease, background 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .pie-legend .item:hover {
+    background: var(--surface-hover);
+    transform: translateX(2px);
+  }
+  /* Barra preenchida no fundo do item */
+  .pie-legend .item::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 0 0;
+    background: currentColor;
+    opacity: 0.08;
+    width: var(--pct, 0%);
+    transition: width 0.6s var(--ease-out-bounce);
+    pointer-events: none;
+  }
+  .pie-legend .item .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .pie-legend .item .nm {
+    font-weight: 600;
+    color: var(--text);
+    z-index: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: -0.005em;
+  }
+  .pie-legend .item .nm .muted {
+    color: var(--text-mute);
+    font-weight: 500;
+    margin-left: 4px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pie-legend .item .vl {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    z-index: 1;
+    letter-spacing: -0.01em;
   }
 
   .bar-chart-wrap {
@@ -2918,7 +3030,8 @@
 
     <div class="chart-card mt-12" id="pieCard" style="display:none;">
       <h3>Distribuição dos Gastos</h3>
-      <p class="sub">Quanto cada categoria representa no total já gasto.</p>
+      <p class="sub">Quanto cada categoria representa no total gasto este mês.</p>
+      <div class="pie-top-badge" id="pieTopBadge" style="display:none;"></div>
       <div class="chart-wrap">
         <div><svg class="pie-chart" id="pieChart" viewBox="0 0 200 200"></svg></div>
         <div class="pie-legend" id="pieLegend"></div>
@@ -4252,7 +4365,7 @@
     card.style.display = '';
 
     const total = data.reduce((s, d) => s + d.value, 0);
-    const cx = 100, cy = 100, r = 75, ri = 45;
+    const cx = 100, cy = 100, r = 78, ri = 48;
     let angleStart = -Math.PI / 2;
     let pathStr = '';
 
@@ -4275,19 +4388,41 @@
 
     const svg = document.getElementById('pieChart');
     svg.innerHTML = pathStr + `
-      <text class="pie-center" x="100" y="100" text-anchor="middle" font-size="14">${fmtBRL(total)}</text>
+      <text class="pie-center" x="100" y="98" text-anchor="middle">${fmtBRL(total)}</text>
       <text class="pie-sub" x="100" y="116" text-anchor="middle">total gasto</text>
     `;
 
+    // Top badge — maior gasto em destaque
+    const sorted = [...data].sort((a, b) => b.value - a.value);
+    const topBadge = document.getElementById('pieTopBadge');
+    if (topBadge) {
+      const top = sorted[0];
+      const topPct = (top.value / total) * 100;
+      topBadge.innerHTML = `
+        <span class="top-dot" style="background:${top.color}"></span>
+        <div class="top-info">
+          <div class="top-label">Maior gasto</div>
+          <div class="top-name">${escapeHtml(top.label)}</div>
+        </div>
+        <div class="top-value">
+          <div class="top-value-amount">${fmtBRL(top.value)}</div>
+          <div class="top-value-pct">${topPct.toFixed(1)}% do total</div>
+        </div>
+      `;
+      topBadge.style.display = data.length > 1 ? 'flex' : 'none';
+    }
+
     const legend = document.getElementById('pieLegend');
     legend.innerHTML = '';
-    data.sort((a, b) => b.value - a.value).forEach(d => {
+    sorted.forEach(d => {
       const pct = (d.value / total) * 100;
       const it = document.createElement('div');
       it.className = 'item';
+      it.style.color = d.color; // pra barra do ::before pegar
+      it.style.setProperty('--pct', pct.toFixed(1) + '%');
       it.innerHTML = `
         <span class="swatch" style="background:${d.color}"></span>
-        <span class="nm">${escapeHtml(d.label)} <span class="muted">${pct.toFixed(0)}%</span></span>
+        <span class="nm">${escapeHtml(d.label)} <span class="muted">${pct.toFixed(1)}%</span></span>
         <span class="vl">${fmtBRL(d.value)}</span>
       `;
       legend.appendChild(it);
