@@ -463,15 +463,15 @@
 
   .percent-editor {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 10px;
     margin-top: 10px;
   }
   .percent-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 10px;
+    gap: 8px;
+    padding: 10px 12px;
     background: var(--surface-alt);
     border-radius: 10px;
   }
@@ -487,13 +487,15 @@
   }
   .percent-row .pct-name-input {
     flex: 1;
-    min-width: 0;
-    padding: 6px 8px;
+    min-width: 110px;
+    padding: 7px 10px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     text-align: left;
     background: transparent;
     border: 1px solid transparent;
+    color: var(--text);
+    letter-spacing: -0.005em;
   }
   .percent-row .pct-name-input:focus {
     background: var(--surface);
@@ -501,10 +503,12 @@
   }
   .percent-row .pct-input {
     width: 64px;
-    padding: 6px 8px;
+    padding: 7px 8px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     text-align: right;
+    background: var(--surface);
+    border-color: var(--border);
   }
   .percent-row .pct-del {
     background: transparent;
