@@ -2434,147 +2434,6 @@
     background: rgba(255,255,255,0.85);
   }
 
-  /* ==================== RESERVA DE EMERGÊNCIA ==================== */
-  .reserve-card {
-    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-alt) 100%);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    margin-top: 18px;
-    margin-bottom: 6px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-  }
-  .reserve-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 4px;
-    background: var(--reserve-accent, var(--success));
-    transition: background 0.4s ease;
-  }
-  .reserve-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-  .reserve-head .label {
-    font-size: 11px;
-    color: var(--text-mute);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .reserve-head .label svg { width: 14px; height: 14px; color: var(--reserve-accent, var(--success)); }
-  .reserve-head .title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.015em;
-    margin-top: 4px;
-  }
-  .reserve-head .status-badge {
-    padding: 4px 10px;
-    background: var(--reserve-accent-soft, var(--success-soft));
-    color: var(--reserve-accent, var(--success-dark));
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-  .reserve-big-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .reserve-months {
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .reserve-months-label {
-    font-size: 13px;
-    color: var(--text-mute);
-    font-weight: 600;
-  }
-  .reserve-amount {
-    margin-left: auto;
-    font-size: 13px;
-    color: var(--text-soft);
-    font-variant-numeric: tabular-nums;
-  }
-  .reserve-amount strong { color: var(--text); font-weight: 700; }
-  .reserve-bar-wrap {
-    margin-bottom: 8px;
-  }
-  .reserve-bar-track {
-    height: 8px;
-    background: var(--surface-alt);
-    border-radius: 999px;
-    overflow: hidden;
-    position: relative;
-  }
-  .reserve-bar-fill {
-    height: 100%;
-    background: var(--reserve-accent, var(--success));
-    border-radius: 999px;
-    transition: width 0.8s var(--ease-out-bounce);
-  }
-  .reserve-bar-marks {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    font-size: 10px;
-    color: var(--text-mute);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .reserve-bar-marks span { position: relative; }
-  .reserve-tip {
-    margin-top: 12px;
-    padding: 10px 12px;
-    background: var(--reserve-accent-soft, var(--success-soft));
-    border-radius: 8px;
-    font-size: 12px;
-    color: var(--text);
-    line-height: 1.5;
-  }
-  .reserve-tip strong { font-weight: 700; }
-
-  /* Status colors */
-  .reserve-card.status-critical {
-    --reserve-accent: var(--danger);
-    --reserve-accent-soft: var(--danger-soft);
-  }
-  .reserve-card.status-low {
-    --reserve-accent: var(--warning);
-    --reserve-accent-soft: var(--warning-soft);
-  }
-  .reserve-card.status-ok {
-    --reserve-accent: var(--success);
-    --reserve-accent-soft: var(--success-soft);
-  }
-  .reserve-card.status-great {
-    --reserve-accent: #8b5cf6;
-    --reserve-accent-soft: rgba(139, 92, 246, 0.15);
-  }
-
   /* ==================== MODO STEALTH ==================== */
   /* Borra todos os valores em R$ pra privacidade rápida */
   body.stealth-mode #income,
@@ -4659,9 +4518,6 @@
         <div class="val" id="sumRemaining">R$ 0,00</div>
       </div>
     </div>
-
-    <!-- RESERVA DE EMERGÊNCIA -->
-    <div class="reserve-card" id="reserveCard" style="display:none;"></div>
 
     <!-- INSIGHTS CARD -->
     <div class="insights-card type-info" id="insightsCard" style="display:none;">
@@ -7844,7 +7700,6 @@ function doGet() {
     setSyncStatus(getActiveWebhookUrl() ? 'idle' : 'off');
     // Render entradas extras
     renderExtraIncomes();
-    renderReserveCard();
     renderInsights();
     resetInsightRotation();
     // Streak badge no header
@@ -9243,108 +9098,6 @@ function doGet() {
     }
 
     return insights;
-  }
-
-  // ==================== RESERVA DE EMERGÊNCIA ====================
-  function renderReserveCard() {
-    const card = document.getElementById('reserveCard');
-    if (!card) return;
-
-    // Calcula média mensal de despesas (dos últimos meses + mês atual)
-    const historyKeys = Object.keys(state.history || {}).sort().slice(-3); // últimos 3
-    let totalHistorySpent = 0;
-    historyKeys.forEach(k => {
-      totalHistorySpent += Number(state.history[k].totalSpent) || 0;
-    });
-    let avgMonthly;
-    if (historyKeys.length > 0) {
-      avgMonthly = totalHistorySpent / historyKeys.length;
-    } else {
-      // Sem histórico — usa o gasto atual + renda como base
-      const currentSpent = (state.expenses || []).reduce((s, e) => s + Number(e.value || 0), 0);
-      const income = effectiveIncome();
-      avgMonthly = currentSpent > 0 ? currentSpent : (income * 0.7); // estimativa
-    }
-
-    // Total guardado: soma das metas + sobras do histórico
-    const goalsTotal = (state.goals || []).reduce((s, g) => s + Number(g.current || 0), 0);
-    let historySaved = 0;
-    Object.values(state.history || {}).forEach(h => {
-      const saved = Number(h.income || 0) - Number(h.totalSpent || 0);
-      // Não soma transferências pra meta (senão dobra contagem)
-      if (saved > 0 && !h.transferredAmount) historySaved += saved;
-    });
-    const totalSaved = goalsTotal + historySaved;
-
-    // Esconde se não tem nada calculável
-    if (avgMonthly <= 0 && totalSaved <= 0) {
-      card.style.display = 'none';
-      return;
-    }
-    card.style.display = '';
-
-    const monthsCovered = avgMonthly > 0 ? totalSaved / avgMonthly : 0;
-    // Status & tip
-    let status, statusLabel, tip;
-    if (monthsCovered < 1) {
-      status = 'critical';
-      statusLabel = '⚠ Crítico';
-      tip = `<strong>Recomendação:</strong> comece pequeno — junte pelo menos <strong>${fmtBRL(avgMonthly)}</strong> (1 mês de despesa). É a base da tranquilidade.`;
-    } else if (monthsCovered < 3) {
-      status = 'low';
-      statusLabel = 'Em construção';
-      tip = `<strong>Continue!</strong> Você já tem ${monthsCovered.toFixed(1)} meses. O ideal mínimo é <strong>3 meses</strong> (~${fmtBRL(avgMonthly * 3)}).`;
-    } else if (monthsCovered < 6) {
-      status = 'ok';
-      statusLabel = '✓ Razoável';
-      tip = `Boa! Você cobre ${monthsCovered.toFixed(1)} meses. O confortável é <strong>6 meses</strong> (~${fmtBRL(avgMonthly * 6)}). Está no caminho certo.`;
-    } else if (monthsCovered < 12) {
-      status = 'great';
-      statusLabel = '★ Confortável';
-      tip = `Excelente! <strong>${monthsCovered.toFixed(1)} meses</strong> de tranquilidade. Pense em investir o excedente pra render acima da inflação.`;
-    } else {
-      status = 'great';
-      statusLabel = '★ Excelente';
-      tip = `<strong>Premium 💎</strong> Você cobre ${monthsCovered.toFixed(1)} meses. Considere alocações de longo prazo (investimentos, previdência, ações).`;
-    }
-
-    card.className = `reserve-card status-${status}`;
-
-    // Barra: 0-3 meses (33%), 3-6 (33%), 6+ (33%) — visualmente
-    const barPct = Math.min(100, (monthsCovered / 6) * 66 + (monthsCovered >= 6 ? Math.min(34, (monthsCovered - 6) / 6 * 34) : 0));
-
-    card.innerHTML = `
-      <div class="reserve-head">
-        <div>
-          <div class="label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Reserva de emergência
-          </div>
-          <div class="title">Quanto tempo seu dinheiro cobre</div>
-        </div>
-        <span class="status-badge">${statusLabel}</span>
-      </div>
-      <div class="reserve-big-row">
-        <span class="reserve-months">${monthsCovered.toFixed(1)}</span>
-        <span class="reserve-months-label">meses de despesa</span>
-        <span class="reserve-amount">
-          <strong>${fmtBRL(totalSaved)}</strong> guardado /
-          <strong>${fmtBRL(avgMonthly)}</strong> mês médio
-        </span>
-      </div>
-      <div class="reserve-bar-wrap">
-        <div class="reserve-bar-track">
-          <div class="reserve-bar-fill" style="width:${barPct}%;"></div>
-        </div>
-        <div class="reserve-bar-marks">
-          <span>0</span>
-          <span>3m mínimo</span>
-          <span>6m confortável</span>
-          <span>12m+ ✦</span>
-        </div>
-      </div>
-      <div class="reserve-tip">${tip}</div>
-    `;
   }
 
   let insightsCurrentIdx = 0;
