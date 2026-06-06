@@ -1612,6 +1612,25 @@
     100% { transform: translateX(450%); width: 30%; }
   }
 
+  /* Conteúdo (app + login) começa "fora de foco" enquanto splash está visível
+     e se revela suavemente quando o splash sai */
+  .app, .login-screen {
+    opacity: 0;
+    transform: scale(0.97);
+    filter: blur(6px);
+    transition:
+      opacity 0.75s var(--ease-out-smooth) 0.1s,
+      transform 0.8s var(--ease-out-smooth) 0.1s,
+      filter 0.6s var(--ease-out-smooth) 0.1s;
+    will-change: opacity, transform, filter;
+  }
+  body.content-revealed .app,
+  body.content-revealed .login-screen {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+
   /* Logo dá um POP celebrativo antes de sair */
   .splash-screen.exiting .splash-logo {
     animation: splashLogoPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -7666,6 +7685,10 @@ function doGet() {
   const splashShownAt = Date.now();
   let splashHidden = false;
 
+  function revealContent() {
+    document.body.classList.add('content-revealed');
+  }
+
   function hideSplash() {
     if (splashHidden) return;
     splashHidden = true;
@@ -7673,10 +7696,17 @@ function doGet() {
     const wait = Math.max(0, SPLASH_MIN_TIME - elapsed);
     setTimeout(() => {
       const splash = document.getElementById('splashScreen');
-      if (!splash) return;
+      if (!splash) {
+        // Splash já saiu por algum motivo — só revela
+        revealContent();
+        return;
+      }
       // Fase 1: anima exit (logo pop + shockwave + glow burst)
       splash.classList.add('exiting');
-      // Fase 2: depois do pop, slide up
+      // Fase 2a: começa a revelar o conteúdo por baixo (cross-fade + unblur)
+      // Acontece DURANTE o pop, antes do splash subir, pra ter sobreposição suave
+      setTimeout(revealContent, 200);
+      // Fase 2b: depois do pop, slide up do splash
       setTimeout(() => {
         splash.classList.add('hidden');
         // Fase 3: remove do DOM (libera memória) depois do slide
@@ -7686,6 +7716,9 @@ function doGet() {
       }, 450); // espera o pico do pop antes de subir
     }, wait);
   }
+
+  // Failsafe: se algo falhar antes do hideSplash rodar, revela o conteúdo mesmo assim
+  setTimeout(revealContent, SPLASH_MAX_TIME + 500);
 
   // Fallback: se algo travar, esconde forçado depois de SPLASH_MAX_TIME
   setTimeout(hideSplash, SPLASH_MAX_TIME);
