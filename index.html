@@ -1604,6 +1604,309 @@
 
   /* (Animações dramáticas de exit removidas — agora é puro fade out suave) */
 
+  /* ==================== CALENDÁRIO (heatmap) ==================== */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .cal-title-wrap {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+  .cal-month-label {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-transform: capitalize;
+  }
+  .cal-nav-btn {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .cal-nav-btn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+  .cal-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .cal-nav-btn svg { width: 14px; height: 14px; }
+
+  .cal-today-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: background 0.15s ease;
+  }
+  .cal-today-btn:hover { background: var(--primary-dark); }
+
+  .cal-grid-wrap { margin-bottom: 18px; }
+
+  .cal-weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .cal-weekday {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 0;
+  }
+  .cal-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .cal-cell {
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    background: var(--surface-alt);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+    padding: 0;
+    font-family: inherit;
+    will-change: transform;
+    animation: calCellIn 0.4s var(--ease-out-smooth) both;
+  }
+  @keyframes calCellIn {
+    from { opacity: 0; transform: scale(0.7); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .cal-cell.empty { visibility: hidden; pointer-events: none; }
+  .cal-cell:hover:not(.empty) {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    z-index: 2;
+  }
+  .cal-cell.today {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-soft);
+  }
+  .cal-cell.future {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .cal-cell.selected {
+    box-shadow: 0 0 0 2px var(--text);
+    transform: scale(1.08);
+    z-index: 3;
+  }
+
+  /* Níveis de intensidade do heatmap */
+  .cal-cell.level-0 { background: var(--surface-alt); color: var(--text-mute); }
+  .cal-cell.level-1 { background: rgba(37, 99, 235, 0.18); color: var(--primary-dark); }
+  .cal-cell.level-2 { background: rgba(37, 99, 235, 0.40); color: #fff; }
+  .cal-cell.level-3 { background: rgba(37, 99, 235, 0.70); color: #fff; }
+  .cal-cell.level-4 { background: var(--primary); color: #fff; }
+
+  [data-theme="dark"] .cal-cell.level-1 { background: rgba(59, 130, 246, 0.25); color: var(--primary-dark); }
+  [data-theme="dark"] .cal-cell.level-2 { background: rgba(59, 130, 246, 0.45); }
+  [data-theme="dark"] .cal-cell.level-3 { background: rgba(59, 130, 246, 0.70); }
+
+  /* Stagger nas células */
+  .cal-cell:nth-child(7n+1) { animation-delay: 0.00s; }
+  .cal-cell:nth-child(7n+2) { animation-delay: 0.02s; }
+  .cal-cell:nth-child(7n+3) { animation-delay: 0.04s; }
+  .cal-cell:nth-child(7n+4) { animation-delay: 0.06s; }
+  .cal-cell:nth-child(7n+5) { animation-delay: 0.08s; }
+  .cal-cell:nth-child(7n+6) { animation-delay: 0.10s; }
+  .cal-cell:nth-child(7n+7) { animation-delay: 0.12s; }
+
+  /* Legenda */
+  .cal-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+    margin-top: 14px;
+  }
+  .cal-legend-cells {
+    display: flex;
+    gap: 4px;
+  }
+  .cal-legend-cells .cal-cell {
+    width: 14px;
+    height: 14px;
+    aspect-ratio: unset;
+    border-radius: 3px;
+    animation: none;
+    cursor: default;
+  }
+  .cal-legend-cells .cal-cell:hover { transform: none; box-shadow: none; }
+
+  /* Stats em grid */
+  .cal-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 600px) {
+    .cal-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .cal-stat {
+    text-align: center;
+    padding: 12px 8px;
+    background: var(--surface-alt);
+    border-radius: 10px;
+  }
+  .cal-stat .stat-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .cal-stat .stat-lbl {
+    font-size: 10px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .cal-stat .stat-sub {
+    font-size: 10px;
+    color: var(--text-mute);
+    margin-top: 2px;
+  }
+
+  /* Padrão da semana (mini-barras) */
+  .cal-weekday-bars {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+    align-items: end;
+    min-height: 120px;
+  }
+  .cal-weekday-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .cal-weekday-bar .bar-track {
+    width: 100%;
+    height: 88px;
+    background: var(--surface-alt);
+    border-radius: 4px 4px 2px 2px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+  }
+  .cal-weekday-bar .bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+    border-radius: 4px 4px 0 0;
+    transition: height 0.6s var(--ease-out-bounce);
+  }
+  .cal-weekday-bar .bar-label {
+    font-size: 10px;
+    color: var(--text-mute);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .cal-weekday-bar .bar-value {
+    font-size: 10px;
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .cal-weekday-bar.is-max .bar-fill {
+    background: linear-gradient(180deg, var(--warning), var(--danger));
+  }
+
+  /* Detalhes do dia */
+  .cal-detail-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 14px;
+    background: var(--surface-alt);
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .cal-detail-summary .total {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+  }
+  .cal-detail-summary .count {
+    font-size: 12px;
+    color: var(--text-mute);
+    font-weight: 600;
+  }
+  .cal-detail-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .cal-detail-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cal-detail-list li:last-child { border-bottom: none; }
+  .cal-detail-list .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cal-detail-list .name { flex: 1; font-size: 13px; }
+  .cal-detail-list .val {
+    font-weight: 700;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .cal-detail-empty {
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 13px;
+    padding: 20px;
+  }
+
   /* ==================== MODO STEALTH ==================== */
   /* Borra todos os valores em R$ pra privacidade rápida */
   body.stealth-mode #income,
@@ -3593,6 +3896,7 @@
     <button class="tab-btn active" data-tab="painel" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-text">Painel</span></button>
     <button class="tab-btn" data-tab="despesas" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg></span><span class="tab-text">Despesas</span></button>
     <button class="tab-btn" data-tab="metas" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="tab-text">Metas</span></button>
+    <button class="tab-btn" data-tab="calendario" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tab-text">Calendário</span></button>
     <button class="tab-btn" data-tab="historico" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span><span class="tab-text">Histórico</span></button>
   </nav>
 
@@ -3786,6 +4090,67 @@
       <p class="subtitle">Defina objetivos com valor, prazo e acompanhe o progresso.</p>
       <div class="goals-grid" id="goalsGrid"></div>
       <button class="btn-primary" id="addGoalBtn" type="button">+ Nova Meta</button>
+    </div>
+  </div>
+
+  <!-- ============ CALENDÁRIO ============ -->
+  <div class="tab-panel" id="tab-calendario">
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav-btn" id="calPrevBtn" aria-label="Mês anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="cal-title-wrap">
+          <h2 id="calMonthLabel" class="cal-month-label">—</h2>
+          <p class="subtitle" style="margin:0;">Intensidade de gastos por dia</p>
+        </div>
+        <button class="cal-nav-btn" id="calNextBtn" aria-label="Próximo mês">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="cal-today-btn" id="calTodayBtn">Hoje</button>
+      </div>
+
+      <div class="cal-grid-wrap">
+        <div class="cal-grid">
+          <div class="cal-weekday-row">
+            <div class="cal-weekday">D</div>
+            <div class="cal-weekday">S</div>
+            <div class="cal-weekday">T</div>
+            <div class="cal-weekday">Q</div>
+            <div class="cal-weekday">Q</div>
+            <div class="cal-weekday">S</div>
+            <div class="cal-weekday">S</div>
+          </div>
+          <div class="cal-days" id="calDays"></div>
+        </div>
+        <div class="cal-legend">
+          <span>Menos</span>
+          <div class="cal-legend-cells">
+            <span class="cal-cell level-0"></span>
+            <span class="cal-cell level-1"></span>
+            <span class="cal-cell level-2"></span>
+            <span class="cal-cell level-3"></span>
+            <span class="cal-cell level-4"></span>
+          </div>
+          <span>Mais</span>
+        </div>
+      </div>
+
+      <div class="cal-stats-grid" id="calStats"></div>
+    </div>
+
+    <div class="grid-2 mt-12">
+      <div class="card">
+        <h3 style="margin:0 0 4px;">Padrão da semana</h3>
+        <p class="subtitle">Quanto você gasta em média por dia da semana</p>
+        <div class="cal-weekday-bars" id="calWeekdayBars"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 4px;" id="calDetailTitle">Selecione um dia</h3>
+        <p class="subtitle" id="calDetailSub">Clique num quadrinho do calendário pra ver as despesas daquele dia.</p>
+        <div id="calDetailBody"></div>
+      </div>
     </div>
   </div>
 
@@ -4157,6 +4522,8 @@
         notesOpen: false,
         defaultGoalId: '', // meta padrão para receber o saldo ao fechar o mês
         stealthMode: false, // esconde valores em R$ (privacidade rápida)
+        calendarMonth: nowYM(), // mês visualizado no calendário
+        calendarSelectedDay: '', // dia selecionado no calendário (YYYY-MM-DD)
       },
     };
   }
@@ -4493,6 +4860,7 @@
     if (name === 'painel') { renderCategories(); renderPieChart(); }
     else if (name === 'despesas') { renderExpenses(); renderRecurring(); }
     else if (name === 'metas') { renderGoals(); }
+    else if (name === 'calendario') { renderCalendar(); }
     else if (name === 'historico') { renderHistory(); renderBarChart(); }
     saveState();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -7319,6 +7687,268 @@ function doGet() {
     });
   }
 
+  // ==================== CALENDÁRIO HEATMAP ====================
+  // Junta despesas do mês atual + as do histórico, indexadas por data ISO
+  function getAllExpensesForMonth(ym) {
+    let all = [];
+    // mês atual
+    if (state.currentMonth === ym) {
+      all = all.concat(state.expenses || []);
+    }
+    // mês no histórico
+    if (state.history && state.history[ym] && Array.isArray(state.history[ym].expenses)) {
+      all = all.concat(state.history[ym].expenses);
+    }
+    return all;
+  }
+
+  // Gera mapa {date: total} pra um YM
+  function getDailyTotals(ym) {
+    const expenses = getAllExpensesForMonth(ym);
+    const map = {};
+    expenses.forEach(e => {
+      let date = e.date;
+      if (!date && e.timestamp) {
+        const d = new Date(e.timestamp);
+        date = d.getFullYear() + '-' +
+               String(d.getMonth() + 1).padStart(2, '0') + '-' +
+               String(d.getDate()).padStart(2, '0');
+      }
+      if (!date) return;
+      if (!date.startsWith(ym)) return;
+      map[date] = (map[date] || 0) + Number(e.value || 0);
+    });
+    return map;
+  }
+
+  function getCalLevel(value, maxValue) {
+    if (!value || value <= 0) return 0;
+    if (maxValue <= 0) return 0;
+    const ratio = value / maxValue;
+    if (ratio < 0.25) return 1;
+    if (ratio < 0.5) return 2;
+    if (ratio < 0.75) return 3;
+    return 4;
+  }
+
+  function renderCalendar() {
+    const ym = state.ui.calendarMonth || nowYM();
+    const [y, m] = ym.split('-').map(Number);
+    const firstDay = new Date(y, m - 1, 1);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const firstWeekday = firstDay.getDay(); // 0 = domingo
+    const todayISOValue = todayISO();
+    const dailyTotals = getDailyTotals(ym);
+    const maxValue = Math.max(0, ...Object.values(dailyTotals));
+
+    // Header — nome do mês
+    const monthLabel = document.getElementById('calMonthLabel');
+    if (monthLabel) monthLabel.textContent = fmtMonthName(ym);
+
+    // Navegação — desabilita avançar se passou do mês atual
+    const nextBtn = document.getElementById('calNextBtn');
+    if (nextBtn) nextBtn.disabled = ym >= nowYM();
+    // Histórico tem limite — desabilita voltar se não tem dados de meses anteriores
+    const prevBtn = document.getElementById('calPrevBtn');
+    if (prevBtn) {
+      const prevYm = getRelativeYM(ym, -1);
+      const hasData = (state.history && state.history[prevYm]) || prevYm >= '2020-01';
+      prevBtn.disabled = !hasData;
+    }
+
+    // Grid de dias
+    const daysEl = document.getElementById('calDays');
+    if (!daysEl) return;
+    daysEl.innerHTML = '';
+    // Empty cells antes do dia 1
+    for (let i = 0; i < firstWeekday; i++) {
+      const c = document.createElement('div');
+      c.className = 'cal-cell empty';
+      daysEl.appendChild(c);
+    }
+    // Dias do mês
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const value = dailyTotals[dateStr] || 0;
+      const level = getCalLevel(value, maxValue);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `cal-cell level-${level}`;
+      if (dateStr === todayISOValue) btn.classList.add('today');
+      if (dateStr > todayISOValue) btn.classList.add('future');
+      if (dateStr === state.ui.calendarSelectedDay) btn.classList.add('selected');
+      btn.textContent = String(d);
+      btn.dataset.date = dateStr;
+      btn.title = value > 0
+        ? `${dateStr} — ${fmtBRL(value)}`
+        : `${dateStr} — sem gastos`;
+      btn.addEventListener('click', () => {
+        state.ui.calendarSelectedDay = dateStr;
+        saveState();
+        renderCalendar();
+        renderCalendarDayDetail();
+      });
+      daysEl.appendChild(btn);
+    }
+
+    // Stats
+    renderCalendarStats(dailyTotals, daysInMonth, todayISOValue, ym);
+    // Padrão da semana
+    renderCalendarWeekdayBars(ym);
+    // Detalhe
+    renderCalendarDayDetail();
+  }
+
+  function renderCalendarStats(dailyTotals, daysInMonth, todayISOValue, ym) {
+    const statsEl = document.getElementById('calStats');
+    if (!statsEl) return;
+    const values = Object.values(dailyTotals);
+    const total = values.reduce((s, v) => s + v, 0);
+    const activeDays = values.filter(v => v > 0).length;
+    // Determinar quantos dias do mês "já passaram"
+    let elapsedDays = daysInMonth;
+    if (ym === todayISOValue.slice(0, 7)) {
+      elapsedDays = parseInt(todayISOValue.slice(8), 10);
+    }
+    const avg = elapsedDays > 0 ? total / elapsedDays : 0;
+    // Maior dia
+    let maxDay = '', maxValue = 0;
+    Object.entries(dailyTotals).forEach(([d, v]) => {
+      if (v > maxValue) { maxValue = v; maxDay = d; }
+    });
+    const maxDayStr = maxDay
+      ? new Date(maxDay + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+      : '—';
+    statsEl.innerHTML = `
+      <div class="cal-stat">
+        <div class="stat-val">${fmtBRL(total)}</div>
+        <div class="stat-lbl">Total do mês</div>
+      </div>
+      <div class="cal-stat">
+        <div class="stat-val">${fmtBRL(avg)}</div>
+        <div class="stat-lbl">Média / dia</div>
+      </div>
+      <div class="cal-stat">
+        <div class="stat-val">${maxDay ? fmtBRL(maxValue) : '—'}</div>
+        <div class="stat-lbl">Maior dia</div>
+        <div class="stat-sub">${maxDayStr}</div>
+      </div>
+      <div class="cal-stat">
+        <div class="stat-val">${activeDays}/${daysInMonth}</div>
+        <div class="stat-lbl">Dias ativos</div>
+        <div class="stat-sub">${daysInMonth - activeDays} sem gasto</div>
+      </div>
+    `;
+  }
+
+  function renderCalendarWeekdayBars(ym) {
+    const wrap = document.getElementById('calWeekdayBars');
+    if (!wrap) return;
+    const dailyTotals = getDailyTotals(ym);
+    const weekdays = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+    const sums = [0, 0, 0, 0, 0, 0, 0];
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+    Object.entries(dailyTotals).forEach(([dateStr, value]) => {
+      const dt = new Date(dateStr + 'T00:00');
+      const wd = dt.getDay();
+      sums[wd] += value;
+      if (value > 0) counts[wd]++;
+    });
+    const avgs = sums.map((s, i) => counts[i] > 0 ? s / counts[i] : 0);
+    const maxAvg = Math.max(...avgs, 1);
+    const maxIdx = avgs.indexOf(Math.max(...avgs));
+    wrap.innerHTML = weekdays.map((wd, i) => {
+      const heightPct = (avgs[i] / maxAvg) * 100;
+      const isMax = i === maxIdx && avgs[i] > 0;
+      return `<div class="cal-weekday-bar ${isMax ? 'is-max' : ''}">
+        <div class="bar-track"><div class="bar-fill" style="height:${heightPct}%;"></div></div>
+        <div class="bar-label">${wd}</div>
+        <div class="bar-value">${avgs[i] > 0 ? fmtBRLShort(avgs[i]) : '—'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function fmtBRLShort(v) {
+    const n = Number(v) || 0;
+    if (n >= 1000) return 'R$ ' + (n / 1000).toFixed(1).replace('.', ',') + 'k';
+    return 'R$ ' + n.toFixed(0);
+  }
+
+  function renderCalendarDayDetail() {
+    const titleEl = document.getElementById('calDetailTitle');
+    const subEl = document.getElementById('calDetailSub');
+    const bodyEl = document.getElementById('calDetailBody');
+    if (!titleEl || !bodyEl) return;
+    const date = state.ui.calendarSelectedDay;
+    if (!date) {
+      titleEl.textContent = 'Selecione um dia';
+      subEl.textContent = 'Clique num quadrinho do calendário pra ver as despesas daquele dia.';
+      bodyEl.innerHTML = '';
+      return;
+    }
+    const ym = date.slice(0, 7);
+    const expenses = getAllExpensesForMonth(ym).filter(e => {
+      let d = e.date;
+      if (!d && e.timestamp) {
+        const dt = new Date(e.timestamp);
+        d = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+      }
+      return d === date;
+    }).sort((a, b) => Number(b.value || 0) - Number(a.value || 0));
+    const dateObj = new Date(date + 'T00:00');
+    const dateLabel = dateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+    titleEl.textContent = capitalize(dateLabel);
+    const total = expenses.reduce((s, e) => s + Number(e.value || 0), 0);
+    subEl.textContent = expenses.length > 0
+      ? `${expenses.length} despesa${expenses.length > 1 ? 's' : ''} registrada${expenses.length > 1 ? 's' : ''}`
+      : 'Nenhuma despesa registrada neste dia';
+
+    if (expenses.length === 0) {
+      bodyEl.innerHTML = '<div class="cal-detail-empty">📭 Dia sem gastos<br/><span style="font-size:11px;">Ou esse dia ainda não chegou</span></div>';
+      return;
+    }
+    const listHtml = expenses.map(e => {
+      const cat = state.categories.find(c => c.id === e.categoryId);
+      const color = cat ? cat.color : '#9ca3af';
+      const catName = cat ? cat.name : 'Sem categoria';
+      return `<li>
+        <span class="dot" style="background:${color}"></span>
+        <div class="name">
+          ${escapeHtml(e.name)}
+          <div style="font-size:11px; color:var(--text-mute);">${escapeHtml(catName)}</div>
+        </div>
+        <div class="val">${fmtBRL(e.value)}</div>
+      </li>`;
+    }).join('');
+    bodyEl.innerHTML = `
+      <div class="cal-detail-summary">
+        <span class="count">${expenses.length} despesa${expenses.length > 1 ? 's' : ''}</span>
+        <span class="total">${fmtBRL(total)}</span>
+      </div>
+      <ul class="cal-detail-list">${listHtml}</ul>
+    `;
+  }
+
+  function getRelativeYM(ym, monthsDelta) {
+    const [y, m] = ym.split('-').map(Number);
+    const d = new Date(y, m - 1 + monthsDelta, 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function navigateCalendar(delta) {
+    state.ui.calendarMonth = getRelativeYM(state.ui.calendarMonth || nowYM(), delta);
+    state.ui.calendarSelectedDay = ''; // reset selection on navigation
+    saveState();
+    renderCalendar();
+  }
+
+  function calendarGoToday() {
+    state.ui.calendarMonth = nowYM();
+    state.ui.calendarSelectedDay = todayISO();
+    saveState();
+    renderCalendar();
+  }
+
   // ==================== INSIGHTS INTELIGENTES ====================
   // Gera array de insights relevantes baseados nos dados atuais
   function generateInsights() {
@@ -7614,6 +8244,7 @@ function doGet() {
     cmds.push({ group: 'Navegação', label: 'Ir para Painel', icon: ICONS.barChart, action: () => switchTab('painel'), keywords: 'painel inicio dashboard home' });
     cmds.push({ group: 'Navegação', label: 'Ir para Despesas', icon: ICONS.receipt, action: () => switchTab('despesas'), keywords: 'despesas gastos lista' });
     cmds.push({ group: 'Navegação', label: 'Ir para Metas', icon: ICONS.target, action: () => switchTab('metas'), keywords: 'metas objetivos poupanca' });
+    cmds.push({ group: 'Navegação', label: 'Ir para Calendário', icon: ICONS.calendar, action: () => switchTab('calendario'), keywords: 'calendario heatmap dias semana padrao' });
     cmds.push({ group: 'Navegação', label: 'Ir para Histórico', icon: ICONS.trendingUp, action: () => switchTab('historico'), keywords: 'historico passado meses' });
     // Ações
     cmds.push({ group: 'Ações', label: 'Adicionar despesa', icon: ICONS.receipt, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('expName').focus(), 200); }, keywords: 'nova adicionar despesa gasto novo' });
@@ -7860,6 +8491,11 @@ function doGet() {
   // Login button
   const loginBtn = document.getElementById('googleLoginBtn');
   if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
+
+  // ============ Calendário ============
+  document.getElementById('calPrevBtn').addEventListener('click', () => navigateCalendar(-1));
+  document.getElementById('calNextBtn').addEventListener('click', () => navigateCalendar(+1));
+  document.getElementById('calTodayBtn').addEventListener('click', calendarGoToday);
 
   // ============ Modo Stealth ============
   document.getElementById('stealthBtn').addEventListener('click', toggleStealthMode);
