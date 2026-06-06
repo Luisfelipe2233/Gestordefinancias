@@ -1604,6 +1604,76 @@
 
   /* (Animações dramáticas de exit removidas — agora é puro fade out suave) */
 
+  /* ==================== MODO STEALTH ==================== */
+  /* Borra todos os valores em R$ pra privacidade rápida */
+  body.stealth-mode #income,
+  body.stealth-mode .summary-tile .val,
+  body.stealth-mode .cat-amount-line strong,
+  body.stealth-mode .cat-bottom .val,
+  body.stealth-mode .expense-value,
+  body.stealth-mode .recurring-item .value,
+  body.stealth-mode .extras-list li .value,
+  body.stealth-mode .pie-legend .item .vl,
+  body.stealth-mode #distributionIncomeLabel,
+  body.stealth-mode .goal-progress-info strong,
+  body.stealth-mode .goal-target strong,
+  body.stealth-mode .history-item .stat-val,
+  body.stealth-mode .top-value-amount,
+  body.stealth-mode .pie-chart .pie-center,
+  body.stealth-mode .row-value-display strong,
+  body.stealth-mode .stat-card .stat-val {
+    filter: blur(7px);
+    transition: filter 0.25s ease;
+    user-select: none;
+  }
+  body.stealth-mode #income {
+    color: transparent !important;
+    text-shadow: 0 0 9px var(--success-dark);
+  }
+  /* Stealth no botão muda o ícone visualmente */
+  #stealthBtn.active {
+    color: var(--warning);
+    border-color: var(--warning);
+    background: var(--warning-soft);
+  }
+  #stealthBtn.active:hover { background: var(--warning); color: #fff; }
+
+  /* Saudação no header */
+  .brand-greeting {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1px;
+  }
+  .brand-greeting strong {
+    color: var(--text-soft);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+
+  /* Calculadora — preview do resultado */
+  .calc-preview {
+    display: none;
+    margin-top: 4px;
+    padding: 6px 10px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    align-items: center;
+    gap: 6px;
+  }
+  .calc-preview.show { display: inline-flex; }
+  .calc-preview .calc-icon {
+    width: 12px;
+    height: 12px;
+  }
+
   /* Reduz movimento se usuário preferir */
   @media (prefers-reduced-motion: reduce) {
     .splash-shape, .splash-logo-glow, .splash-loader-bar { animation: none; }
@@ -3482,6 +3552,7 @@
         </svg>
       </div>
       <div>
+        <div class="brand-greeting" id="brandGreeting"></div>
         <h1>Munny
           <span class="cloud-sync-badge" id="cloudSyncBadge">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:3px;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
@@ -3496,6 +3567,9 @@
       </div>
     </div>
     <div class="header-tools">
+      <button class="icon-btn" id="stealthBtn" title="Modo Stealth (esconde valores)" aria-label="Esconder valores">
+        <svg id="stealthIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
       <button class="icon-btn cmdk-trigger" id="cmdkBtn" title="Comando rápido (Ctrl+K)" aria-label="Comando rápido">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <kbd class="cmdk-trigger-kbd">⌘K</kbd>
@@ -4082,6 +4156,7 @@
         filter: 'all',
         notesOpen: false,
         defaultGoalId: '', // meta padrão para receber o saldo ao fechar o mês
+        stealthMode: false, // esconde valores em R$ (privacidade rápida)
       },
     };
   }
@@ -4424,11 +4499,31 @@
   }
 
   // ==================== RENDER: PAINEL ====================
+  function getTimeGreeting() {
+    const h = new Date().getHours();
+    if (h < 5) return 'Boa madrugada';
+    if (h < 12) return 'Bom dia';
+    if (h < 18) return 'Boa tarde';
+    return 'Boa noite';
+  }
+  function renderGreeting() {
+    const el = document.getElementById('brandGreeting');
+    if (!el) return;
+    const greet = getTimeGreeting();
+    const firstName = currentUser && currentUser.displayName
+      ? currentUser.displayName.split(' ')[0]
+      : '';
+    el.innerHTML = firstName
+      ? `${greet}, <strong>${escapeHtml(firstName)}</strong>`
+      : greet;
+  }
+
   function renderHeader() {
     document.getElementById('currentPeriodLabel').textContent =
       capitalize(fmtMonthName(state.currentMonth));
     document.getElementById('currentMonthName').textContent =
       capitalize(fmtMonthName(state.currentMonth));
+    renderGreeting();
   }
   function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
@@ -7136,6 +7231,94 @@ function doGet() {
     }
   }
 
+  // ==================== MODO STEALTH ====================
+  function applyStealthMode() {
+    const on = !!(state.ui && state.ui.stealthMode);
+    document.body.classList.toggle('stealth-mode', on);
+    const btn = document.getElementById('stealthBtn');
+    if (btn) btn.classList.toggle('active', on);
+    // Trocar ícone entre olho aberto e olho fechado
+    const icon = document.getElementById('stealthIcon');
+    if (icon) {
+      icon.innerHTML = on
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  }
+  function toggleStealthMode() {
+    state.ui.stealthMode = !state.ui.stealthMode;
+    saveState();
+    applyStealthMode();
+    showToast(state.ui.stealthMode ? '👁 Modo Stealth ativado.' : '👁 Modo Stealth desativado.', 'success');
+  }
+
+  // ==================== CALCULADORA INLINE ====================
+  // Avalia expressões matemáticas no input ("100+50" → 150)
+  function evalMath(str) {
+    if (!str) return null;
+    let s = String(str).trim();
+    if (!s) return null;
+    // Só aceita números brasileiros, operadores e parênteses
+    if (!/^[\d+\-*/().,\s]+$/.test(s)) return null;
+    // Precisa ter pelo menos um operador (senão não é cálculo)
+    if (!/[+\-*/]/.test(s)) return null;
+    // Converte vírgula br pra ponto, remove separadores de milhar
+    // (assume que se tem ponto e vírgula, ponto é milhar e vírgula decimal)
+    if (s.includes(',')) {
+      s = s.replace(/\./g, '').replace(/,/g, '.');
+    }
+    s = s.replace(/\s/g, '');
+    try {
+      const result = Function('"use strict"; return (' + s + ')')();
+      if (typeof result !== 'number' || !isFinite(result)) return null;
+      return Math.round(result * 100) / 100; // 2 casas decimais
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Aplica calculadora a inputs com preview
+  function setupCalcInput(inputId, previewId) {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+    let preview = document.getElementById(previewId);
+    if (!preview) {
+      preview = document.createElement('div');
+      preview.id = previewId;
+      preview.className = 'calc-preview';
+      inp.parentNode.appendChild(preview);
+    }
+    inp.addEventListener('input', () => {
+      const result = evalMath(inp.value);
+      if (result !== null) {
+        preview.innerHTML = `<svg class="calc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg> = <strong>${fmtBRL(result)}</strong> (vai ser convertido)`;
+        preview.classList.add('show');
+      } else {
+        preview.classList.remove('show');
+      }
+    });
+    inp.addEventListener('blur', () => {
+      const result = evalMath(inp.value);
+      if (result !== null) {
+        inp.value = String(result).replace('.', ',');
+        preview.classList.remove('show');
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+    // Enter no input avalia
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const result = evalMath(inp.value);
+        if (result !== null) {
+          e.preventDefault();
+          inp.value = String(result).replace('.', ',');
+          preview.classList.remove('show');
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+    });
+  }
+
   // ==================== INSIGHTS INTELIGENTES ====================
   // Gera array de insights relevantes baseados nos dados atuais
   function generateInsights() {
@@ -7440,6 +7623,7 @@ function doGet() {
     cmds.push({ group: 'Ações', label: 'Bloco de notas / feedback', icon: ICONS.messageSquare, action: () => toggleNotesPanel(true), keywords: 'notas feedback ideias melhorias' });
     // Configurações
     cmds.push({ group: 'Aparência', label: state.theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro', icon: state.theme === 'dark' ? ICONS.palette : ICONS.moon, action: () => toggleTheme(), keywords: 'tema claro escuro dark light' });
+    cmds.push({ group: 'Aparência', label: state.ui && state.ui.stealthMode ? 'Mostrar valores (Stealth off)' : 'Esconder valores (Stealth on)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', action: () => toggleStealthMode(), keywords: 'stealth privacidade esconder valores olho' });
     // Stats / engagement
     cmds.push({ group: 'Aparência', label: 'Ver conquistas e stats', icon: ICONS.trophy, action: () => openAchievementsModal(), keywords: 'conquistas badge stats progresso' });
     // Backup / dados
@@ -7676,6 +7860,18 @@ function doGet() {
   // Login button
   const loginBtn = document.getElementById('googleLoginBtn');
   if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
+
+  // ============ Modo Stealth ============
+  document.getElementById('stealthBtn').addEventListener('click', toggleStealthMode);
+  applyStealthMode();
+
+  // ============ Calculadora inline em inputs de valor ============
+  setupCalcInput('expValue', 'expValueCalc');
+  setupCalcInput('extraValue', 'extraValueCalc');
+
+  // ============ Saudação por horário (atualiza a cada minuto) ============
+  renderGreeting();
+  setInterval(renderGreeting, 60000);
 
   // ============ Insights ============
   const insightsPrevBtn = document.getElementById('insightsPrev');
