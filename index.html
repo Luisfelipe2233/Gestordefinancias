@@ -1416,13 +1416,39 @@
     justify-content: center;
     z-index: 99999;
     overflow: hidden;
-    transition: opacity 0.55s var(--ease-out-smooth), visibility 0.55s var(--ease-out-smooth);
-    will-change: opacity;
+    transition:
+      transform 0.7s cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 0.45s ease 0.25s,
+      visibility 0.7s linear;
+    will-change: transform, opacity;
   }
   .splash-screen.hidden {
+    transform: translateY(-100%);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+  }
+
+  /* Pulso de conclusão antes do exit: onda azul/branca emana do logo */
+  .splash-shockwave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .splash-screen.exiting .splash-shockwave {
+    animation: shockwaveExpand 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  @keyframes shockwaveExpand {
+    0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.5); border-width: 5px; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(7); border-width: 0px; }
   }
 
   /* Formas decorativas no fundo */
@@ -1586,14 +1612,44 @@
     100% { transform: translateX(450%); width: 30%; }
   }
 
-  /* Exit: quando o splash some, conteúdo escala levemente pra cima */
-  .splash-screen.hidden .splash-content {
-    transform: scale(1.05);
-    opacity: 0;
-    transition: transform 0.5s var(--ease-out-smooth), opacity 0.4s ease;
+  /* Logo dá um POP celebrativo antes de sair */
+  .splash-screen.exiting .splash-logo {
+    animation: splashLogoPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
-  .splash-content {
-    transition: transform 0.4s var(--ease-out-smooth);
+  @keyframes splashLogoPop {
+    0%   { transform: scale(1);    filter: brightness(1); }
+    35%  { transform: scale(1.18); filter: brightness(1.4) drop-shadow(0 0 24px rgba(255,255,255,0.6)); }
+    100% { transform: scale(1);    filter: brightness(1); }
+  }
+
+  /* Glow intensifica brevemente */
+  .splash-screen.exiting .splash-logo-glow {
+    animation: splashGlowBurst 0.55s ease-out forwards;
+  }
+  @keyframes splashGlowBurst {
+    0% { opacity: 0.55; transform: scale(1); }
+    40% { opacity: 0.9; transform: scale(1.6); }
+    100% { opacity: 0; transform: scale(2.4); }
+  }
+
+  /* Texto também faz um movimento de "soltar" */
+  .splash-screen.exiting .splash-title {
+    animation: splashTextRelease 0.55s var(--ease-out-smooth) forwards;
+  }
+  .splash-screen.exiting .splash-tagline {
+    animation: splashTextRelease 0.55s var(--ease-out-smooth) 0.05s forwards;
+  }
+  @keyframes splashTextRelease {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-6px); opacity: 0.85; }
+  }
+
+  /* Loader some imediatamente no exit */
+  .splash-screen.exiting .splash-loader {
+    animation: fadeOut 0.3s ease forwards;
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; }
   }
 
   /* Reduz movimento se usuário preferir */
@@ -3342,6 +3398,7 @@
     <div class="splash-shape s2"></div>
     <div class="splash-shape s3"></div>
   </div>
+  <div class="splash-shockwave"></div>
   <div class="splash-content">
     <div class="splash-logo-wrap">
       <div class="splash-logo-glow"></div>
@@ -7616,11 +7673,17 @@ function doGet() {
     const wait = Math.max(0, SPLASH_MIN_TIME - elapsed);
     setTimeout(() => {
       const splash = document.getElementById('splashScreen');
-      if (splash) {
+      if (!splash) return;
+      // Fase 1: anima exit (logo pop + shockwave + glow burst)
+      splash.classList.add('exiting');
+      // Fase 2: depois do pop, slide up
+      setTimeout(() => {
         splash.classList.add('hidden');
-        // Remove do DOM após o fade (libera memória)
-        setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 700);
-      }
+        // Fase 3: remove do DOM (libera memória) depois do slide
+        setTimeout(() => {
+          if (splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 800);
+      }, 450); // espera o pico do pop antes de subir
     }, wait);
   }
 
