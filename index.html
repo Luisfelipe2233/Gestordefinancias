@@ -1402,6 +1402,166 @@
     }
   }
 
+  /* ==================== INSIGHTS CARD ==================== */
+  .insights-card {
+    position: relative;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-alt) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    min-height: 110px;
+    box-shadow: var(--shadow-sm);
+  }
+  .insights-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--insight-accent, var(--primary));
+    transition: background 0.4s ease;
+  }
+  .insights-card.is-loading { opacity: 0.5; pointer-events: none; }
+  .insights-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .insights-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .insights-label svg { width: 12px; height: 12px; color: var(--insight-accent, var(--primary)); }
+  .insights-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .insights-nav button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+  .insights-nav button:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .insights-nav button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .insights-nav button svg { width: 12px; height: 12px; }
+
+  .insights-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    animation: insightFadeIn 0.35s var(--ease-out-smooth);
+  }
+  @keyframes insightFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .insights-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--insight-accent-soft, var(--primary-soft));
+    color: var(--insight-accent, var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .insights-icon svg { width: 22px; height: 22px; }
+  .insights-content { flex: 1; min-width: 0; }
+  .insights-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .insights-text {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+  .insights-text strong {
+    color: var(--text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .insights-text .accent {
+    color: var(--insight-accent, var(--primary));
+    font-weight: 700;
+  }
+
+  .insights-dots {
+    position: absolute;
+    bottom: 10px;
+    right: 18px;
+    display: flex;
+    gap: 4px;
+  }
+  .insights-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.25s ease;
+  }
+  .insights-dots span.active {
+    background: var(--insight-accent, var(--primary));
+    width: 16px;
+    border-radius: 999px;
+  }
+
+  /* Estilos para diferentes tipos de insights */
+  .insights-card.type-warning {
+    --insight-accent: var(--warning);
+    --insight-accent-soft: var(--warning-soft);
+  }
+  .insights-card.type-success {
+    --insight-accent: var(--success);
+    --insight-accent-soft: var(--success-soft);
+  }
+  .insights-card.type-danger {
+    --insight-accent: var(--danger);
+    --insight-accent-soft: var(--danger-soft);
+  }
+  .insights-card.type-info {
+    --insight-accent: var(--primary);
+    --insight-accent-soft: var(--primary-soft);
+  }
+
+  @media (max-width: 560px) {
+    .insights-card { padding: 16px; }
+    .insights-icon { width: 36px; height: 36px; }
+    .insights-icon svg { width: 18px; height: 18px; }
+    .insights-title { font-size: 14px; }
+    .insights-text { font-size: 12px; }
+  }
+
   /* ==================== COMMAND PALETTE (Cmd+K) ==================== */
   .cmdk-backdrop {
     position: fixed;
@@ -3219,6 +3379,27 @@
         <div class="lbl">Saldo Disponível</div>
         <div class="val" id="sumRemaining">R$ 0,00</div>
       </div>
+    </div>
+
+    <!-- INSIGHTS CARD -->
+    <div class="insights-card type-info" id="insightsCard" style="display:none;">
+      <div class="insights-header">
+        <span class="insights-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+          Insights inteligentes
+        </span>
+        <div class="insights-nav">
+          <button id="insightsPrev" aria-label="Anterior" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span id="insightsCounter">1 / 1</span>
+          <button id="insightsNext" aria-label="Próximo" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="insights-body" id="insightsBody"></div>
+      <div class="insights-dots" id="insightsDots"></div>
     </div>
 
     <div class="categories-grid" id="categoriesGrid"></div>
@@ -6164,6 +6345,8 @@ function doGet() {
     setSyncStatus(getActiveWebhookUrl() ? 'idle' : 'off');
     // Render entradas extras
     renderExtraIncomes();
+    renderInsights();
+    resetInsightRotation();
     // Streak badge no header
     const streakBadge = document.getElementById('streakBadge');
     const streakDaysEl = document.getElementById('streakDays');
@@ -6720,6 +6903,293 @@ function doGet() {
     }
   }
 
+  // ==================== INSIGHTS INTELIGENTES ====================
+  // Gera array de insights relevantes baseados nos dados atuais
+  function generateInsights() {
+    const insights = [];
+    const income = effectiveIncome();
+    const expenses = state.expenses || [];
+    const totalSpentNow = expenses.reduce((s, e) => s + Number(e.value || 0), 0);
+    const today = new Date();
+    const dayOfMonth = today.getDate();
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+    // === 1. Categoria estourando ou perto de estourar
+    if (income > 0) {
+      const overCats = [];
+      const warningCats = [];
+      state.categories.forEach(cat => {
+        const budget = cat.mode === 'fixed' ? (Number(cat.fixedAmount) || 0) : (income * (Number(cat.pct) || 0) / 100);
+        if (budget <= 0) return;
+        const spent = spentByCategory(cat.id);
+        const usage = (spent / budget) * 100;
+        if (usage >= 100) overCats.push({ cat, spent, budget, usage });
+        else if (usage >= 80) warningCats.push({ cat, spent, budget, usage });
+      });
+      if (overCats.length > 0) {
+        const o = overCats.sort((a, b) => b.usage - a.usage)[0];
+        const over = o.spent - o.budget;
+        insights.push({
+          type: 'danger',
+          icon: ICONS.flame,
+          title: `Você estourou ${o.cat.name}`,
+          html: `Já gastou <strong>${fmtBRL(o.spent)}</strong> de <strong>${fmtBRL(o.budget)}</strong> — passou em <span class="accent">${fmtBRL(over)}</span>. Hora de segurar a onda nessa categoria.`
+        });
+      }
+      if (warningCats.length > 0) {
+        const w = warningCats.sort((a, b) => b.usage - a.usage)[0];
+        const remaining = w.budget - w.spent;
+        insights.push({
+          type: 'warning',
+          icon: ICONS.target,
+          title: `Atenção: ${w.cat.name} no limite`,
+          html: `Já em <strong>${w.usage.toFixed(0)}%</strong> do orçamento. Resta <span class="accent">${fmtBRL(remaining)}</span> pro fim do mês.`
+        });
+      }
+    }
+
+    // === 2. Maior gasto do mês
+    if (expenses.length >= 2) {
+      const catTotals = {};
+      expenses.forEach(e => {
+        catTotals[e.categoryId] = (catTotals[e.categoryId] || 0) + Number(e.value || 0);
+      });
+      const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+      if (sorted.length > 0) {
+        const [catId, value] = sorted[0];
+        const cat = state.categories.find(c => c.id === catId);
+        if (cat) {
+          const pct = totalSpentNow > 0 ? (value / totalSpentNow) * 100 : 0;
+          insights.push({
+            type: 'info',
+            icon: ICONS.barChart,
+            title: `Top categoria: ${cat.name}`,
+            html: `Você gastou <strong>${fmtBRL(value)}</strong> aqui — representa <span class="accent">${pct.toFixed(0)}%</span> de todos seus gastos do mês.`
+          });
+        }
+      }
+    }
+
+    // === 3. Projeção do mês (ritmo atual)
+    if (dayOfMonth > 3 && income > 0 && totalSpentNow > 0) {
+      const dailyAvg = totalSpentNow / dayOfMonth;
+      const projection = dailyAvg * daysInMonth;
+      const willOverspend = projection > income;
+      insights.push({
+        type: willOverspend ? 'warning' : 'success',
+        icon: ICONS.trendingUp,
+        title: willOverspend ? 'Atenção ao ritmo do mês' : 'Você está no controle',
+        html: willOverspend
+          ? `Gasta em média <strong>${fmtBRL(dailyAvg)}/dia</strong>. No ritmo atual, fecha o mês em <span class="accent">${fmtBRL(projection)}</span> — <strong>${fmtBRL(projection - income)}</strong> acima da renda.`
+          : `Gasta em média <strong>${fmtBRL(dailyAvg)}/dia</strong>. No ritmo atual, fecha o mês em <span class="accent">${fmtBRL(projection)}</span> e sobra <strong>${fmtBRL(income - projection)}</strong>.`
+      });
+    }
+
+    // === 4. Streak de dias seguidos
+    const streakDays = (state.streak && state.streak.current) || 0;
+    if (streakDays >= 3) {
+      insights.push({
+        type: 'success',
+        icon: ICONS.flame,
+        title: `Streak de ${streakDays} dias!`,
+        html: `Você abriu o Munny <strong>${streakDays} dias seguidos</strong>${streakDays >= 7 ? ' 🔥' : ''}. Constância é o segredo. Manter o hábito é metade da batalha.`
+      });
+    }
+
+    // === 5. Comparativo com mês anterior (se houver histórico)
+    const historyKeys = Object.keys(state.history || {}).sort().reverse();
+    if (historyKeys.length > 0) {
+      const lastMonthKey = historyKeys[0];
+      const lastMonth = state.history[lastMonthKey];
+      const lastSpent = Number(lastMonth.totalSpent) || 0;
+      if (lastSpent > 0 && totalSpentNow > 0) {
+        const diff = totalSpentNow - lastSpent;
+        const diffPct = (diff / lastSpent) * 100;
+        if (Math.abs(diffPct) >= 5) {
+          const isLess = diff < 0;
+          insights.push({
+            type: isLess ? 'success' : 'warning',
+            icon: isLess ? ICONS.trendingUp : ICONS.barChart,
+            title: isLess ? `${Math.abs(diffPct).toFixed(0)}% menos que mês passado` : `${diffPct.toFixed(0)}% acima do mês passado`,
+            html: isLess
+              ? `Em ${fmtMonthName(lastMonthKey)} foi <strong>${fmtBRL(lastSpent)}</strong>. Este mês: <span class="accent">${fmtBRL(totalSpentNow)}</span>. Economia de <strong>${fmtBRL(Math.abs(diff))}</strong>!`
+              : `Em ${fmtMonthName(lastMonthKey)} foi <strong>${fmtBRL(lastSpent)}</strong>. Este mês já está em <span class="accent">${fmtBRL(totalSpentNow)}</span>.`
+          });
+        }
+      }
+    }
+
+    // === 6. Meta perto de bater
+    (state.goals || []).forEach(goal => {
+      const target = Number(goal.target) || 0;
+      const current = Number(goal.current) || 0;
+      if (target <= 0) return;
+      const pct = (current / target) * 100;
+      if (pct >= 80 && pct < 100) {
+        const remaining = target - current;
+        insights.push({
+          type: 'success',
+          icon: ICONS.starOutline,
+          title: `Quase lá: "${goal.name}"`,
+          html: `Você já tem <strong>${fmtBRL(current)}</strong> de <strong>${fmtBRL(target)}</strong> (<span class="accent">${pct.toFixed(0)}%</span>). Faltam só <strong>${fmtBRL(remaining)}</strong>!`
+        });
+      } else if (pct >= 100) {
+        insights.push({
+          type: 'success',
+          icon: ICONS.trophy,
+          title: `Meta "${goal.name}" atingida!`,
+          html: `Parabéns! Você bateu sua meta de <strong>${fmtBRL(target)}</strong>. Hora de comemorar — ou criar uma nova.`
+        });
+      }
+    });
+
+    // === 7. Reserva de emergência (com base em metas + sobra histórica)
+    if (historyKeys.length >= 2) {
+      const avgSpent = historyKeys.reduce((s, k) => s + (Number(state.history[k].totalSpent) || 0), 0) / historyKeys.length;
+      const totalSaved = (state.goals || []).reduce((s, g) => s + (Number(g.current) || 0), 0);
+      if (avgSpent > 0 && totalSaved > 0) {
+        const monthsCovered = totalSaved / avgSpent;
+        insights.push({
+          type: 'info',
+          icon: ICONS.gem,
+          title: 'Sua reserva financeira',
+          html: monthsCovered >= 6
+            ? `Você tem <strong>${fmtBRL(totalSaved)}</strong> guardado, o que cobre <span class="accent">${monthsCovered.toFixed(1)} meses</span> de despesa. Tranquilidade na conta. 💎`
+            : `Você tem <strong>${fmtBRL(totalSaved)}</strong> guardado. Cobre <span class="accent">${monthsCovered.toFixed(1)} meses</span> de despesa. Especialistas recomendam pelo menos 3-6 meses.`
+        });
+      }
+    }
+
+    // === 8. Despesa recorrente prestes a chegar
+    if ((state.recurring || []).length > 0) {
+      const nextRec = state.recurring
+        .map(r => ({ ...r, daysUntil: r.dayOfMonth - dayOfMonth }))
+        .filter(r => r.daysUntil >= 0 && r.daysUntil <= 5)
+        .sort((a, b) => a.daysUntil - b.daysUntil)[0];
+      if (nextRec) {
+        insights.push({
+          type: 'info',
+          icon: ICONS.calendar,
+          title: `Recorrente chegando: ${nextRec.name}`,
+          html: nextRec.daysUntil === 0
+            ? `<strong>${fmtBRL(nextRec.value)}</strong> hoje (dia ${nextRec.dayOfMonth}). Já reservou?`
+            : `<strong>${fmtBRL(nextRec.value)}</strong> em <span class="accent">${nextRec.daysUntil} dia${nextRec.daysUntil === 1 ? '' : 's'}</span> (dia ${nextRec.dayOfMonth}).`
+        });
+      }
+    }
+
+    // === 9. Conquistas recentes
+    const unlocked = (state.achievements && state.achievements.unlocked) || {};
+    const unlockedCount = Object.keys(unlocked).length;
+    const totalAchievements = ACHIEVEMENTS.length;
+    if (unlockedCount > 0 && unlockedCount < totalAchievements) {
+      insights.push({
+        type: 'info',
+        icon: ICONS.trophy,
+        title: `${unlockedCount} de ${totalAchievements} conquistas`,
+        html: `Você desbloqueou <strong>${unlockedCount}</strong> conquistas. Faltam <span class="accent">${totalAchievements - unlockedCount}</span> pra completar tudo!`
+      });
+    }
+
+    // === 10. Sem dados ainda — convite a começar
+    if (insights.length === 0) {
+      if (income <= 0) {
+        insights.push({
+          type: 'info',
+          icon: ICONS.dollarSign,
+          title: 'Comece definindo sua renda',
+          html: `Digite sua renda mensal acima. O Munny vai gerar insights úteis sobre seus gastos conforme você usa.`
+        });
+      } else if (expenses.length === 0) {
+        insights.push({
+          type: 'info',
+          icon: ICONS.receipt,
+          title: 'Adicione sua primeira despesa',
+          html: `Sua renda está configurada (<strong>${fmtBRL(income)}</strong>). Agora registre seus gastos pra ver onde o dinheiro está indo.`
+        });
+      }
+    }
+
+    return insights;
+  }
+
+  let insightsCurrentIdx = 0;
+  let insightsRotateTimer = null;
+
+  function renderInsights() {
+    const card = document.getElementById('insightsCard');
+    if (!card) return;
+    const insights = generateInsights();
+    if (insights.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    // garante que o índice não excede
+    if (insightsCurrentIdx >= insights.length) insightsCurrentIdx = 0;
+    showInsightAt(insightsCurrentIdx, insights);
+    // dots
+    const dotsEl = document.getElementById('insightsDots');
+    if (dotsEl) {
+      dotsEl.innerHTML = insights.map((_, i) => `<span class="${i === insightsCurrentIdx ? 'active' : ''}"></span>`).join('');
+    }
+    // counter
+    const counter = document.getElementById('insightsCounter');
+    if (counter) counter.textContent = `${insightsCurrentIdx + 1} / ${insights.length}`;
+    // botões prev/next
+    const prev = document.getElementById('insightsPrev');
+    const next = document.getElementById('insightsNext');
+    if (prev) prev.disabled = insights.length <= 1;
+    if (next) next.disabled = insights.length <= 1;
+  }
+
+  function showInsightAt(idx, insightsArr) {
+    const card = document.getElementById('insightsCard');
+    const body = document.getElementById('insightsBody');
+    const insights = insightsArr || generateInsights();
+    if (insights.length === 0) return;
+    idx = ((idx % insights.length) + insights.length) % insights.length;
+    insightsCurrentIdx = idx;
+    const ins = insights[idx];
+    // remove e re-aplica classe pra disparar animação
+    card.classList.remove('type-info', 'type-success', 'type-warning', 'type-danger');
+    card.classList.add('type-' + (ins.type || 'info'));
+    body.innerHTML = `
+      <div class="insights-icon">${ins.icon}</div>
+      <div class="insights-content">
+        <div class="insights-title">${escapeHtml(ins.title)}</div>
+        <div class="insights-text">${ins.html}</div>
+      </div>
+    `;
+    // forçar restart da animação
+    body.style.animation = 'none';
+    body.offsetHeight;
+    body.style.animation = '';
+    // atualiza dots
+    const dots = document.querySelectorAll('#insightsDots span');
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    const counter = document.getElementById('insightsCounter');
+    if (counter) counter.textContent = `${idx + 1} / ${insights.length}`;
+  }
+
+  function nextInsight() {
+    const insights = generateInsights();
+    showInsightAt(insightsCurrentIdx + 1, insights);
+    resetInsightRotation();
+  }
+  function prevInsight() {
+    const insights = generateInsights();
+    showInsightAt(insightsCurrentIdx - 1, insights);
+    resetInsightRotation();
+  }
+  function resetInsightRotation() {
+    if (insightsRotateTimer) clearTimeout(insightsRotateTimer);
+    insightsRotateTimer = setTimeout(() => {
+      const insights = generateInsights();
+      if (insights.length > 1) {
+        showInsightAt(insightsCurrentIdx + 1, insights);
+        resetInsightRotation();
+      }
+    }, 9000);
+  }
+
   // ==================== COMMAND PALETTE (Cmd+K) ====================
   // Gera a lista de comandos disponíveis dinamicamente baseado no estado atual
   function getCommands() {
@@ -6928,6 +7398,12 @@ function doGet() {
   // Login button
   const loginBtn = document.getElementById('googleLoginBtn');
   if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
+
+  // ============ Insights ============
+  const insightsPrevBtn = document.getElementById('insightsPrev');
+  const insightsNextBtn = document.getElementById('insightsNext');
+  if (insightsPrevBtn) insightsPrevBtn.addEventListener('click', prevInsight);
+  if (insightsNextBtn) insightsNextBtn.addEventListener('click', nextInsight);
 
   // ============ Command Palette (Cmd+K) ============
   document.getElementById('cmdkBtn').addEventListener('click', openCmdk);
