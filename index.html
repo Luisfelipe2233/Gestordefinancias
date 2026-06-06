@@ -1776,8 +1776,8 @@
     border-radius: 50%;
     background: currentColor;
   }
-  .cal-cell.future { opacity: 0.4; cursor: default; }
-  .cal-cell.future:hover { transform: none; box-shadow: none; }
+  .cal-cell.future { opacity: 0.5; }
+  .cal-cell.future.has-schedule { opacity: 1; }
   .cal-cell.selected {
     border-color: var(--text);
     box-shadow: 0 0 0 2px var(--text), 0 6px 16px rgba(0,0,0,0.15);
@@ -1876,6 +1876,203 @@
     color: #fff;
     border-color: var(--primary);
   }
+
+  /* Schedule badges dentro da cell */
+  .cal-cell .cal-sched-dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    max-width: 100%;
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    right: 0;
+    justify-content: center;
+  }
+  .cal-cell .cal-sched-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.5px var(--surface);
+    flex-shrink: 0;
+  }
+  .cal-cell .cal-sched-dot.paid { opacity: 0.4; }
+  .cal-cell.has-schedule {
+    padding-bottom: 14px;
+  }
+
+  /* Botão Adicionar agendamento no header */
+  .cal-add-btn {
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    letter-spacing: -0.005em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  }
+  .cal-add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+  .cal-add-btn:active { transform: scale(0.96); }
+  .cal-add-btn svg { width: 12px; height: 12px; }
+
+  /* Lista de schedule no detail */
+  .cal-sched-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 14px;
+  }
+  .cal-sched-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-alt);
+    border-left: 3px solid var(--sched-color, var(--primary));
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+  .cal-sched-item.paid {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+  .cal-sched-item.cancelled {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+  .cal-sched-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sched-color-soft, var(--primary-soft));
+    color: var(--sched-color, var(--primary));
+    flex-shrink: 0;
+  }
+  .cal-sched-icon svg { width: 16px; height: 16px; }
+  .cal-sched-info { flex: 1; min-width: 0; }
+  .cal-sched-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: -0.005em;
+    margin-bottom: 2px;
+  }
+  .cal-sched-meta {
+    font-size: 12px;
+    color: var(--text-mute);
+  }
+  .cal-sched-val {
+    font-weight: 700;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .cal-sched-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .cal-sched-actions button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .cal-sched-actions button:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .cal-sched-actions button.del:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+  .cal-sched-actions button svg { width: 13px; height: 13px; }
+
+  /* Insight banner sobre itens de hoje */
+  .cal-due-today {
+    background: linear-gradient(135deg, var(--warning-soft), var(--primary-soft));
+    border: 1px solid var(--warning);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .cal-due-today:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .cal-due-today .icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--warning);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cal-due-today .text {
+    flex: 1;
+    font-size: 13px;
+  }
+  .cal-due-today .text strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* Quick-pick types no modal */
+  .sched-type-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .sched-type-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--text-soft);
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+  .sched-type-btn:hover { border-color: var(--type-color, var(--primary)); color: var(--text); }
+  .sched-type-btn.active {
+    background: var(--type-color-soft, var(--primary-soft));
+    border-color: var(--type-color, var(--primary));
+    color: var(--type-color, var(--primary-dark));
+  }
+  .sched-type-btn .icon {
+    width: 22px; height: 22px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--type-color, var(--primary));
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .sched-type-btn .icon svg { width: 12px; height: 12px; }
 
   /* Detalhes do dia — full width, claro */
   .cal-detail-head {
@@ -4186,8 +4383,13 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
         <button class="cal-today-btn" id="calTodayBtn">Hoje</button>
+        <button class="cal-add-btn" id="calAddBtn" title="Agendar despesa ou marcar evento">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agendar
+        </button>
       </div>
 
+      <div class="cal-due-today" id="calDueToday" style="display:none;"></div>
       <div class="cal-stats-inline" id="calStats"></div>
 
       <div class="cal-grid">
@@ -4385,7 +4587,26 @@
     compass:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
     lock:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
     unlock:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',
+    creditCard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+    home:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-5h-2v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    plane:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
+    flag:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>',
+    bell:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
   };
+
+  // Tipos de itens agendados — cada um com cor, ícone e se é despesa
+  const SCHEDULE_TYPES = [
+    { id: 'expense', label: 'Despesa agendada',     color: '#2563eb', icon: 'receipt',    isExpense: true,  isIncome: false },
+    { id: 'bill',    label: 'Conta a pagar',        color: '#f59e0b', icon: 'creditCard', isExpense: true,  isIncome: false },
+    { id: 'rent',    label: 'Aluguel / Moradia',    color: '#8b5cf6', icon: 'home',       isExpense: true,  isIncome: false },
+    { id: 'salary',  label: 'Salário / Renda',      color: '#10b981', icon: 'dollarSign', isExpense: false, isIncome: true  },
+    { id: 'birthday',label: 'Aniversário',          color: '#ec4899', icon: 'gift',       isExpense: false, isIncome: false },
+    { id: 'travel',  label: 'Viagem',               color: '#0ea5e9', icon: 'plane',      isExpense: false, isIncome: false },
+    { id: 'event',   label: 'Evento / Lembrete',    color: '#6b7280', icon: 'flag',       isExpense: false, isIncome: false },
+  ];
+  function getScheduleType(id) {
+    return SCHEDULE_TYPES.find(t => t.id === id) || SCHEDULE_TYPES[0];
+  }
 
   // Mapeia ID de conquista pra ícone SVG
   const ACHIEVEMENT_ICON_MAP = {
@@ -4603,6 +4824,7 @@
       achievements: { unlocked: {} }, // { unlocked: { 'first_expense': { at: timestamp } } }
       streak: { current: 0, longest: 0, lastVisit: '' }, // contagem de dias seguidos
       _methodsTried: [], // métodos já experimentados (para conquista 'method_explorer')
+      schedule: [], // [{id, date, name, value, type, categoryId, notes, status, createdAt}] — agendamentos/eventos no calendário
       ui: {
         showPercentEditor: false,
         search: '',
@@ -4761,6 +4983,21 @@
     }
     // learned
     out.learned = (data.learned && typeof data.learned === 'object') ? data.learned : {};
+    // schedule (agendamentos/eventos)
+    out.schedule = (Array.isArray(data.schedule) ? data.schedule : [])
+      .map(s => ({
+        id: String(s && s.id || newId('sch')),
+        date: typeof s?.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.date) ? s.date : todayISO(),
+        name: String(s && s.name || ''),
+        value: Number(s && s.value) || 0,
+        type: typeof s?.type === 'string' ? s.type : 'event',
+        categoryId: String(s && s.categoryId || ''),
+        notes: String(s && s.notes || ''),
+        status: s && s.status === 'paid' ? 'paid' : (s && s.status === 'cancelled' ? 'cancelled' : 'pending'),
+        createdAt: Number(s && s.createdAt) || Date.now(),
+      }))
+      .filter(s => s.name);
+
     // notes (bloco de feedback)
     out.notes = (Array.isArray(data.notes) ? data.notes : [])
       .map(n => ({
@@ -7869,13 +8106,22 @@ function doGet() {
       btn.title = value > 0
         ? `${dateStr} — ${fmtBRL(value)}`
         : `${dateStr} — sem gastos`;
-      // Conteúdo: número do dia + valor (se houver)
+      // Conteúdo: número do dia + valor (se houver) + bolinhas dos agendamentos
+      const schedItems = getScheduleForDate(dateStr);
+      const dotsHtml = schedItems.length > 0
+        ? `<div class="cal-sched-dots">${schedItems.slice(0, 4).map(s => {
+            const t = getScheduleType(s.type);
+            return `<span class="cal-sched-dot ${s.status === 'paid' ? 'paid' : ''}" style="background:${t.color}"></span>`;
+          }).join('')}</div>`
+        : '';
+      if (schedItems.length > 0) btn.classList.add('has-schedule');
       btn.innerHTML = `
         <span class="cal-day-num">${d}</span>
         ${value > 0 ? `<span class="cal-day-val">${fmtBRLShort(value)}</span>` : ''}
+        ${dotsHtml}
       `;
       btn.addEventListener('click', () => {
-        if (dateStr > todayISOValue) return; // não clica em futuro
+        // Permite click em qualquer dia (passado, presente OU futuro)
         state.ui.calendarSelectedDay = dateStr === state.ui.calendarSelectedDay ? '' : dateStr;
         saveState();
         renderCalendar();
@@ -7883,6 +8129,8 @@ function doGet() {
       daysEl.appendChild(btn);
     }
 
+    // Banner de hoje (alertas)
+    renderDueTodayBanner();
     // Stats
     renderCalendarStats(dailyTotals, daysInMonth, todayISOValue, ym);
     // Padrão da semana
@@ -7994,24 +8242,298 @@ function doGet() {
       ? `${expenses.length} despesa${expenses.length > 1 ? 's' : ''} registrada${expenses.length > 1 ? 's' : ''}`
       : 'Nenhuma despesa registrada';
 
-    if (expenses.length === 0) {
-      bodyEl.innerHTML = '<div style="text-align:center; padding:24px; color:var(--text-mute); font-size:13px;">📭 Sem despesas neste dia</div>';
-      return;
+    // Agendamentos pra esse dia
+    const schedItems = getScheduleForDate(date);
+    let schedHtml = '';
+    if (schedItems.length > 0) {
+      schedHtml = `<div style="font-size:11px; color:var(--text-mute); text-transform:uppercase; letter-spacing:0.06em; font-weight:700; margin-bottom:8px;">Agendamentos</div>
+      <ul class="cal-sched-list">${schedItems.map(s => {
+        const t = getScheduleType(s.type);
+        const catName = s.categoryId ? (state.categories.find(c => c.id === s.categoryId) || {}).name : '';
+        return `<li class="cal-sched-item ${s.status === 'paid' ? 'paid' : (s.status === 'cancelled' ? 'cancelled' : '')}" style="--sched-color:${t.color}; --sched-color-soft:${t.color}1a;">
+          <div class="cal-sched-icon">${ICONS[t.icon] || ICONS.flag}</div>
+          <div class="cal-sched-info">
+            <div class="cal-sched-name">${escapeHtml(s.name)}</div>
+            <div class="cal-sched-meta">${escapeHtml(t.label)}${catName ? ' · ' + escapeHtml(catName) : ''}${s.notes ? ' · ' + escapeHtml(s.notes) : ''}</div>
+          </div>
+          ${s.value > 0 ? `<div class="cal-sched-val">${t.isIncome ? '+' : ''}${fmtBRL(s.value)}</div>` : ''}
+          <div class="cal-sched-actions">
+            ${s.status === 'pending' ? `<button data-sched-paid="${s.id}" title="Marcar como concluído">${ICONS.check}</button>` : ''}
+            <button data-sched-edit="${s.id}" title="Editar">${ICONS.edit}</button>
+            <button class="del" data-sched-del="${s.id}" title="Excluir">${ICONS.trash}</button>
+          </div>
+        </li>`;
+      }).join('')}</ul>`;
     }
-    const listHtml = expenses.map(e => {
-      const cat = state.categories.find(c => c.id === e.categoryId);
-      const color = cat ? cat.color : '#9ca3af';
-      const catName = cat ? cat.name : 'Sem categoria';
-      return `<li>
-        <span class="dot" style="background:${color}"></span>
-        <div class="info">
-          <div class="name">${escapeHtml(e.name)}</div>
-          <div class="meta">${escapeHtml(catName)}</div>
+
+    // Despesas reais
+    let expensesHtml = '';
+    if (expenses.length > 0) {
+      expensesHtml = `<div style="font-size:11px; color:var(--text-mute); text-transform:uppercase; letter-spacing:0.06em; font-weight:700; margin-bottom:8px;">Despesas registradas</div>
+      <ul class="cal-detail-list">${expenses.map(e => {
+        const cat = state.categories.find(c => c.id === e.categoryId);
+        const color = cat ? cat.color : '#9ca3af';
+        const catName = cat ? cat.name : 'Sem categoria';
+        return `<li>
+          <span class="dot" style="background:${color}"></span>
+          <div class="info">
+            <div class="name">${escapeHtml(e.name)}</div>
+            <div class="meta">${escapeHtml(catName)}</div>
+          </div>
+          <div class="val">${fmtBRL(e.value)}</div>
+        </li>`;
+      }).join('')}</ul>`;
+    }
+
+    // Empty state se nada
+    let emptyHtml = '';
+    if (expenses.length === 0 && schedItems.length === 0) {
+      emptyHtml = `<div style="text-align:center; padding:18px; color:var(--text-mute); font-size:13px;">
+        Nenhum registro neste dia.
+        <div style="margin-top:10px;">
+          <button class="cal-add-btn" data-act="add-here" style="display:inline-flex;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agendar nesse dia
+          </button>
         </div>
-        <div class="val">${fmtBRL(e.value)}</div>
-      </li>`;
+      </div>`;
+    } else {
+      emptyHtml = `<div style="margin-top:8px;">
+        <button class="cal-add-btn" data-act="add-here" style="display:inline-flex; background:var(--surface-alt); color:var(--text-soft); box-shadow:none; border:1px solid var(--border);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar mais um agendamento
+        </button>
+      </div>`;
+    }
+
+    bodyEl.innerHTML = schedHtml + expensesHtml + emptyHtml;
+
+    // Wire up dos botões da lista de schedule
+    bodyEl.querySelectorAll('[data-sched-paid]').forEach(b => {
+      b.addEventListener('click', () => markScheduleAsPaid(b.dataset.schedPaid));
+    });
+    bodyEl.querySelectorAll('[data-sched-edit]').forEach(b => {
+      b.addEventListener('click', () => {
+        const item = state.schedule.find(s => s.id === b.dataset.schedEdit);
+        if (item) openScheduleModal(item);
+      });
+    });
+    bodyEl.querySelectorAll('[data-sched-del]').forEach(b => {
+      b.addEventListener('click', () => {
+        if (!confirm('Excluir esse agendamento?')) return;
+        state.schedule = state.schedule.filter(s => s.id !== b.dataset.schedDel);
+        saveState();
+        renderCalendar();
+        showToast('Excluído.', 'success');
+      });
+    });
+    const addHereBtn = bodyEl.querySelector('[data-act="add-here"]');
+    if (addHereBtn) addHereBtn.addEventListener('click', () => openScheduleModal(date));
+  }
+
+  // ==================== AGENDAMENTOS NO CALENDÁRIO ====================
+  function getScheduleForDate(date) {
+    return (state.schedule || [])
+      .filter(s => s.date === date)
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  }
+
+  function getScheduleForMonth(ym) {
+    return (state.schedule || []).filter(s => (s.date || '').startsWith(ym));
+  }
+
+  function getSchedulesDueToday() {
+    const today = todayISO();
+    return (state.schedule || []).filter(s => s.date === today && s.status === 'pending');
+  }
+
+  function renderDueTodayBanner() {
+    const el = document.getElementById('calDueToday');
+    if (!el) return;
+    const due = getSchedulesDueToday();
+    if (due.length === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    const total = due.reduce((s, item) => {
+      const type = getScheduleType(item.type);
+      return s + (type.isExpense ? Number(item.value || 0) : 0);
+    }, 0);
+    el.innerHTML = `
+      <div class="icon">${ICONS.bell}</div>
+      <div class="text">
+        <strong>${due.length} item${due.length > 1 ? 's' : ''} vence${due.length > 1 ? 'm' : ''} hoje</strong>
+        ${total > 0 ? ` · total <strong>${fmtBRL(total)}</strong>` : ''}
+        <div style="font-size:11px; color:var(--text-mute); margin-top:2px;">
+          ${due.slice(0, 3).map(i => escapeHtml(i.name)).join(' · ')}${due.length > 3 ? ' ...' : ''}
+        </div>
+      </div>
+    `;
+    el.onclick = () => {
+      state.ui.calendarSelectedDay = todayISO();
+      saveState();
+      renderCalendar();
+    };
+  }
+
+  // Abre modal pra adicionar/editar item agendado
+  function openScheduleModal(itemOrDate) {
+    const existing = (itemOrDate && itemOrDate.id) ? itemOrDate : null;
+    const initDate = existing ? existing.date
+      : (typeof itemOrDate === 'string' ? itemOrDate : (state.ui.calendarSelectedDay || todayISO()));
+    const init = existing || {
+      date: initDate, name: '', value: 0,
+      type: 'expense', categoryId: state.categories[0] ? state.categories[0].id : '',
+      notes: ''
+    };
+
+    const typePicker = SCHEDULE_TYPES.map(t => {
+      const isActive = t.id === init.type;
+      return `<button type="button" class="sched-type-btn ${isActive ? 'active' : ''}" data-type-id="${t.id}" style="--type-color:${t.color}; --type-color-soft:${t.color}1a;">
+        <span class="icon">${ICONS[t.icon] || ICONS.flag}</span>
+        <span>${t.label}</span>
+      </button>`;
     }).join('');
-    bodyEl.innerHTML = `<ul class="cal-detail-list">${listHtml}</ul>`;
+
+    const categoryOptions = state.categories.map(c =>
+      `<option value="${c.id}" ${c.id === init.categoryId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    openModal(`
+      <h3>${existing ? 'Editar agendamento' : 'Novo agendamento'}</h3>
+      <p class="modal-sub">Despesa pra pagar depois, evento ou lembrete financeiro.</p>
+
+      <div class="form-row">
+        <label>Tipo</label>
+        <div class="sched-type-picker" id="schedTypePicker">${typePicker}</div>
+      </div>
+
+      <div class="form-row">
+        <label>Nome</label>
+        <input type="text" name="name" id="schedName" placeholder="Ex: Aluguel, Salário, Aniversário João..." value="${escapeHtml(init.name)}" maxlength="60" required />
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Data</label>
+          <input type="date" name="date" id="schedDate" value="${init.date}" required />
+        </div>
+        <div class="form-row">
+          <label>Valor (opcional)</label>
+          <div class="input-with-prefix" style="position:relative;">
+            <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-mute); font-weight:500; pointer-events:none;">R$</span>
+            <input type="text" name="value" id="schedValue" placeholder="0,00" inputmode="decimal" value="${init.value > 0 ? String(init.value).replace('.', ',') : ''}" style="padding-left:36px;" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row" id="schedCategoryRow">
+        <label>Categoria (pra quando virar despesa)</label>
+        <select id="schedCategory">${categoryOptions}</select>
+      </div>
+
+      <div class="form-row">
+        <label>Notas (opcional)</label>
+        <input type="text" id="schedNotes" placeholder="Detalhes, lembrete..." value="${escapeHtml(init.notes || '')}" maxlength="120" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
+        ${existing ? '<button type="button" class="btn-danger" data-act="delete">Excluir</button>' : ''}
+        <button type="button" class="btn-primary" data-act="save">${existing ? 'Salvar' : 'Agendar'}</button>
+      </div>
+    `);
+
+    const modal = document.getElementById('modalContent');
+
+    // Type picker click
+    let selectedType = init.type;
+    function updateTypeUI() {
+      modal.querySelectorAll('.sched-type-btn').forEach(b => b.classList.toggle('active', b.dataset.typeId === selectedType));
+      // Categoria só faz sentido pra itens que viram despesa
+      const t = getScheduleType(selectedType);
+      modal.querySelector('#schedCategoryRow').style.display = t.isExpense ? '' : 'none';
+    }
+    modal.querySelectorAll('.sched-type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedType = btn.dataset.typeId;
+        updateTypeUI();
+      });
+    });
+    updateTypeUI();
+
+    modal.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
+
+    const delBtn = modal.querySelector('[data-act="delete"]');
+    if (delBtn && existing) {
+      delBtn.addEventListener('click', () => {
+        if (!confirm('Excluir esse agendamento?')) return;
+        state.schedule = state.schedule.filter(s => s.id !== existing.id);
+        saveState();
+        closeModal();
+        renderCalendar();
+        showToast('Agendamento excluído.', 'success');
+      });
+    }
+
+    modal.querySelector('[data-act="save"]').addEventListener('click', () => {
+      const name = modal.querySelector('#schedName').value.trim();
+      const date = modal.querySelector('#schedDate').value;
+      const value = parseNumber(modal.querySelector('#schedValue').value);
+      const categoryId = modal.querySelector('#schedCategory').value;
+      const notes = modal.querySelector('#schedNotes').value.trim();
+      if (!name) { showToast('Digite o nome.', 'error'); return; }
+      if (!date) { showToast('Escolha uma data.', 'error'); return; }
+
+      if (existing) {
+        Object.assign(existing, { name, date, value, type: selectedType, categoryId, notes });
+      } else {
+        state.schedule.push({
+          id: newId('sch'),
+          date, name, value, type: selectedType, categoryId, notes,
+          status: 'pending',
+          createdAt: Date.now(),
+        });
+      }
+      saveState();
+      // Navega o calendário pro mês do agendamento
+      state.ui.calendarMonth = date.slice(0, 7);
+      state.ui.calendarSelectedDay = date;
+      saveState();
+      closeModal();
+      renderCalendar();
+      showToast(existing ? 'Agendamento atualizado.' : `Agendado pra ${date.split('-').reverse().join('/')}`, 'success');
+    });
+  }
+
+  function markScheduleAsPaid(itemId) {
+    const item = state.schedule.find(s => s.id === itemId);
+    if (!item) return;
+    const type = getScheduleType(item.type);
+    if (type.isExpense && item.value > 0) {
+      // Vira despesa
+      state.expenses.push({
+        id: newId('e'),
+        name: item.name,
+        value: Number(item.value),
+        categoryId: item.categoryId || (state.categories[0] && state.categories[0].id),
+        date: item.date,
+        timestamp: new Date(item.date).getTime() || Date.now(),
+      });
+      teach(item.name, item.categoryId);
+    } else if (type.isIncome && item.value > 0) {
+      // Vira entrada extra
+      if (!Array.isArray(state.extraIncomes)) state.extraIncomes = [];
+      state.extraIncomes.push({
+        id: newId('x'),
+        name: item.name,
+        value: Number(item.value),
+        addedAt: Date.now(),
+      });
+    }
+    item.status = 'paid';
+    saveState();
+    renderCalendar();
+    renderAll();
+    showToast(`✓ ${item.name} marcado como concluído.`, 'success');
   }
 
   function getRelativeYM(ym, monthsDelta) {
@@ -8335,6 +8857,7 @@ function doGet() {
     cmds.push({ group: 'Ações', label: 'Adicionar despesa', icon: ICONS.receipt, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('expName').focus(), 200); }, keywords: 'nova adicionar despesa gasto novo' });
     cmds.push({ group: 'Ações', label: 'Criar nova meta', icon: ICONS.target, action: () => { switchTab('metas'); setTimeout(() => document.getElementById('addGoalBtn').click(), 200); }, keywords: 'nova meta sonho objetivo' });
     cmds.push({ group: 'Ações', label: 'Adicionar despesa recorrente', icon: ICONS.refresh, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('addRecurringBtn').click(), 200); }, keywords: 'recorrente fixa mensal' });
+    cmds.push({ group: 'Ações', label: 'Agendar despesa / evento', icon: ICONS.calendar, action: () => openScheduleModal(state.ui.calendarSelectedDay || todayISO()), keywords: 'agendar futuro lembrete evento marcar aluguel salario aniversario' });
     cmds.push({ group: 'Ações', label: 'Fechar mês atual', icon: ICONS.calendarCheck, action: () => openCloseMonthModal(), keywords: 'fechar mes arquivar mes mes' });
     cmds.push({ group: 'Ações', label: 'Bloco de notas / feedback', icon: ICONS.messageSquare, action: () => toggleNotesPanel(true), keywords: 'notas feedback ideias melhorias' });
     // Configurações
@@ -8566,6 +9089,14 @@ function doGet() {
   generateAppleTouchIcon();
   // Check conquistas iniciais (caso o user já cumpra alguma sem ter notado)
   setTimeout(() => checkAchievements(), 800);
+
+  // Aviso de itens agendados vencendo hoje
+  setTimeout(() => {
+    const due = getSchedulesDueToday();
+    if (due.length > 0) {
+      showToast(`🔔 Você tem ${due.length} agendamento${due.length > 1 ? 's' : ''} vencendo hoje. Veja no Calendário.`, 'success');
+    }
+  }, 2200);
   if (!storageAvailable) {
     setTimeout(() => showToast('⚠ Armazenamento bloqueado (modo anônimo?). Seus dados NÃO serão salvos.', 'error'), 600);
   }
@@ -8581,6 +9112,7 @@ function doGet() {
   document.getElementById('calPrevBtn').addEventListener('click', () => navigateCalendar(-1));
   document.getElementById('calNextBtn').addEventListener('click', () => navigateCalendar(+1));
   document.getElementById('calTodayBtn').addEventListener('click', calendarGoToday);
+  document.getElementById('calAddBtn').addEventListener('click', () => openScheduleModal(state.ui.calendarSelectedDay || todayISO()));
   document.getElementById('calWeekdayToggle').addEventListener('click', () => {
     const card = document.getElementById('calWeekdayCard');
     const btn = document.getElementById('calWeekdayToggle');
