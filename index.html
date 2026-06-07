@@ -5511,6 +5511,87 @@
     }[m]));
   }
 
+  // ==================== SEGURANÇA DE INPUTS ====================
+  // Padrões clássicos de XSS / SQL injection / NoSQL injection.
+  // Conservadores pra não pegar texto legítimo (ex: "Casa & Lar", "Coca Cola").
+  const DANGEROUS_INPUT_PATTERNS = [
+    /<\s*\/?\s*(?:script|iframe|object|embed|svg|math|link|meta|base|form|input|button|style)\b/i,
+    /javascript\s*:\s*[^\s"']/i,
+    /\bdata\s*:\s*text\/html/i,
+    /\bvbscript\s*:/i,
+    // SQL: precisa de palavras-chave + estrutura, evita falso positivo
+    /\bUNION\s+(?:ALL\s+)?SELECT\b/i,
+    /\bDROP\s+(?:TABLE|DATABASE|INDEX|SCHEMA)\b/i,
+    /\bDELETE\s+FROM\s+\w/i,
+    /\bINSERT\s+INTO\s+\w/i,
+    /\bUPDATE\s+\w+\s+SET\b/i,
+    /;\s*--/,                                 // SQL comment after ;
+    /['"`]\s*(?:OR|AND)\s+['"]?\d+['"]?\s*=\s*['"]?\d+/i,  // ' OR 1=1
+    // NoSQL injection
+    /\$\s*(?:where|ne|gt|lt|regex)\s*:/i,
+  ];
+
+  function isInputDangerous(str) {
+    if (!str) return false;
+    const s = String(str);
+    return DANGEROUS_INPUT_PATTERNS.some(re => re.test(s));
+  }
+
+  // Limpa caracteres de controle, zero-width, colapsa espaços, trim
+  function sanitizeText(str, maxLen) {
+    if (str == null) return '';
+    const cap = typeof maxLen === 'number' ? maxLen : 200;
+    return String(str)
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')   // controle (mantém \n, \t)
+      .replace(/[​-‍﻿⁠]/g, '')         // zero-width chars
+      .replace(/[ \t]+/g, ' ')                              // colapsa espaços
+      .trim()
+      .slice(0, cap);
+  }
+
+  // Sanitiza + valida — retorno: { ok, value, reason }
+  // reason: 'vazio' | 'suspeito' | undefined
+  function safeText(raw, opts) {
+    opts = opts || {};
+    const max = opts.max || 200;
+    const allowEmpty = !!opts.allowEmpty;
+    if (isInputDangerous(raw)) {
+      return { ok: false, value: '', reason: 'suspeito' };
+    }
+    const clean = sanitizeText(raw, max);
+    if (!allowEmpty && clean.length < 1) {
+      return { ok: false, value: clean, reason: 'vazio' };
+    }
+    return { ok: true, value: clean };
+  }
+
+  // Mensagem padrão pro toast
+  function safeTextErrorMsg(reason, emptyMsg) {
+    if (reason === 'suspeito') return '⚠ Conteúdo bloqueado por segurança.';
+    return emptyMsg || 'Digite um valor válido.';
+  }
+
+  // ==================== MÁSCARA DE MOEDA BRL ====================
+  // Formata número como "1.234,56" pra usar dentro de input (sem prefixo R$)
+  function fmtBRLInput(value) {
+    const n = Number(value) || 0;
+    return n.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  // Aplica formatação BRL on blur a um input (sem calculadora)
+  function attachBRLFormat(inputId) {
+    const el = document.getElementById(inputId);
+    if (!el || el._brlAttached) return;
+    el._brlAttached = true;
+    el.addEventListener('blur', () => {
+      const n = parseNumber(el.value);
+      if (n > 0) el.value = fmtBRLInput(n);
+    });
+  }
+
   function spentByCategory(catId) {
     return state.expenses
       .filter(e => e.categoryId === catId)
@@ -6472,7 +6553,9 @@
       const fd = new FormData(form);
       const value = parseNumber(fd.get('value'));
       if (value <= 0) { showToast('Valor inválido.', 'error'); return; }
-      exp.name = String(fd.get('name')).trim();
+      const nameCheck = safeText(fd.get('name'), { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome.'), 'error'); return; }
+      exp.name = nameCheck.value;
       exp.value = value;
       exp.date = String(fd.get('date'));
       exp.categoryId = String(fd.get('categoryId'));
@@ -6542,10 +6625,12 @@
       const fd = new FormData(form);
       const v = parseNumber(fd.get('value'));
       if (v <= 0) { showToast('Valor inválido.', 'error'); return; }
+      const nameCheck = safeText(fd.get('name'), { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome.'), 'error'); return; }
       const day = Math.max(1, Math.min(31, parseInt(fd.get('dayOfMonth'), 10) || 1));
       const payload = {
         id: rec.id || newId('r'),
-        name: String(fd.get('name')).trim(),
+        name: nameCheck.value,
         value: v,
         categoryId: String(fd.get('categoryId')),
         dayOfMonth: day,
@@ -6647,13 +6732,15 @@
       const fd = new FormData(form);
       const target = parseNumber(fd.get('target'));
       if (target <= 0) { showToast('Valor objetivo inválido.', 'error'); return; }
+      const nameCheck = safeText(fd.get('name'), { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome da meta.'), 'error'); return; }
       const payload = {
         id: goal.id || newId('g'),
-        name: String(fd.get('name')).trim(),
+        name: nameCheck.value,
         target,
         current: parseNumber(fd.get('current')),
         deadline: String(fd.get('deadline') || ''),
-        color: String(fd.get('color') || '#2563eb'),
+        color: String(fd.get('color') || '#6F8E7F'),
       };
       if (isNew) {
         state.goals.push(payload);
@@ -7837,7 +7924,7 @@ function doGet() {
   function renderAll() {
     // BUGFIX #10: format income with 2 decimals if it has a value
     const incEl = document.getElementById('income');
-    incEl.value = state.income ? state.income.toFixed(2).replace('.', ',') : '';
+    incEl.value = state.income ? fmtBRLInput(state.income) : '';
     renderHeader();
     renderMethodButtons();
     renderPercentEditor();
@@ -8121,11 +8208,12 @@ function doGet() {
     // Expense form
     document.getElementById('expenseForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('expName').value.trim();
+      const nameCheck = safeText(document.getElementById('expName').value, { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome.'), 'error'); return; }
+      const name = nameCheck.value;
       const value = parseNumber(document.getElementById('expValue').value);
       const date = document.getElementById('expDate').value || todayISO();
       const categoryId = document.getElementById('expCategory').value;
-      if (!name) { showToast('Digite o nome.', 'error'); return; }
       if (value <= 0) { showToast('Valor deve ser maior que zero.', 'error'); return; }
       if (!categoryId) { showToast('Selecione uma categoria.', 'error'); return; }
       state.expenses.push({
@@ -8215,9 +8303,10 @@ function doGet() {
     document.getElementById('extraToggle').addEventListener('click', () => toggleExtraBlock());
     document.getElementById('extraForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('extraName').value.trim();
+      const nameCheck = safeText(document.getElementById('extraName').value, { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome da entrada.'), 'error'); return; }
+      const name = nameCheck.value;
       const value = parseNumber(document.getElementById('extraValue').value);
-      if (!name) { showToast('Digite o nome da entrada.', 'error'); return; }
       if (value <= 0) { showToast('Valor deve ser maior que zero.', 'error'); return; }
       if (!Array.isArray(state.extraIncomes)) state.extraIncomes = [];
       state.extraIncomes.push({
@@ -8531,9 +8620,16 @@ function doGet() {
     inp.addEventListener('blur', () => {
       const result = evalMath(inp.value);
       if (result !== null) {
-        inp.value = String(result).replace('.', ',');
+        inp.value = fmtBRLInput(result);
         preview.classList.remove('show');
         inp.dispatchEvent(new Event('input', { bubbles: true }));
+      } else {
+        // Sem operador — formata só pra deixar bonito (1.234,56)
+        const n = parseNumber(inp.value);
+        if (n > 0) {
+          inp.value = fmtBRLInput(n);
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
       }
     });
     // Enter no input avalia
@@ -9013,12 +9109,15 @@ function doGet() {
     }
 
     modal.querySelector('[data-act="save"]').addEventListener('click', () => {
-      const name = modal.querySelector('#schedName').value.trim();
+      const nameCheck = safeText(modal.querySelector('#schedName').value, { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome.'), 'error'); return; }
+      const name = nameCheck.value;
       const date = modal.querySelector('#schedDate').value;
       const value = parseNumber(modal.querySelector('#schedValue').value);
       const categoryId = modal.querySelector('#schedCategory').value;
-      const notes = modal.querySelector('#schedNotes').value.trim();
-      if (!name) { showToast('Digite o nome.', 'error'); return; }
+      const notesCheck = safeText(modal.querySelector('#schedNotes').value, { max: 200, allowEmpty: true });
+      if (!notesCheck.ok) { showToast(safeTextErrorMsg(notesCheck.reason, 'Notas inválidas.'), 'error'); return; }
+      const notes = notesCheck.value;
       if (!date) { showToast('Escolha uma data.', 'error'); return; }
 
       if (existing) {
@@ -9671,6 +9770,8 @@ function doGet() {
   // ============ Calculadora inline em inputs de valor ============
   setupCalcInput('expValue', 'expValueCalc');
   setupCalcInput('extraValue', 'extraValueCalc');
+  // Máscara BRL no input de renda (formata "1.234,56" ao sair do foco)
+  attachBRLFormat('income');
 
   // ============ Saudação por horário (atualiza a cada minuto) ============
   renderGreeting();
