@@ -5512,6 +5512,15 @@
   }
 
   // ==================== SEGURANÇA DE INPUTS ====================
+  // Caracteres bloqueados em tempo real em todos os inputs de texto.
+  // Vetores: " ' bypass attribute injection · ` template literal · < > HTML tag · \ escape
+  const BLOCKED_INPUT_CHARS = /["'`<>\\]/g;
+
+  function stripBlockedChars(str) {
+    if (!str) return '';
+    return String(str).replace(BLOCKED_INPUT_CHARS, '');
+  }
+
   // Padrões clássicos de XSS / SQL injection / NoSQL injection.
   // Conservadores pra não pegar texto legítimo (ex: "Casa & Lar", "Coca Cola").
   const DANGEROUS_INPUT_PATTERNS = [
@@ -5544,10 +5553,29 @@
     return String(str)
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')   // controle (mantém \n, \t)
       .replace(/[​-‍﻿⁠]/g, '')         // zero-width chars
+      .replace(BLOCKED_INPUT_CHARS, '')                     // remove " ' ` < > \
       .replace(/[ \t]+/g, ' ')                              // colapsa espaços
       .trim()
       .slice(0, cap);
   }
+
+  // Filtro em tempo real: tira caracteres bloqueados enquanto usuário digita.
+  // Aplicado globalmente via delegação — pega inputs de modais criados dinamicamente.
+  // Para isentar um input: adicione data-no-filter.
+  document.addEventListener('input', (e) => {
+    const t = e.target;
+    if (!t || !t.matches) return;
+    if (t.hasAttribute && t.hasAttribute('data-no-filter')) return;
+    if (!t.matches('input[type="text"], input[type="search"], input:not([type]), textarea')) return;
+    const before = t.value;
+    const after = stripBlockedChars(before);
+    if (before !== after) {
+      const removed = before.length - after.length;
+      const pos = (t.selectionStart || 0) - removed;
+      t.value = after;
+      try { t.setSelectionRange(Math.max(0, pos), Math.max(0, pos)); } catch (_) {}
+    }
+  }, true);
 
   // Sanitiza + valida — retorno: { ok, value, reason }
   // reason: 'vazio' | 'suspeito' | undefined
