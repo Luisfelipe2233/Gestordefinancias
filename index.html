@@ -5609,11 +5609,15 @@
     });
   }
 
-  // Aplica formatação BRL on blur a um input (sem calculadora)
-  function attachBRLFormat(inputId) {
-    const el = document.getElementById(inputId);
+  // Aplica formatação BRL on blur a um input (sem calculadora).
+  // Aceita ID string OU elemento DOM (útil pra inputs criados em modais).
+  function attachBRLFormat(target) {
+    const el = (typeof target === 'string') ? document.getElementById(target) : target;
     if (!el || el._brlAttached) return;
     el._brlAttached = true;
+    // Formata o valor inicial (caso modal abra com valor pré-preenchido)
+    const n0 = parseNumber(el.value);
+    if (n0 > 0) el.value = fmtBRLInput(n0);
     el.addEventListener('blur', () => {
       const n = parseNumber(el.value);
       if (n > 0) el.value = fmtBRLInput(n);
@@ -6287,6 +6291,9 @@
       grid.appendChild(card);
     });
 
+    // Máscara BRL nos inputs inline de "guardar em meta"
+    grid.querySelectorAll('.goal-add-money input').forEach(inp => attachBRLFormat(inp));
+
     grid.querySelectorAll('button[data-action]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = btn.dataset.id;
@@ -6576,6 +6583,7 @@
       </form>
     `);
     const form = document.getElementById('editForm');
+    attachBRLFormat(form.querySelector('input[name="value"]'));
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const fd = new FormData(form);
@@ -6648,6 +6656,7 @@
       </form>
     `);
     const form = document.getElementById('recForm');
+    attachBRLFormat(form.querySelector('input[name="value"]'));
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const fd = new FormData(form);
@@ -6743,6 +6752,8 @@
       </form>
     `);
     const form = document.getElementById('goalForm');
+    attachBRLFormat(form.querySelector('input[name="target"]'));
+    attachBRLFormat(form.querySelector('input[name="current"]'));
     // BUGFIX #7: wire goal color picker
     const goalColorBtn = document.getElementById('goalColorBtn');
     if (goalColorBtn) {
@@ -9105,6 +9116,8 @@ function doGet() {
     `);
 
     const modal = document.getElementById('modalContent');
+    // Máscara BRL no input de valor do agendamento
+    attachBRLFormat(modal.querySelector('#schedValue'));
 
     // Type picker click
     let selectedType = init.type;
