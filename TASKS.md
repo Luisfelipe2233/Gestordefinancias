@@ -1,0 +1,190 @@
+# TASKS.md — Controle de Sprint e Tarefas
+
+> Documento vivo do projeto Munny. Cada agente tem responsabilidade sobre sua seção.
+> **Não edite seções que não são de sua responsabilidade.**
+
+---
+
+## 📋 Sprint Atual — definido pelo CEO
+
+### ✅ Encerramento da Fase 4 (2026-06-06)
+Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Emergência (depois removido conforme escolha do dono), 5 novos temas (Sakura, Ocean, Sunset, Forest, OLED). Commit `b4387bb`. Decisão: avançar pra Fase 5 (Refinamento de Design).
+
+---
+
+### Sprint: Phase 1 do Refinamento de Design — Linho + Mobile + Segurança
+**Data de definição:** 2026-06-06
+**Fase:** 5 — Refinamento de Design
+
+> **Contexto:** Após o briefing do Designer Sênior pedindo paleta orgânica + espaço negativo + tipografia dramática + spring physics, decidimos atacar em 4 fases. Esta é a Phase 1: trocar a identidade visual padrão pra paleta Linho (oat milk + sálvia + terracota), trazer experiência nativa mobile (bottom nav + FAB), e blindar inputs (XSS + máscara BRL).
+
+---
+
+#### Problema
+
+- **"Meu app de finanças parece template genérico de IA — quero que pareça uma marca premium e calma."** — A paleta padrão Claro (azul Tailwind + verde neon) tava muito corporativa.
+- **"No celular, as tabs no topo me obrigam a esticar o polegar — apps reais têm tab bar no rodapé."** — Frustração mobile real.
+- **"Não consigo digitar um nome com aspas no app — quero que isso seja BLOQUEADO de cara, não no submit."** — Pedido explícito de segurança em tempo real.
+- **"Os valores de R$ ficam sem formatação enquanto digito, fica feio."** — Quer máscara de moeda visual.
+
+---
+
+#### O que deve funcionar ao final do sprint
+
+> **Frase-âncora da demo:** "Abro o Munny pela primeira vez, vejo paleta calma oat milk + sálvia, no celular as tabs estão no rodapé com um FAB '+' pra adicionar despesa, e quando tento digitar `" ` em qualquer campo, o caractere é apagado na hora."
+
+1. **Tema Linho como default:** novos usuários veem oat milk #F7F3EA + sálvia #6F8E7F + terracota #C97A6A. Picker permite voltar pros 7 temas legados.
+
+2. **Bottom Tab Bar mobile:** em viewport ≤ 760px, top tabs somem e aparece bar fixo no rodapé com 5 abas + FAB "+" lateral. Indicador ativo é barrinha primária + ícone com scale 1.1.
+
+3. **Safe area iOS:** todos os FABs e o bottom-nav respeitam `env(safe-area-inset-bottom)` — funciona no iPhone com notch sem sobrepor.
+
+4. **Filtro de caracteres em tempo real:** ao digitar `" ' \` < > \\` em qualquer input de texto, o char é removido na hora. Cursor mantém posição.
+
+5. **Sanitização defensiva no submit:** 6 forms (despesa, despesa-edit, entrada extra, recorrente, meta, agendamento) usam `safeText()` que rejeita padrões XSS/SQL injection e mostra toast amigável.
+
+6. **Máscara BRL em todos os inputs de valor:** ao sair do foco, "1500" vira "1.500,00" em: renda, despesa (form + edit), entrada extra, recorrente, meta (target + current + depósito inline), agendamento.
+
+---
+
+#### O que está fora do escopo deste sprint
+
+- **Tipografia dramática nos saldos principais** — vai pra Phase 2 do refinamento.
+- **Divulgação progressiva no Painel** (esconder detalhes em accordion) — Phase 3.
+- **Spring physics aplicada em FAB/modal/bottom-nav** — vars estão prontas mas aplicação fica pra Phase 2.
+- **PWA install + Service Worker** — Fase 6.
+- **Compartilhar mês como imagem** — backlog, sem fase atribuída.
+
+---
+
+## ⚙️ Tarefas Técnicas — definidas pelo CTO
+
+> *Sprint atual já foi implementado direto pelo dono no fluxo de pair-programming com o agente.*
+> *Sprints futuros: o CTO preenche esta seção com tasks decompostas seguindo o Formato de Entrega do `cto.md`.*
+
+---
+
+### TASK-F5-07 — Tipografia dramática nos saldos do Painel (próxima)
+
+**Objetivo:** O saldo principal e os 3 summary tiles do Painel ganham hierarquia tipográfica mais forte — saldo é 2x maior que os outros números, labels ficam discretas (font-weight 500, cor mute), e a animação de countup usa `--ease-spring`.
+
+**Escopo:**
+- CSS: bloco `.summary-bar` e `.summary-tile .val` no `index.html`
+- JS: função `renderSummary()` + função de countup
+
+**Critérios de Aceite Técnico:**
+- `.summary-tile.remaining .val` tem `font-size: clamp(28px, 5vw, 44px)` e `font-weight: 800`
+- Outros `.summary-tile .val` ficam em `font-size: clamp(18px, 3vw, 24px)`, `font-weight: 700`
+- Labels (`.summary-tile .lbl`) viram `font-weight: 500`, `color: var(--text-mute)`, `text-transform: uppercase`, `font-size: 10px`, `letter-spacing: 0.08em`
+- Countup do saldo usa duração 800ms com `--ease-spring`
+- Funciona em todos os 8 temas sem quebrar layout
+
+**Riscos Arquiteturais:**
+- Pode aumentar a altura visual da `.summary-bar` no mobile e empurrar o pie chart pra baixo — verificar
+- Animação de countup com spring pode dar overshoot exagerado em saldos altos — testar com R$ 50.000
+
+**Fase do Projeto:** Fase 5
+
+**Branch sugerida:** `feat/typography-dramatic-balance`
+
+---
+
+### TASK-F5-08 — Divulgação progressiva: Painel "modo simples" por padrão
+
+**Objetivo:** No primeiro carregamento, o Painel mostra só Summary Bar + Pie Chart. Categorias detalhadas ficam num accordion fechado ("Ver categorias →"). Reduz carga cognitiva inicial conforme princípio #4 do briefing.
+
+**Escopo:**
+- HTML: wrapping das categorias num `<details>` ou container colapsável
+- CSS: animação de abertura suave
+- JS: salvar estado de expansão em `state.ui.categoriesExpanded`
+
+**Critérios de Aceite Técnico:**
+- Primeira visita: categorias estão escondidas, link "Ver categorias detalhadas" visível
+- Click revela com animação 0.4s `--ease-spring-soft`
+- Estado persiste por usuário
+- No mobile, mesmo comportamento + mesma animação
+
+**Riscos Arquiteturais:**
+- Usuário existente abre o app e fica confuso porque as categorias sumiram — adicionar microcopy "✨ Painel mais limpo. Categorias estão aqui ↓"
+
+**Fase do Projeto:** Fase 5
+
+**Branch sugerida:** `feat/progressive-disclosure-panel`
+
+---
+
+## ✅ Concluído — movido pelo DEV após cada commit
+
+### TASK-F5-01 — Tema Linho como padrão
+
+**Objetivo:** Adicionar `[data-theme="linho"]` com paleta oat milk + sálvia + terracota e torná-lo o tema padrão pra novos usuários.
+
+**Commit:** `1058c52` — 2026-06-06
+
+**Resumo da implementação:** Criado novo bloco CSS com 27 tokens cobrindo bg/surface/text/primary/success/warning/danger/shadow/radius. Cantos a 16px (vs 14px dos outros), sombras com cor warm-charcoal e opacidade 3-6%. Adicionado ao array `THEMES` na primeira posição. Mudada linha 2 do HTML pra `data-theme="linho"` e o default state.theme. Vars de spring physics adicionadas (`--ease-spring`, `--ease-spring-soft`, `--ease-organic`).
+
+**Validação:** Aberto em aba anônima — site abre com paleta oat milk. Picker mostra Linho como primeiro. Trocar pra outro tema e voltar funciona. Os 7 temas legados intactos.
+
+---
+
+### TASK-F5-02 — Bottom Tab Bar + FAB mobile
+
+**Objetivo:** Em viewport ≤ 760px, esconder top tabs e mostrar bar fixo no rodapé com 5 abas + FAB "+" lateral.
+
+**Commit:** `29473d1` — 2026-06-06
+
+**Resumo da implementação:** Adicionado bloco CSS `.bottom-nav` com `display: grid` em mobile, `.bnav-btn` estilizado (ícone + label, indicador top + scale on active), e `.fab-add` (circle 58px com gradiente primary). HTML inserido antes da notes-fab. JS: querySelectors atualizados pra incluir `.bnav-btn` em switchTab/switchTabSilent/setupEvents. FAB-add com handler que faz switchTab('despesas') + focus em #expName.
+
+**Validação:** DevTools device toolbar em iPhone 12: bottom-nav aparece com 5 abas evenly spaced. Clicar troca de aba corretamente. FAB navega + foca input. Top tabs ocultas. Desktop: bottom-nav escondida, top tabs preservadas.
+
+---
+
+### TASK-F5-03 — Mutirão de sobreposições mobile
+
+**Objetivo:** Corrigir elementos sobrepostos no mobile após bottom-nav (toast atrás do bar, FABs sem safe-area).
+
+**Commit:** `836fd50` — 2026-06-06
+
+**Resumo da implementação:** Toast mobile movido de `bottom: 16px` pra `calc(96px + env(safe-area-inset-bottom))`. Fab-add e notes-fab passaram a usar `calc(... + env(safe-area-inset-bottom))`. .app padding-bottom safe-area aware. FAB diminui pra 54px em viewports ≤ 480px.
+
+**Validação:** Toast aparece acima da bottom-nav em iPhone simulado. Confirmado com console.log do bounding rect de cada FAB e checagem de overlap.
+
+---
+
+### TASK-F5-04 — Sanitização defensiva no submit (XSS + SQL injection)
+
+**Objetivo:** Adicionar helpers `safeText`/`isInputDangerous`/`sanitizeText` e aplicar em 6 form submits.
+
+**Commit:** `361340e` — 2026-06-06
+
+**Resumo da implementação:** 12 padrões regex cobrindo XSS (`<script>`, `<iframe>`, `javascript:`, `vbscript:`), SQL (`UNION SELECT`, `DROP TABLE`, `' OR 1=1`), NoSQL (`$where`), data URIs maliciosos. Helper `safeText(raw, {max, allowEmpty})` retorna `{ok, value, reason}`. Aplicado em forms: despesa add, despesa edit, entrada extra, recorrente, meta, agendamento. Toast com mensagem "⚠ Conteúdo bloqueado por segurança." quando detecta padrão.
+
+**Validação:** Testes manuais com strings `<script>alert(1)</script>`, `'; DROP TABLE users; --`, `1' OR 1=1 --` — todas bloqueadas. Strings legítimas como "Coca Cola", "Casa & Lar", "Restaurante d'Alessio" passam normalmente.
+
+---
+
+### TASK-F5-05 — Filtro de caracteres em tempo real
+
+**Objetivo:** Bloquear digitação de `" ' \` < > \\` em qualquer input de texto, em tempo real (não só no submit).
+
+**Commit:** `008aac5` — 2026-06-06
+
+**Resumo da implementação:** Listener delegado em `document` no evento `input`, usa capture (`true`) pra pegar inputs criados dinamicamente em modais. Aplica `stripBlockedChars()` se o target matcheia `input[type="text"], input[type="search"], input:not([type]), textarea`. Preserva posição do cursor descontando chars removidos. Escape hatch: `data-no-filter`.
+
+**Validação:** Tentar digitar `"hello"` em qualquer campo — chars apagados na hora. Paste de string com aspas filtra também. Calculadora (`100+50`) intacta.
+
+---
+
+### TASK-F5-06 — Máscara BRL em todos os inputs de valor
+
+**Objetivo:** Inputs de R$ formatados como "1.234,56" ao sair do foco. Manter calculadora `100+50` no input principal de despesa.
+
+**Commits:** `361340e` (helpers + inputs estáticos) + `6122a71` (modais + cards de meta) — 2026-06-06
+
+**Resumo da implementação:** Helper `fmtBRLInput(n)` usa `toLocaleString('pt-BR', {minimumFractionDigits:2})`. `attachBRLFormat(target)` aceita ID ou DOM element, formata valor inicial e adiciona listener blur. `setupCalcInput` atualizado pra usar fmtBRLInput após evalMath. Aplicado em: #income (estático), #expValue/#extraValue (via setupCalcInput), modal de despesa-edit, recorrente, meta (target + current), agendamento, e cards de meta (input inline "guardar em meta").
+
+**Validação:** Digitar "1500" no #income → blur → vira "1.500,00". Digitar "100+50" em #expValue → blur → vira "150,00". Abrir modal de meta com target=10000 → input já mostra "10.000,00". Re-enviar form com valores formatados funciona (parseNumber lida com "1.234,56").
+
+---
+
+> Tarefas concluídas permanecem aqui como histórico. Não apagar.
