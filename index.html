@@ -4125,9 +4125,9 @@
     font-family: inherit;
   }
   .toast-undo-btn:hover { background: rgba(255,255,255,0.32); }
-  /* BUGFIX #20: keep toast above mobile keyboard */
+  /* BUGFIX #20: keep toast above mobile keyboard E acima da bottom-nav */
   @media (max-width: 760px) {
-    .toast { bottom: max(16px, env(safe-area-inset-bottom)); font-size: 13px; padding: 10px 14px; }
+    .toast { bottom: calc(96px + env(safe-area-inset-bottom)); font-size: 13px; padding: 10px 14px; }
   }
 
   /* ==================== SETTINGS MENU ==================== */
@@ -4334,15 +4334,20 @@
   @media (max-width: 760px) {
     nav.tabs { display: none; }
     .bottom-nav { display: grid; }
-    .fab-add { display: inline-flex; }
-    .app { padding-bottom: 100px; }
-    /* Notes FAB sobe pra não conflitar com bottom-nav + add-fab */
-    .notes-fab { bottom: 152px !important; }
-    .notes-panel { bottom: 216px !important; }
+    .fab-add {
+      display: inline-flex;
+      bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+    .app { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    /* Notes FAB sobe pra não conflitar com bottom-nav + add-fab (safe-area aware) */
+    .notes-fab { bottom: calc(156px + env(safe-area-inset-bottom)) !important; }
+    .notes-panel { bottom: calc(220px + env(safe-area-inset-bottom)) !important; }
   }
   @media (max-width: 480px) {
-    .app { padding-bottom: 96px; }
+    .app { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
     .bnav-btn .bnav-label { font-size: 9px; }
+    .fab-add { width: 54px; height: 54px; right: 14px; }
+    .fab-add svg { width: 26px; height: 26px; }
   }
 
   /* small util */
