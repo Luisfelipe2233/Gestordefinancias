@@ -875,23 +875,32 @@
     padding: 16px 18px;
     box-shadow: var(--shadow-sm);
   }
+  /* Labels discretas — colocam o foco nos números (princípio: tipografia dramática) */
   .summary-tile .lbl {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: var(--text-mute);
-    font-weight: 600;
+    font-weight: 500;
   }
+  /* Renda e Gasto — tamanho secundário, ainda bold pra leitura */
   .summary-tile .val {
-    font-size: 24px;
+    font-size: clamp(18px, 3vw, 24px);
     font-weight: 700;
-    margin-top: 4px;
+    margin-top: 8px;
     letter-spacing: -0.025em;
-    line-height: 1.15;
+    line-height: 1.1;
+  }
+  /* SALDO — herói da tela: ~2x maior, peso 800, letter-spacing negativo dramático */
+  .summary-tile.remaining .val {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    color: var(--text);
   }
   .summary-tile.income .val { color: var(--success-dark); }
   .summary-tile.spent .val { color: var(--primary-dark); }
-  .summary-tile.remaining .val { color: var(--text); }
   .summary-tile.remaining.negative .val { color: var(--danger); }
 
   /* ==================== CATEGORY CARDS ==================== */
@@ -4245,7 +4254,7 @@
     .card h2 { font-size: 15px; }
     .income-input-wrap input { font-size: 20px; }
     .method-btn { min-width: 100%; }
-    .summary-tile .val { font-size: 19px; }
+    /* No mobile, clamp() já cuida da escala; deixa o saldo continuar dramático */
     .categories-grid { grid-template-columns: 1fr; gap: 10px; }
     .goals-grid { grid-template-columns: 1fr; }
     .chart-wrap { grid-template-columns: 1fr; }
@@ -6085,10 +6094,21 @@
   }
 
   // Anima um número de um valor inicial até um final (usado nos summary tiles)
-  function animateNumber(el, from, to, duration, formatter) {
+  // Easings pra countup numérico
+  // ease-out-cubic: smooth padrão (renda, gasto)
+  const _easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  // ease-spring: aproximação de cubic-bezier(0.34, 1.25, 0.64, 1) — leve overshoot
+  // pra dar sensação de "spring" no saldo herói (princípio: spring physics)
+  const _easeSpring = (t) => {
+    const p1y = 1.25, p2y = 1;
+    return 3 * Math.pow(1 - t, 2) * t * p1y + 3 * (1 - t) * Math.pow(t, 2) * p2y + Math.pow(t, 3);
+  };
+
+  function animateNumber(el, from, to, duration, formatter, easing) {
     if (!el) return;
-    duration = duration || 700;
+    duration = duration || 800;
     formatter = formatter || fmtBRL;
+    easing = easing || _easeOutCubic;
     const start = performance.now();
     const delta = to - from;
     // Se diferença pequena, só atualiza
@@ -6096,8 +6116,7 @@
     function tick(now) {
       const elapsed = now - start;
       const t = Math.min(elapsed / duration, 1);
-      // ease-out-cubic
-      const eased = 1 - Math.pow(1 - t, 3);
+      const eased = easing(t);
       const value = from + delta * eased;
       el.textContent = formatter(value);
       if (t < 1) requestAnimationFrame(tick);
@@ -6112,10 +6131,11 @@
     const income = effectiveIncome(); // base + extras
     const spent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
     const remaining = income - spent;
-    // Anima a transição dos números
-    animateNumber(document.getElementById('sumIncome'), _lastSummaryValues.income, income);
-    animateNumber(document.getElementById('sumSpent'), _lastSummaryValues.spent, spent);
-    animateNumber(document.getElementById('sumRemaining'), _lastSummaryValues.remaining, remaining);
+    // Renda e gasto: countup smooth (700ms, ease-out-cubic)
+    animateNumber(document.getElementById('sumIncome'), _lastSummaryValues.income, income, 700, fmtBRL, _easeOutCubic);
+    animateNumber(document.getElementById('sumSpent'), _lastSummaryValues.spent, spent, 700, fmtBRL, _easeOutCubic);
+    // Saldo (herói): countup com spring physics (800ms, leve overshoot)
+    animateNumber(document.getElementById('sumRemaining'), _lastSummaryValues.remaining, remaining, 800, fmtBRL, _easeSpring);
     _lastSummaryValues.income = income;
     _lastSummaryValues.spent = spent;
     _lastSummaryValues.remaining = remaining;

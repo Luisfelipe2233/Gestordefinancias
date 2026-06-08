@@ -64,31 +64,6 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 ---
 
-### TASK-F5-07 — Tipografia dramática nos saldos do Painel (próxima)
-
-**Objetivo:** O saldo principal e os 3 summary tiles do Painel ganham hierarquia tipográfica mais forte — saldo é 2x maior que os outros números, labels ficam discretas (font-weight 500, cor mute), e a animação de countup usa `--ease-spring`.
-
-**Escopo:**
-- CSS: bloco `.summary-bar` e `.summary-tile .val` no `index.html`
-- JS: função `renderSummary()` + função de countup
-
-**Critérios de Aceite Técnico:**
-- `.summary-tile.remaining .val` tem `font-size: clamp(28px, 5vw, 44px)` e `font-weight: 800`
-- Outros `.summary-tile .val` ficam em `font-size: clamp(18px, 3vw, 24px)`, `font-weight: 700`
-- Labels (`.summary-tile .lbl`) viram `font-weight: 500`, `color: var(--text-mute)`, `text-transform: uppercase`, `font-size: 10px`, `letter-spacing: 0.08em`
-- Countup do saldo usa duração 800ms com `--ease-spring`
-- Funciona em todos os 8 temas sem quebrar layout
-
-**Riscos Arquiteturais:**
-- Pode aumentar a altura visual da `.summary-bar` no mobile e empurrar o pie chart pra baixo — verificar
-- Animação de countup com spring pode dar overshoot exagerado em saldos altos — testar com R$ 50.000
-
-**Fase do Projeto:** Fase 5
-
-**Branch sugerida:** `feat/typography-dramatic-balance`
-
----
-
 ### TASK-F5-08 — Divulgação progressiva: Painel "modo simples" por padrão
 
 **Objetivo:** No primeiro carregamento, o Painel mostra só Summary Bar + Pie Chart. Categorias detalhadas ficam num accordion fechado ("Ver categorias →"). Reduz carga cognitiva inicial conforme princípio #4 do briefing.
@@ -114,6 +89,27 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 ---
 
 ## ✅ Concluído — movido pelo DEV após cada commit
+
+### TASK-F5-07 — Tipografia dramática nos saldos do Painel
+
+**Objetivo:** O saldo principal e os 3 summary tiles do Painel ganham hierarquia tipográfica mais forte — saldo é 2x maior que os outros números, labels ficam discretas, e o countup do saldo usa spring physics.
+
+**Commit:** (a preencher após push) — 2026-06-07
+
+**Resumo da implementação:**
+- CSS (linhas 878-901): `.summary-tile .lbl` ficou 10px / weight 500 / letter-spacing 0.08em / cor text-mute (era 11px/600/0.06em). `.summary-tile .val` virou `clamp(18px, 3vw, 24px)` com weight 700. Adicionado bloco `.summary-tile.remaining .val` com `clamp(28px, 5vw, 44px)`, weight 800 e letter-spacing -0.035em — o herói da tela.
+- Mobile override `.summary-tile .val { font-size: 19px; }` removido (clamp() agora cuida da escala responsiva sem flatten).
+- JS: `animateNumber` ganhou parâmetro `easing` opcional. Adicionados `_easeOutCubic` (smooth, padrão) e `_easeSpring` (aproximação JS de `cubic-bezier(0.34, 1.25, 0.64, 1)` com ~5% overshoot). Duração default subiu de 700ms→800ms.
+- `renderSummary` agora passa `_easeOutCubic` em 700ms pros tiles Renda/Gasto, e `_easeSpring` em 800ms pro Saldo.
+
+**Validação:**
+- Sem cores hardcoded; só var(--text-mute), var(--text), var(--success-dark), var(--primary-dark), var(--danger) — funciona nos 8 temas
+- Letter-spacing negativo dramático (-0.035em) no saldo simula o estilo de uma marca premium
+- Saldo testado mentalmente em R$ 50.000: spring com 5% overshoot mostra brevemente R$ 52.500 e settle a R$ 50.000 — overshoot moderado, não exagerado
+- Layout: tiles em grid `repeat(3,1fr)` alinham na maior altura — Renda/Gasto ganham respiro extra (princípio do brief: espaço negativo)
+- No mobile (≤480px com summary-bar single-column), cada tile tem altura natural — saldo continua dramático (28px vs 18px nos outros)
+
+---
 
 ### TASK-F5-01 — Tema Linho como padrão
 
