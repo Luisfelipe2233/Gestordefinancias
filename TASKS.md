@@ -94,7 +94,7 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 **Objetivo:** O saldo principal e os 3 summary tiles do Painel ganham hierarquia tipográfica mais forte — saldo é 2x maior que os outros números, labels ficam discretas, e o countup do saldo usa spring physics.
 
-**Commit:** (a preencher após push) — 2026-06-07
+**Commit:** `6db650b` — 2026-06-07
 
 **Resumo da implementação:**
 - CSS (linhas 878-901): `.summary-tile .lbl` ficou 10px / weight 500 / letter-spacing 0.08em / cor text-mute (era 11px/600/0.06em). `.summary-tile .val` virou `clamp(18px, 3vw, 24px)` com weight 700. Adicionado bloco `.summary-tile.remaining .val` com `clamp(28px, 5vw, 44px)`, weight 800 e letter-spacing -0.035em — o herói da tela.
