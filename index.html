@@ -899,6 +899,29 @@
     line-height: 1.05;
     color: var(--text);
   }
+  /* Saldo: caixinha distinta — tingida sálvia (positivo) ou terracota (negativo)
+     + única com sombra elevada. Renda/Gasto ficam flat pra deixar o Saldo respirar. */
+  .summary-tile.remaining {
+    background: var(--success-soft);
+    border-color: transparent;
+    padding: 20px 24px;
+    box-shadow: var(--shadow-md);
+    transition: background 0.4s ease, box-shadow 0.3s ease;
+  }
+  .summary-tile.remaining .lbl {
+    color: var(--success-dark);
+    font-weight: 600;
+    opacity: 0.95;
+  }
+  .summary-tile.remaining.negative {
+    background: var(--danger-bg);
+  }
+  .summary-tile.remaining.negative .lbl {
+    color: var(--danger);
+  }
+  .summary-tile.income, .summary-tile.spent {
+    box-shadow: none;
+  }
   .summary-tile.income .val { color: var(--success-dark); }
   .summary-tile.spent .val { color: var(--primary-dark); }
   .summary-tile.remaining.negative .val { color: var(--danger); }
