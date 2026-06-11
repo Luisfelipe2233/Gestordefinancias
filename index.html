@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Munny" />
 <title>Munny — Gestor de finanças</title>
-<link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","description":"Seu dinheiro, sob controle.","start_url":".","scope":".","display":"standalone","orientation":"portrait","background_color":"%23F7F3EA","theme_color":"%23F7F3EA","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%236F8E7F%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22%23FDFBF4%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22106%22 fill=%22%236F8E7F%22/><text x=%22256%22 y=%22346%22 font-size=%22290%22 text-anchor=%22middle%22 fill=%22%23FDFBF4%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}' />
+<link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","start_url":".","display":"standalone","background_color":"%23F7F3EA","theme_color":"%23F7F3EA"}' />
 <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%236F8E7F"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="%23FDFBF4" font-family="Arial" font-weight="bold">R$</text></svg>' />
 <!-- BUGFIX #16: Apple touch icon — generated at runtime as PNG via canvas (see init) -->
 <link rel="apple-touch-icon" id="appleTouchIcon" />
@@ -10247,12 +10247,15 @@ function doGet() {
     }
   });
 
-  // ============ PWA: Service Worker + Install Prompt ============
+  // ============ PWA REVERTIDO ============
+  // O Service Worker foi removido por causar travamento em alguns devices.
+  // Em vez de registrar, garantimos que QUALQUER SW antigo seja desregistrado.
+  // O sw.js virou um worker de autodestruição (limpa caches + unregister + reload).
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch((err) => {
-        console.warn('Service Worker não registrou:', err);
-      });
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => regs.forEach((r) => r.update().catch(() => {})))
+        .catch(() => {});
     });
   }
 
