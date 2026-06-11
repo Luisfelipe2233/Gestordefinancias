@@ -27,10 +27,11 @@
   2. Fazer login (state.theme = 'light' fica persistido)
   3. Atualizar pro commit `1058c52` ou posterior
   4. Site continua com tema Claro
-- **Comportamento esperado:** Discussão aberta. Opção A: migração automática silenciosa (light → linho uma vez). Opção B: deixar como está, usuário escolhe. Opção C: banner uma vez "Conheça o novo tema Linho! 🌿" com botão pra aplicar.
+- **Comportamento esperado:** Migração one-shot light → linho com flag `ui.linhoIntroduced` (não migra de novo se o usuário voltar pro Claro de propósito) + toast informativo no boot.
 - **Impacto:** Baixo individual (basta 2 cliques), mas estratégico — usuários atuais não veem o novo design padrão se não souberem.
-- **Status:** [ ] Aberto — aguardando decisão de produto (CEO)
-- **Commit de resolução:** —
+- **Fix aplicado:** Migração em `loadState()` + toast "🌿 Novo visual: tema Linho!" 2,4s após o boot.
+- **Status:** [x] Resolvido
+- **Commit de resolução:** ver commit do mutirão de review (2026-06-07)
 
 ---
 
@@ -42,9 +43,10 @@
 - **Fase:** 5
 - **Descrição:** O card grande "Reserva de Emergência" no topo do Painel foi removido (commit `624d513`). Mas o sistema de insights rotativos ainda tem o item 7 ("Reserva de emergência") em `generateInsights()` — ele aparece dentro do card "Insights inteligentes" no Painel.
 - **Como reproduzir:** Abrir Painel, esperar os insights rotarem (a cada 9s), eventualmente um diz algo sobre reserva.
-- **Comportamento esperado:** Decisão pendente. Se o dono não queria o assunto no app, remover o insight também. Se só não queria o card grande, manter o insight como sugestão sutil.
-- **Status:** [ ] Aberto — aguardando decisão de produto
-- **Commit de resolução:** —
+- **Comportamento esperado:** Insight removido junto ("pode socar tudo" — decisão do dono em 2026-06-07).
+- **Fix aplicado:** Bloco `=== 7. Reserva de emergência` removido de `generateInsights()`.
+- **Status:** [x] Resolvido
+- **Commit de resolução:** ver commit do mutirão de review (2026-06-07)
 
 ---
 

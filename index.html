@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#2563eb" />
+<meta name="theme-color" content="#F7F3EA" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="Finanças" />
+<meta name="apple-mobile-web-app-title" content="Munny" />
 <title>Munny — Gestor de finanças</title>
-<link rel="manifest" href='data:application/manifest+json,{"name":"Gestão Financeira Pessoal","short_name":"Finanças","start_url":".","display":"standalone","background_color":"%23f5f7fb","theme_color":"%232563eb","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%232563eb%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}' />
-<link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%232563eb"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold">R$</text></svg>' />
+<link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","start_url":".","display":"standalone","background_color":"%23F7F3EA","theme_color":"%23F7F3EA","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%236F8E7F%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22%23FDFBF4%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}' />
+<link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%236F8E7F"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="%23FDFBF4" font-family="Arial" font-weight="bold">R$</text></svg>' />
 <!-- BUGFIX #16: Apple touch icon — generated at runtime as PNG via canvas (see init) -->
 <link rel="apple-touch-icon" id="appleTouchIcon" />
 <!-- Fonte premium Inter (mesma da Stripe, Linear, Vercel) -->
@@ -924,6 +924,8 @@
   }
   .summary-tile.income .val { color: var(--success-dark); }
   .summary-tile.spent .val { color: var(--primary-dark); }
+  /* No Linho, primary == success (sálvia). Gasto usa terracota pra se diferenciar da Renda */
+  [data-theme="linho"] .summary-tile.spent .val { color: var(--warning); }
   .summary-tile.remaining.negative .val { color: var(--danger); }
 
   /* ==================== CATEGORY CARDS ==================== */
@@ -2577,9 +2579,15 @@
     height: 12px;
   }
 
-  /* Reduz movimento se usuário preferir */
+  /* Reduz movimento se usuário preferir — cobertura global */
   @media (prefers-reduced-motion: reduce) {
     .splash-shape, .splash-logo-glow, .splash-loader-bar { animation: none; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* ==================== INSIGHTS CARD ==================== */
@@ -4158,6 +4166,54 @@
   .modal-actions .btn-secondary,
   .modal-actions .btn-danger { flex: 0 0 auto; }
 
+  /* ==================== CONFIRM DIALOG (substitui confirm() nativo) ==================== */
+  .confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+    padding: 20px;
+    animation: backdropIn 0.2s ease;
+  }
+  .confirm-backdrop.show { display: flex; }
+  .confirm-box {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 22px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    animation: confirmIn 0.3s var(--ease-spring);
+  }
+  @keyframes confirmIn {
+    from { transform: scale(0.94) translateY(10px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .confirm-box h4 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  .confirm-box p {
+    margin: 0 0 18px;
+    font-size: 13.5px;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+  .confirm-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  @media (max-width: 480px) {
+    .confirm-actions { flex-direction: column-reverse; }
+    .confirm-actions button { width: 100%; }
+  }
+
   /* ==================== TOAST ==================== */
   .toast {
     position: fixed;
@@ -4792,7 +4848,7 @@
       <p class="subtitle">Toque numa despesa pra editar ou excluir.</p>
       <div class="filters-bar">
         <div class="search-wrap">
-          <input type="search" id="expSearch" placeholder="🔍 Buscar despesa..." maxlength="60" />
+          <input type="search" id="expSearch" placeholder="Buscar despesa..." maxlength="60" />
           <button type="button" id="searchClearBtn" title="Limpar busca" aria-label="Limpar">×</button>
         </div>
         <select id="expFilter">
@@ -4952,6 +5008,18 @@
   <div class="modal" id="modalContent"></div>
 </div>
 
+<!-- ============ CONFIRM DIALOG (substitui confirm() nativo) ============ -->
+<div class="confirm-backdrop" id="confirmBackdrop" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="confirm-box">
+    <h4 id="confirmTitle">Tem certeza?</h4>
+    <p id="confirmMessage"></p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-secondary" id="confirmCancelBtn">Cancelar</button>
+      <button type="button" class="btn-primary" id="confirmOkBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ BOTTOM TAB BAR + FAB (mobile only) ============ -->
 <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
   <button class="bnav-btn active" data-tab="painel" type="button" aria-label="Painel">
@@ -5068,13 +5136,13 @@
 
   // Tipos de itens agendados — cada um com cor, ícone e se é despesa
   const SCHEDULE_TYPES = [
-    { id: 'expense', label: 'Despesa agendada',     color: '#2563eb', icon: 'receipt',    isExpense: true,  isIncome: false },
-    { id: 'bill',    label: 'Conta a pagar',        color: '#f59e0b', icon: 'creditCard', isExpense: true,  isIncome: false },
-    { id: 'rent',    label: 'Aluguel / Moradia',    color: '#8b5cf6', icon: 'home',       isExpense: true,  isIncome: false },
-    { id: 'salary',  label: 'Salário / Renda',      color: '#10b981', icon: 'dollarSign', isExpense: false, isIncome: true  },
-    { id: 'birthday',label: 'Aniversário',          color: '#ec4899', icon: 'gift',       isExpense: false, isIncome: false },
-    { id: 'travel',  label: 'Viagem',               color: '#0ea5e9', icon: 'plane',      isExpense: false, isIncome: false },
-    { id: 'event',   label: 'Evento / Lembrete',    color: '#6b7280', icon: 'flag',       isExpense: false, isIncome: false },
+    { id: 'expense', label: 'Despesa agendada',     color: '#7E9BB3', icon: 'receipt',    isExpense: true,  isIncome: false },
+    { id: 'bill',    label: 'Conta a pagar',        color: '#B5915F', icon: 'creditCard', isExpense: true,  isIncome: false },
+    { id: 'rent',    label: 'Aluguel / Moradia',    color: '#8A7CA8', icon: 'home',       isExpense: true,  isIncome: false },
+    { id: 'salary',  label: 'Salário / Renda',      color: '#6F8E7F', icon: 'dollarSign', isExpense: false, isIncome: true  },
+    { id: 'birthday',label: 'Aniversário',          color: '#A26769', icon: 'gift',       isExpense: false, isIncome: false },
+    { id: 'travel',  label: 'Viagem',               color: '#6E9C92', icon: 'plane',      isExpense: false, isIncome: false },
+    { id: 'event',   label: 'Evento / Lembrete',    color: '#8C8678', icon: 'flag',       isExpense: false, isIncome: false },
   ];
   function getScheduleType(id) {
     return SCHEDULE_TYPES.find(t => t.id === id) || SCHEDULE_TYPES[0];
@@ -5163,40 +5231,41 @@
     console.error('Erro inicializando Firebase:', e);
   }
 
+  // Paleta orgânica — tons de cerâmica, linho e sálvia (briefing de design)
   const COLOR_PALETTE = [
-    '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
-    '#0ea5e9', '#ef4444', '#14b8a6', '#a855f7', '#f97316',
-    '#22c55e', '#3b82f6', '#d946ef', '#eab308', '#06b6d4',
+    '#6F8E7F', '#C97A6A', '#B5915F', '#8A7CA8', '#7E9BB3',
+    '#93955C', '#A26769', '#6E9C92', '#C9A88C', '#8C8678',
+    '#557163', '#9D6B53', '#7B8FA3', '#A8916E', '#5F7470',
   ];
 
   const METHODS = {
     '50-30-20': {
       label: 'Regra 50/30/20',
       categories: [
-        { id: 'necessidades', name: 'Necessidades', pct: 50, color: '#2563eb' },
-        { id: 'desejos',      name: 'Desejos',      pct: 30, color: '#8b5cf6' },
-        { id: 'poupanca',     name: 'Poupança / Investimentos', pct: 20, color: '#10b981' },
+        { id: 'necessidades', name: 'Necessidades', pct: 50, color: '#7E9BB3' },
+        { id: 'desejos',      name: 'Desejos',      pct: 30, color: '#C97A6A' },
+        { id: 'poupanca',     name: 'Poupança / Investimentos', pct: 20, color: '#6F8E7F' },
       ],
     },
     '6-potes': {
       label: 'Método dos 6 Potes',
       categories: [
-        { id: 'essencial',     name: 'Essencial',                 pct: 55, color: '#2563eb' },
-        { id: 'independencia', name: 'Independência Financeira',  pct: 10, color: '#10b981' },
-        { id: 'longo-prazo',   name: 'Poupança de Longo Prazo',   pct: 10, color: '#0ea5e9' },
-        { id: 'educacao',      name: 'Educação',                  pct: 10, color: '#f59e0b' },
-        { id: 'lazer',         name: 'Lazer',                     pct: 10, color: '#8b5cf6' },
-        { id: 'doacoes',       name: 'Doações',                   pct: 5,  color: '#ec4899' },
+        { id: 'essencial',     name: 'Essencial',                 pct: 55, color: '#7E9BB3' },
+        { id: 'independencia', name: 'Independência Financeira',  pct: 10, color: '#6F8E7F' },
+        { id: 'longo-prazo',   name: 'Poupança de Longo Prazo',   pct: 10, color: '#557163' },
+        { id: 'educacao',      name: 'Educação',                  pct: 10, color: '#B5915F' },
+        { id: 'lazer',         name: 'Lazer',                     pct: 10, color: '#8A7CA8' },
+        { id: 'doacoes',       name: 'Doações',                   pct: 5,  color: '#A26769' },
       ],
     },
     'custom': {
       label: 'Personalizado',
       categories: [
-        { id: 'casa',     name: 'Casa & Contas',    pct: 35, color: '#2563eb' },
-        { id: 'comida',   name: 'Alimentação',      pct: 20, color: '#f59e0b' },
-        { id: 'transp',   name: 'Transporte',       pct: 10, color: '#0ea5e9' },
-        { id: 'lazer',    name: 'Lazer & Diversão', pct: 15, color: '#8b5cf6' },
-        { id: 'poup',     name: 'Poupança',         pct: 20, color: '#10b981' },
+        { id: 'casa',     name: 'Casa & Contas',    pct: 35, color: '#7E9BB3' },
+        { id: 'comida',   name: 'Alimentação',      pct: 20, color: '#B5915F' },
+        { id: 'transp',   name: 'Transporte',       pct: 10, color: '#8C8678' },
+        { id: 'lazer',    name: 'Lazer & Diversão', pct: 15, color: '#8A7CA8' },
+        { id: 'poup',     name: 'Poupança',         pct: 20, color: '#6F8E7F' },
       ],
     },
   };
@@ -5326,6 +5395,13 @@
         if (parsed && parsed.version === 2) {
           state = Object.assign(defaultState(), parsed);
           state.ui = Object.assign(defaultState().ui, parsed.ui || {});
+          // Migração one-shot: quem estava no Claro (antigo padrão) conhece o Linho.
+          // Se preferir voltar pro Claro no picker, a flag impede nova migração.
+          if (state.theme === 'light' && !state.ui.linhoIntroduced) {
+            state.theme = 'linho';
+            state.ui.linhoIntroduced = true;
+            setTimeout(() => showToast('🌿 Novo visual: tema Linho! Dá pra trocar em Configurações → Tema.', 'success'), 2400);
+          }
           return;
         }
       }
@@ -5641,6 +5717,38 @@
     });
   }
 
+  // ==================== CONFIRM DIALOG ====================
+  // Substitui o confirm() nativo por um modal no estilo do app.
+  // Uso: if (!(await confirmDialog({ title, message, okLabel, danger }))) return;
+  let _confirmResolve = null;
+  function confirmDialog(opts) {
+    opts = typeof opts === 'string' ? { message: opts } : (opts || {});
+    const okBtn = document.getElementById('confirmOkBtn');
+    document.getElementById('confirmTitle').textContent = opts.title || 'Tem certeza?';
+    document.getElementById('confirmMessage').textContent = opts.message || '';
+    okBtn.textContent = opts.okLabel || 'Confirmar';
+    okBtn.className = opts.danger ? 'btn-danger' : 'btn-primary';
+    document.getElementById('confirmBackdrop').classList.add('show');
+    // Foco no Cancelar por segurança (Enter acidental não confirma ação destrutiva)
+    setTimeout(() => document.getElementById('confirmCancelBtn').focus(), 30);
+    return new Promise((resolve) => { _confirmResolve = resolve; });
+  }
+  function _closeConfirm(result) {
+    document.getElementById('confirmBackdrop').classList.remove('show');
+    if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+  }
+  document.getElementById('confirmOkBtn').addEventListener('click', () => _closeConfirm(true));
+  document.getElementById('confirmCancelBtn').addEventListener('click', () => _closeConfirm(false));
+  document.getElementById('confirmBackdrop').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) _closeConfirm(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('confirmBackdrop').classList.contains('show')) {
+      e.stopPropagation();
+      _closeConfirm(false);
+    }
+  }, true);
+
   // Aplica formatação BRL on blur a um input (sem calculadora).
   // Aceita ID string OU elemento DOM (útil pra inputs criados em modais).
   function attachBRLFormat(target) {
@@ -5920,7 +6028,7 @@
     });
 
     wrap.querySelectorAll('.pct-del').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const idx = +e.target.dataset.idx;
         if (state.categories.length <= 1) {
           showToast('Tem que sobrar pelo menos uma categoria.', 'error');
@@ -5928,7 +6036,11 @@
         }
         const cat = state.categories[idx];
         const used = state.expenses.some(ex => ex.categoryId === cat.id);
-        if (used && !confirm(`A categoria "${cat.name}" tem despesas. Excluir vai mover essas despesas pra outra categoria. Continuar?`)) return;
+        if (used && !(await confirmDialog({
+          title: 'Excluir categoria?',
+          message: `"${cat.name}" tem despesas registradas. Elas serão movidas pra outra categoria — nada se perde.`,
+          okLabel: 'Excluir e mover', danger: true,
+        }))) return;
         if (used) {
           const fallback = state.categories.find((_, i) => i !== idx);
           state.expenses = state.expenses.map(ex => ex.categoryId === cat.id ? { ...ex, categoryId: fallback.id } : ex);
@@ -6338,11 +6450,15 @@
     grid.querySelectorAll('.goal-add-money input').forEach(inp => attachBRLFormat(inp));
 
     grid.querySelectorAll('button[data-action]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const id = btn.dataset.id;
         const action = btn.dataset.action;
         if (action === 'del') {
-          if (!confirm('Excluir esta meta?')) return;
+          if (!(await confirmDialog({
+            title: 'Excluir meta?',
+            message: 'A meta será removida. Se mudar de ideia, dá pra desfazer logo em seguida.',
+            okLabel: 'Excluir', danger: true,
+          }))) return;
           state.goals = state.goals.filter(g => g.id !== id);
           saveState();
           renderGoals();
@@ -6646,8 +6762,12 @@
       showToast('Despesa atualizada.', 'success');
     });
     form.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
-    form.querySelector('[data-act="delete"]').addEventListener('click', () => {
-      if (!confirm('Excluir esta despesa?')) return;
+    form.querySelector('[data-act="delete"]').addEventListener('click', async () => {
+      if (!(await confirmDialog({
+        title: 'Excluir despesa?',
+        message: 'Você pode desfazer logo em seguida, se mudar de ideia.',
+        okLabel: 'Excluir', danger: true,
+      }))) return;
       // BUGFIX #14: keep a backup for undo
       const backup = { ...exp };
       state.expenses = state.expenses.filter(e => e.id !== id);
@@ -6730,8 +6850,12 @@
     });
     form.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
     const del = form.querySelector('[data-act="delete"]');
-    if (del) del.addEventListener('click', () => {
-      if (!confirm('Excluir esta recorrente? As despesas já lançadas continuam no histórico.')) return;
+    if (del) del.addEventListener('click', async () => {
+      if (!(await confirmDialog({
+        title: 'Excluir recorrente?',
+        message: 'As despesas já lançadas continuam no histórico. Só os próximos meses deixam de ser lançados.',
+        okLabel: 'Excluir', danger: true,
+      }))) return;
       // BUGFIX #14: undo for recurring deletion
       const backup = { ...rec };
       state.recurring = state.recurring.filter(r => r.id !== rec.id);
@@ -6839,8 +6963,12 @@
     // BUGFIX #9: move delete into edit modal (safer than × on card)
     const goalDelBtn = form.querySelector('[data-act="delete"]');
     if (goalDelBtn) {
-      goalDelBtn.addEventListener('click', () => {
-        if (!confirm(`Excluir a meta "${goal.name}"?`)) return;
+      goalDelBtn.addEventListener('click', async () => {
+        if (!(await confirmDialog({
+          title: 'Excluir meta?',
+          message: `"${goal.name}" será removida. Se mudar de ideia, dá pra desfazer logo em seguida.`,
+          okLabel: 'Excluir', danger: true,
+        }))) return;
         // BUGFIX #14: undo for goal deletion
         const backup = { ...goal };
         const wasDefault = state.ui.defaultGoalId === goal.id;
@@ -7059,8 +7187,12 @@
     if (achBtn) achBtn.addEventListener('click', () => { closeModal(); openAchievementsModal(); });
     const logoutBtn = modal.querySelector('[data-act="logout"]');
     if (logoutBtn) logoutBtn.addEventListener('click', () => { closeModal(); logout(); });
-    modal.querySelector('[data-act="reset"]').addEventListener('click', () => {
-      if (!confirm('Tem certeza que quer apagar TUDO? (renda, despesas, metas, histórico)\n\nFaça um backup antes (Exportar) se quiser ter como voltar.')) return;
+    modal.querySelector('[data-act="reset"]').addEventListener('click', async () => {
+      if (!(await confirmDialog({
+        title: 'Apagar tudo e recomeçar?',
+        message: 'Isso remove renda, despesas, metas e histórico. Se quiser uma cópia de segurança, exporte um backup antes.',
+        okLabel: 'Apagar tudo', danger: true,
+      }))) return;
       localStorage.removeItem(STORAGE_KEY);
       state = defaultState();
       saveState();
@@ -7284,11 +7416,15 @@ function doGet() {
     }
 
     // Save
-    modal.querySelector('[data-act="save"]').addEventListener('click', () => {
+    modal.querySelector('[data-act="save"]').addEventListener('click', async () => {
       const newUrl = modal.querySelector('#syncUrl').value.trim();
       const newDevice = modal.querySelector('#syncDeviceName').value.trim();
       if (newUrl && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec\/?$/.test(newUrl)) {
-        if (!confirm('A URL não parece ser de um Google Apps Script (deve terminar com /exec). Salvar mesmo assim?')) return;
+        if (!(await confirmDialog({
+          title: 'URL diferente do esperado',
+          message: 'Essa URL não parece ser de um Google Apps Script (costuma terminar com /exec). Quer salvar assim mesmo?',
+          okLabel: 'Salvar assim mesmo',
+        }))) return;
       }
       state.notesWebhookUrl = newUrl;
       state.deviceName = newDevice;
@@ -7413,14 +7549,18 @@ function doGet() {
 
   function importBackup(file) {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const parsed = JSON.parse(e.target.result);
         const data = parsed && parsed.data ? parsed.data : parsed;
         if (!data || typeof data !== 'object' || !Array.isArray(data.categories) || !Array.isArray(data.expenses)) {
           throw new Error('Formato inválido');
         }
-        if (!confirm('Isso vai SUBSTITUIR seus dados atuais pelos do backup. Continuar?')) return;
+        if (!(await confirmDialog({
+          title: 'Substituir seus dados?',
+          message: 'O backup vai tomar o lugar dos dados atuais deste dispositivo. Essa troca não pode ser desfeita.',
+          okLabel: 'Substituir', danger: true,
+        }))) return;
         state = sanitizeImportedData(data);
         // BUGFIX #3: re-apply recurring expenses for current month after import
         ensureRecurringForCurrentMonth();
@@ -7450,17 +7590,29 @@ function doGet() {
     { id: 'sakura', name: 'Sakura', emoji: '🌸', preview: ['#fef5f8', '#ffffff', '#ec4899', '#a78bfa'] },
     { id: 'oled',   name: 'OLED',   emoji: '⚫', preview: ['#000000', '#0a0a0c', '#3b82f6', '#34d399'] },
   ];
+  // Cor da barra do navegador (mobile) por tema — sempre o --bg de cada um
+  const THEME_BROWSER_COLORS = {
+    linho: '#F7F3EA', light: '#f5f7fb', dark: '#0f172a', forest: '#0c1612',
+    sunset: '#1a0e15', ocean: '#051821', sakura: '#fef5f8', oled: '#000000',
+  };
+  const DARK_THEMES = ['dark', 'forest', 'sunset', 'ocean', 'oled'];
+
   function setTheme(themeId) {
     state.theme = themeId;
     applyTheme();
     saveState();
   }
   function toggleTheme() {
-    // Atalho rápido: cicla entre claro e escuro
-    setTheme(state.theme === 'dark' ? 'light' : 'dark');
+    // Atalho rápido: alterna entre escuro e o último tema claro usado (Linho por padrão)
+    if (DARK_THEMES.includes(state.theme)) {
+      setTheme(state.ui.lastLightTheme || 'linho');
+    } else {
+      state.ui.lastLightTheme = state.theme;
+      setTheme('dark');
+    }
     const btn = document.getElementById('themeBtn');
     if (btn) sparkleAround(btn, 10);
-    showToast(state.theme === 'dark' ? '🌙 Tema escuro' : '☀ Tema claro', 'success');
+    showToast(DARK_THEMES.includes(state.theme) ? '🌙 Tema escuro' : '☀ Tema claro', 'success');
   }
 
   function openThemePicker() {
@@ -7495,11 +7647,11 @@ function doGet() {
   function applyTheme() {
     document.documentElement.setAttribute('data-theme', state.theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', state.theme === 'dark' ? '#0f172a' : '#2563eb');
+    if (meta) meta.setAttribute('content', THEME_BROWSER_COLORS[state.theme] || '#F7F3EA');
     const icon = document.getElementById('themeIcon');
     if (icon) {
-      // Show moon when in light mode (clicking goes to dark), sun when in dark mode
-      icon.innerHTML = state.theme === 'dark' ? SUN_ICON : MOON_ICON;
+      // Lua quando em tema claro (clicar vai pro escuro), sol quando em tema escuro
+      icon.innerHTML = DARK_THEMES.includes(state.theme) ? SUN_ICON : MOON_ICON;
     }
   }
 
@@ -7565,9 +7717,13 @@ function doGet() {
 
   // ==================== CONFETE SUTIL ====================
   // Emite partículas leves do centro pra cima, usado quando bate meta
+  // Respeita preferência de movimento reduzido — efeitos decorativos viram no-op
+  const REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function emitConfetti(opts) {
+    if (REDUCED_MOTION) return;
     opts = opts || {};
-    const colors = opts.colors || ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+    const colors = opts.colors || ['#6F8E7F', '#C97A6A', '#B5915F', '#8A7CA8', '#7E9BB3'];
     const count = opts.count || 22;
     const originX = opts.x != null ? opts.x : window.innerWidth / 2;
     const originY = opts.y != null ? opts.y : window.innerHeight / 2;
@@ -7693,6 +7849,7 @@ function doGet() {
   // ==================== MICROCELEBRAÇÕES (F) ====================
   // Texto "+R$ XX" flutua e some
   function floatingMoney(amount, sourceEl, isPositive) {
+    if (REDUCED_MOTION) return;
     const el = document.createElement('div');
     el.className = 'floating-money ' + (isPositive ? 'positive' : 'negative');
     el.textContent = (isPositive ? '+' : '-') + fmtBRL(Math.abs(amount));
@@ -7725,6 +7882,7 @@ function doGet() {
 
   // Sparkles dispersam (theme toggle, goal achievement, etc.)
   function sparkleAround(sourceEl, count) {
+    if (REDUCED_MOTION) return;
     count = count || 12;
     let originX = window.innerWidth / 2, originY = window.innerHeight / 2;
     if (sourceEl && sourceEl.getBoundingClientRect) {
@@ -8115,15 +8273,15 @@ function doGet() {
 
     // Method
     document.querySelectorAll('.method-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const method = btn.dataset.method;
         if (method === state.method) return;
         // Warn user
         const hasExpenses = state.expenses.length > 0;
         const msg = hasExpenses
-          ? `Trocar pra "${METHODS[method].label}" vai redistribuir as categorias. As despesas vão tentar manter a categoria, mas algumas podem ir pra outra. Continuar?`
-          : `Trocar pra "${METHODS[method].label}"?`;
-        if (!confirm(msg)) return;
+          ? `Mudar pra "${METHODS[method].label}" redistribui as categorias. As despesas tentam manter a categoria de antes, mas algumas podem ir pra outra.`
+          : `Suas categorias serão substituídas pelas do método "${METHODS[method].label}".`;
+        if (!(await confirmDialog({ title: 'Trocar de método?', message: msg, okLabel: 'Trocar' }))) return;
         // Try to keep old category names if possible (custom only)
         state.method = method;
         trackMethodTried(method);
@@ -8438,8 +8596,8 @@ function doGet() {
       canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, size, size);
-      grad.addColorStop(0, '#2563eb');
-      grad.addColorStop(1, '#10b981');
+      grad.addColorStop(0, '#6F8E7F');
+      grad.addColorStop(1, '#557163');
       ctx.fillStyle = grad;
       ctx.beginPath();
       const r = 36;
@@ -8501,9 +8659,13 @@ function doGet() {
       });
   }
 
-  function logout() {
+  async function logout() {
     if (!auth) return;
-    if (!confirm('Sair da sua conta? Seus dados na nuvem ficam guardados.')) return;
+    if (!(await confirmDialog({
+      title: 'Sair da conta?',
+      message: 'Seus dados continuam guardados na nuvem e voltam quando você entrar de novo.',
+      okLabel: 'Sair',
+    }))) return;
     if (unsubscribeUserDoc) { unsubscribeUserDoc(); unsubscribeUserDoc = null; }
     auth.signOut().then(() => {
       // Limpa estado local
@@ -9035,8 +9197,12 @@ function doGet() {
       });
     });
     bodyEl.querySelectorAll('[data-sched-del]').forEach(b => {
-      b.addEventListener('click', () => {
-        if (!confirm('Excluir esse agendamento?')) return;
+      b.addEventListener('click', async () => {
+        if (!(await confirmDialog({
+          title: 'Excluir agendamento?',
+          message: 'O lembrete sai do calendário. Despesas já pagas não são afetadas.',
+          okLabel: 'Excluir', danger: true,
+        }))) return;
         state.schedule = state.schedule.filter(s => s.id !== b.dataset.schedDel);
         saveState();
         renderCalendar();
@@ -9182,8 +9348,12 @@ function doGet() {
 
     const delBtn = modal.querySelector('[data-act="delete"]');
     if (delBtn && existing) {
-      delBtn.addEventListener('click', () => {
-        if (!confirm('Excluir esse agendamento?')) return;
+      delBtn.addEventListener('click', async () => {
+        if (!(await confirmDialog({
+          title: 'Excluir agendamento?',
+          message: 'O lembrete sai do calendário. Despesas já pagas não são afetadas.',
+          okLabel: 'Excluir', danger: true,
+        }))) return;
         state.schedule = state.schedule.filter(s => s.id !== existing.id);
         saveState();
         closeModal();
@@ -9416,23 +9586,6 @@ function doGet() {
         });
       }
     });
-
-    // === 7. Reserva de emergência (com base em metas + sobra histórica)
-    if (historyKeys.length >= 2) {
-      const avgSpent = historyKeys.reduce((s, k) => s + (Number(state.history[k].totalSpent) || 0), 0) / historyKeys.length;
-      const totalSaved = (state.goals || []).reduce((s, g) => s + (Number(g.current) || 0), 0);
-      if (avgSpent > 0 && totalSaved > 0) {
-        const monthsCovered = totalSaved / avgSpent;
-        insights.push({
-          type: 'info',
-          icon: ICONS.gem,
-          title: 'Sua reserva financeira',
-          html: monthsCovered >= 6
-            ? `Você tem <strong>${fmtBRL(totalSaved)}</strong> guardado, o que cobre <span class="accent">${monthsCovered.toFixed(1)} meses</span> de despesa. Tranquilidade na conta. 💎`
-            : `Você tem <strong>${fmtBRL(totalSaved)}</strong> guardado. Cobre <span class="accent">${monthsCovered.toFixed(1)} meses</span> de despesa. Especialistas recomendam pelo menos 3-6 meses.`
-        });
-      }
-    }
 
     // === 8. Despesa recorrente prestes a chegar
     if ((state.recurring || []).length > 0) {
@@ -9706,7 +9859,7 @@ function doGet() {
 
     if (items.length === 0) {
       results.innerHTML = `<div class="cmdk-empty">
-        <span class="icon">🔍</span>
+        <span class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         <div>Nenhum comando encontrado pra "${escapeHtml(query)}"</div>
       </div>`;
       return;
