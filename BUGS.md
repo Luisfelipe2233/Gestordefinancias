@@ -31,7 +31,7 @@
 - **Impacto:** Baixo individual (basta 2 cliques), mas estratégico — usuários atuais não veem o novo design padrão se não souberem.
 - **Fix aplicado:** Migração em `loadState()` + toast "🌿 Novo visual: tema Linho!" 2,4s após o boot.
 - **Status:** [x] Resolvido
-- **Commit de resolução:** ver commit do mutirão de review (2026-06-07)
+- **Commit de resolução:** `034ab99` — 2026-06-07
 
 ---
 
@@ -46,7 +46,7 @@
 - **Comportamento esperado:** Insight removido junto ("pode socar tudo" — decisão do dono em 2026-06-07).
 - **Fix aplicado:** Bloco `=== 7. Reserva de emergência` removido de `generateInsights()`.
 - **Status:** [x] Resolvido
-- **Commit de resolução:** ver commit do mutirão de review (2026-06-07)
+- **Commit de resolução:** `034ab99` — 2026-06-07
 
 ---
 
