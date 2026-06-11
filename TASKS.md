@@ -70,7 +70,32 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 ## ✅ Concluído — movido pelo DEV após cada commit
 
-### TASK-F6-01 — PWA: Service Worker + offline + install prompt
+### TASK-F7-01 — Onboarding de primeiro uso (3 passos)
+
+**Objetivo:** Resolver a tela vazia/zerada que faz o novo usuário desistir nos primeiros 30s. Wizard guiado: boas-vindas → renda → método → painel montado.
+
+**Commit:** (a preencher) — 2026-06-07
+
+**Resumo da implementação:**
+- **Gatilho:** só aparece pra quem é realmente novo (`isFirstTime`: sem renda, sem despesas, sem histórico, sem metas) E `!state.ui.onboardingDone`. Usuário existente nunca vê — `maybeShowOnboarding` marca `onboardingDone=true` e sai. Guard `_onboardingShown` evita reabrir na sessão.
+- **3 passos** no overlay `.onb-backdrop` (z-index 1600): (1) renda com input grande + Enter avança; (2) 3 cards de método (aplica `state.method` + `cloneCats(METHODS[m].categories)`); (3) tela "tudo pronto, [nome]" com CTA. Pular em qualquer passo.
+- **Estilo Linho:** card calmo, dots de progresso que esticam com spring, animação de entrada `--ease-spring`, microcopy humana.
+- **Estado:** `state.ui.onboardingDone` (default false) — persiste e sincroniza.
+
+**Validação:**
+- Testar em aba anônima (estado fresco) → wizard aparece; preencher renda + método → painel já montado
+- Usuário com dados → wizard nunca aparece
+- Pular fecha e não volta
+
+**Decisão de produto:** Wrapped do mês foi descartado pelo dono ("não imagino pessoas usando"). Pivot pra utilidade real — adoção via primeira impressão.
+
+---
+
+### TASK-F6-01 — PWA: Service Worker + offline + install prompt (REVERTIDO)
+
+> ⚠️ **Revertido** no commit `752f6b4` — o Service Worker travava a página em alguns devices (ver `BUGS.md`). PWA removido por completo; confiabilidade > offline pra app de finanças.
+
+### TASK-F6-01 (original) — PWA: Service Worker + offline + install prompt
 
 **Objetivo:** Munny vira app instalável que funciona offline. Service Worker cacheia o app shell; banner sutil oferece instalação.
 

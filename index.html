@@ -4226,6 +4226,134 @@
   .modal-actions .btn-secondary,
   .modal-actions .btn-danger { flex: 0 0 auto; }
 
+  /* ==================== ONBOARDING (primeiro uso) ==================== */
+  .onb-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1600;
+    padding: 20px;
+    animation: backdropIn 0.25s ease;
+  }
+  .onb-card {
+    background: var(--surface);
+    border-radius: calc(var(--radius) + 4px);
+    padding: 32px 26px 22px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    animation: confirmIn 0.45s var(--ease-spring) both;
+  }
+  .onb-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+  .onb-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    transition: all 0.35s var(--ease-spring-soft);
+  }
+  .onb-dot.active {
+    background: var(--primary);
+    width: 22px;
+  }
+  .onb-step { animation: onbStepIn 0.4s var(--ease-out-smooth) both; }
+  @keyframes onbStepIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .onb-emoji {
+    font-size: 40px;
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .onb-card h2 {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  .onb-card p {
+    font-size: 14px;
+    color: var(--text-soft);
+    line-height: 1.55;
+    margin: 0 0 22px;
+  }
+  .onb-income-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 16px;
+    margin-bottom: 18px;
+  }
+  .onb-income-wrap .onb-currency {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-mute);
+  }
+  .onb-income-wrap input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    padding: 10px 0;
+    outline: none;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    width: 100%;
+  }
+  .onb-income-wrap input::placeholder { color: var(--text-mute); font-weight: 700; }
+  .onb-next { width: 100%; margin-bottom: 8px; }
+  .onb-skip {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: color 0.15s ease;
+  }
+  .onb-skip:hover { color: var(--text-soft); }
+  .onb-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .onb-method {
+    text-align: left;
+    background: var(--surface-alt);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease;
+  }
+  .onb-method:hover { border-color: var(--primary); background: var(--primary-soft); }
+  .onb-method:active { transform: scale(0.98); }
+  .onb-method strong { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .onb-method span { font-size: 12.5px; color: var(--text-mute); line-height: 1.4; }
+
   /* ==================== CONFIRM DIALOG (substitui confirm() nativo) ==================== */
   .confirm-backdrop {
     position: fixed;
@@ -5169,6 +5297,58 @@
   <div class="modal" id="modalContent"></div>
 </div>
 
+<!-- ============ ONBOARDING (primeiro uso) ============ -->
+<div class="onb-backdrop" id="onbBackdrop" style="display:none;" role="dialog" aria-modal="true" aria-label="Boas-vindas">
+  <div class="onb-card">
+    <div class="onb-dots" id="onbDots">
+      <span class="onb-dot active"></span><span class="onb-dot"></span><span class="onb-dot"></span>
+    </div>
+
+    <!-- Passo 1 — Renda -->
+    <div class="onb-step" data-step="1">
+      <div class="onb-emoji">👋</div>
+      <h2>Oi! Bem-vindo ao Munny</h2>
+      <p>Vamos deixar seu dinheiro sob controle — leva 30 segundos. Pra começar: <strong>quanto entra por mês?</strong></p>
+      <div class="onb-income-wrap">
+        <span class="onb-currency">R$</span>
+        <input type="text" id="onbIncome" inputmode="decimal" placeholder="0,00" autocomplete="off" />
+      </div>
+      <button type="button" class="btn-primary onb-next" data-onb="next1">Continuar</button>
+      <button type="button" class="onb-skip" data-onb="skip">Pular por agora</button>
+    </div>
+
+    <!-- Passo 2 — Método -->
+    <div class="onb-step" data-step="2" style="display:none;">
+      <div class="onb-emoji">🍃</div>
+      <h2>Como dividir esse dinheiro?</h2>
+      <p>Escolha um ponto de partida. Dá pra ajustar nomes, cores e valores depois.</p>
+      <div class="onb-methods">
+        <button type="button" class="onb-method" data-onb-method="50-30-20">
+          <strong>Regra 50/30/20</strong>
+          <span>Necessidades, desejos e poupança. Simples e equilibrado.</span>
+        </button>
+        <button type="button" class="onb-method" data-onb-method="6-potes">
+          <strong>6 Potes</strong>
+          <span>Divide em 6 categorias-chave. Bom pra quem quer detalhe.</span>
+        </button>
+        <button type="button" class="onb-method" data-onb-method="custom">
+          <strong>Personalizado</strong>
+          <span>Comece com categorias do dia a dia e ajuste do seu jeito.</span>
+        </button>
+      </div>
+      <button type="button" class="onb-skip" data-onb="skip">Pular</button>
+    </div>
+
+    <!-- Passo 3 — Pronto -->
+    <div class="onb-step" data-step="3" style="display:none;">
+      <div class="onb-emoji">✨</div>
+      <h2>Tudo pronto<span id="onbName"></span>!</h2>
+      <p>Seu painel já está montado. Agora é só ir lançando seus gastos — toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
+      <button type="button" class="btn-primary onb-next" data-onb="finish">Começar a usar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ CONFIRM DIALOG (substitui confirm() nativo) ============ -->
 <div class="confirm-backdrop" id="confirmBackdrop" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
   <div class="confirm-box">
@@ -5530,6 +5710,7 @@
       ui: {
         showPercentEditor: false,
         categoriesExpanded: false, // divulgação progressiva: categorias detalhadas fechadas por padrão
+        onboardingDone: false, // wizard de primeiro uso (renda → método → pronto)
         search: '',
         filter: 'all',
         notesOpen: false,
@@ -8339,6 +8520,77 @@ function doGet() {
 
   // ==================== RENDER ALL ====================
   // BUGFIX #5: Render is split into "always" (cheap, used everywhere) and "tab-specific" (heavier)
+  // ==================== ONBOARDING (primeiro uso) ====================
+  let _onboardingShown = false;
+  function maybeShowOnboarding(isFirstTime) {
+    if (_onboardingShown) return;
+    if (state.ui.onboardingDone) return;
+    if (!isFirstTime) { state.ui.onboardingDone = true; return; } // já tem dados → não mostra
+    _onboardingShown = true;
+    onbGoToStep(1);
+    const back = document.getElementById('onbBackdrop');
+    if (back) back.style.display = 'flex';
+    setTimeout(() => { const i = document.getElementById('onbIncome'); if (i) i.focus(); }, 400);
+  }
+
+  function onbGoToStep(n) {
+    document.querySelectorAll('.onb-step').forEach((s) => {
+      s.style.display = (Number(s.dataset.step) === n) ? '' : 'none';
+    });
+    const dots = document.querySelectorAll('.onb-dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i < n));
+  }
+
+  function finishOnboarding() {
+    state.ui.onboardingDone = true;
+    saveState();
+    const back = document.getElementById('onbBackdrop');
+    if (back) back.style.display = 'none';
+    renderAll();
+  }
+
+  function wireOnboarding() {
+    const back = document.getElementById('onbBackdrop');
+    if (!back) return;
+
+    // Passo 1 → aplica renda, vai pro passo 2
+    back.querySelector('[data-onb="next1"]').addEventListener('click', () => {
+      const val = parseNumber(document.getElementById('onbIncome').value);
+      if (val > 0) { state.income = val; saveState(); }
+      // Nome no passo 3 (se logado)
+      const nameEl = document.getElementById('onbName');
+      if (nameEl && currentUser && currentUser.displayName) {
+        nameEl.textContent = ', ' + currentUser.displayName.split(' ')[0];
+      }
+      onbGoToStep(2);
+    });
+    // Enter no input avança
+    document.getElementById('onbIncome').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); back.querySelector('[data-onb="next1"]').click(); }
+    });
+
+    // Passo 2 → aplica método + categorias, vai pro passo 3
+    back.querySelectorAll('[data-onb-method]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const m = btn.dataset.onbMethod;
+        if (METHODS[m]) {
+          state.method = m;
+          state.categories = cloneCats(METHODS[m].categories);
+          trackMethodTried(m);
+          saveState();
+        }
+        onbGoToStep(3);
+      });
+    });
+
+    // Pular / Finalizar
+    back.querySelectorAll('[data-onb="skip"]').forEach((b) => b.addEventListener('click', finishOnboarding));
+    back.querySelector('[data-onb="finish"]').addEventListener('click', () => {
+      finishOnboarding();
+      showToast('Bora! Seu painel está pronto. 🍃', 'success');
+    });
+  }
+
   function renderAll() {
     // BUGFIX #10: format income with 2 decimals if it has a value
     const incEl = document.getElementById('income');
@@ -8385,6 +8637,8 @@ function doGet() {
     const hint = document.getElementById('onboardingHint');
     if (badge) badge.classList.toggle('hidden', !isFirstTime);
     if (hint) hint.classList.toggle('hidden', !isFirstTime);
+    // Wizard de primeiro uso: só pra quem está realmente começando do zero
+    maybeShowOnboarding(isFirstTime);
     // BUGFIX #15: show search clear if already has a query
     const searchClear = document.getElementById('searchClearBtn');
     if (searchClear) searchClear.classList.toggle('show', !!(state.ui.search));
@@ -10190,6 +10444,9 @@ function doGet() {
   // ============ Modo Stealth ============
   document.getElementById('stealthBtn').addEventListener('click', toggleStealthMode);
   applyStealthMode();
+
+  // ============ Onboarding de primeiro uso ============
+  wireOnboarding();
 
   // ============ Calculadora inline em inputs de valor ============
   setupCalcInput('expValue', 'expValueCalc');
