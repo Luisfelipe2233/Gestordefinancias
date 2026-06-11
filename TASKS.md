@@ -74,7 +74,7 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 **Objetivo:** Resolver a tela vazia/zerada que faz o novo usuário desistir nos primeiros 30s. Wizard guiado: boas-vindas → renda → método → painel montado.
 
-**Commit:** (a preencher) — 2026-06-07
+**Commit:** `21810fd` — 2026-06-07
 
 **Resumo da implementação:**
 - **Gatilho:** só aparece pra quem é realmente novo (`isFirstTime`: sem renda, sem despesas, sem histórico, sem metas) E `!state.ui.onboardingDone`. Usuário existente nunca vê — `maybeShowOnboarding` marca `onboardingDone=true` e sai. Guard `_onboardingShown` evita reabrir na sessão.
