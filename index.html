@@ -2553,8 +2553,7 @@
   }
 
   /* ==================== MODO STEALTH ==================== */
-  /* Borra todos os valores em R$ pra privacidade rápida */
-  body.stealth-mode #income,
+  /* Borra todos os valores em R$ pra privacidade rápida (todas as abas) */
   body.stealth-mode .summary-tile .val,
   body.stealth-mode .cat-amount-line strong,
   body.stealth-mode .cat-bottom .val,
@@ -2562,21 +2561,39 @@
   body.stealth-mode .recurring-item .value,
   body.stealth-mode .extras-list li .value,
   body.stealth-mode .pie-legend .item .vl,
+  body.stealth-mode .vl,
   body.stealth-mode #distributionIncomeLabel,
   body.stealth-mode .goal-progress-info strong,
   body.stealth-mode .goal-target strong,
   body.stealth-mode .history-item .stat-val,
+  body.stealth-mode .history-item .sub,
   body.stealth-mode .top-value-amount,
   body.stealth-mode .pie-chart .pie-center,
   body.stealth-mode .row-value-display strong,
-  body.stealth-mode .stat-card .stat-val {
+  body.stealth-mode .stat-card .stat-val,
+  /* Calendário */
+  body.stealth-mode .cal-day-val,
+  body.stealth-mode .cal-sched-val,
+  body.stealth-mode .bar-value,
+  body.stealth-mode .day-detail .val,
+  body.stealth-mode .day-detail .value {
     filter: blur(7px);
     transition: filter 0.25s ease;
     user-select: none;
+    pointer-events: none;
   }
+  /* Renda é um <input> — blur não cola bem; usa máscara de caracteres (••••) */
   body.stealth-mode #income {
-    color: transparent !important;
-    text-shadow: 0 0 9px var(--success-dark);
+    -webkit-text-security: disc;
+    text-security: disc;
+  }
+  /* Fallback pra navegadores sem text-security: borra o input inteiro */
+  @supports not ((-webkit-text-security: disc) or (text-security: disc)) {
+    body.stealth-mode #income {
+      filter: blur(7px);
+      color: transparent;
+      text-shadow: 0 0 9px var(--text-soft);
+    }
   }
   /* Stealth no botão muda o ícone visualmente */
   #stealthBtn.active {
