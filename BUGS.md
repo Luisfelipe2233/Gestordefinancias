@@ -11,7 +11,18 @@
 <!-- Bugs que impedem o fluxo central (registrar despesa, ver saldo, fechar mês, sync). -->
 <!-- Prioridade máxima. -->
 
-*Nenhum bug crítico aberto no momento.*
+### [CRÍTICO] Service Worker v1 podia "brickar" a página (tela "Não é possível abrir")
+
+- **Descoberto por:** Dono (Lipe), no iPhone/Chrome, 2026-06-07
+- **Fase:** 6 (PWA)
+- **Descrição:** O `sw.js` v1 (commit `d5c24be`) tinha 2 falhas: (1) se `fetch` + cache falhassem na navegação, `respondWith` resolvia pra `undefined` → página em branco/erro; (2) não tratava resposta "redirected" (GitHub Pages redireciona URL sem barra final) → alguns browsers recusam responder navegação com resposta redirecionada. Só afetava quem já tinha o SW instalado. O servidor nunca caiu (sempre HTTP 200).
+- **Como reproduzir:** Instalar o SW v1, recarregar; em certas condições de rede/redirect a navegação falhava com "Não é possível abrir esta página".
+- **Comportamento esperado:** SW nunca pode quebrar a navegação — sempre devolver Response válida (rede → cache → HTML offline mínimo).
+- **Causa raiz:** `respondWith(undefined)` no caminho de fallback + resposta redirecionada não tratada.
+- **Fix aplicado:** `sw.js` reescrito (commit `6ef59dd`, cache `munny-v2`): navegação usa `async` try/catch que SEMPRE devolve Response; `cleanRedirect()` remove a flag redirected; fallback final é uma página offline mínima. `skipWaiting` + `clients.claim` garantem que o SW novo assume e limpa o cache antigo na próxima visita.
+- **Recuperação do usuário:** fechar o Chrome e reabrir (baixa o SW novo) OU limpar dados do site.
+- **Status:** [x] Resolvido (aguardando confirmação do dono no device)
+- **Commit de resolução:** `6ef59dd` — 2026-06-07
 
 ---
 
