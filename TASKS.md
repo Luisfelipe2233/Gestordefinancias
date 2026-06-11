@@ -74,7 +74,7 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 **Objetivo:** No primeiro carregamento, o Painel mostra só Summary Bar + Insights + Pie Chart. Categorias detalhadas ficam num accordion fechado ("Ver categorias detalhadas (N)").
 
-**Commit:** (a preencher após push) — 2026-06-07
+**Commit:** `56eae18` — 2026-06-07
 
 **Resumo da implementação:**
 - HTML: `#categoriesGrid` envolvido em `.cats-collapse` + botão `.cats-toggle` com ícone de grid, label dinâmica e chevron animado. Inserido entre o card de Insights e o grid.
