@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Munny" />
 <title>Munny — Gestor de finanças</title>
-<link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","start_url":".","display":"standalone","background_color":"%23F7F3EA","theme_color":"%23F7F3EA","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%236F8E7F%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22%23FDFBF4%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}' />
+<link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","description":"Seu dinheiro, sob controle.","start_url":".","scope":".","display":"standalone","orientation":"portrait","background_color":"%23F7F3EA","theme_color":"%23F7F3EA","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%236F8E7F%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22%23FDFBF4%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22106%22 fill=%22%236F8E7F%22/><text x=%22256%22 y=%22346%22 font-size=%22290%22 text-anchor=%22middle%22 fill=%22%23FDFBF4%22 font-family=%22Arial%22 font-weight=%22bold%22>R$</text></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}' />
 <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%236F8E7F"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="%23FDFBF4" font-family="Arial" font-weight="bold">R$</text></svg>' />
 <!-- BUGFIX #16: Apple touch icon — generated at runtime as PNG via canvas (see init) -->
 <link rel="apple-touch-icon" id="appleTouchIcon" />
@@ -4420,6 +4420,84 @@
     .cat-card:hover { transform: none; box-shadow: var(--shadow-sm); }
   }
 
+  /* ==================== BANNER INSTALAR PWA ==================== */
+  .install-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    animation: installSlideIn 0.5s var(--ease-spring) both;
+  }
+  @keyframes installSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .install-banner .install-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .install-banner .install-icon svg { width: 20px; height: 20px; }
+  .install-banner .install-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+  }
+  .install-banner .install-text strong {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .install-banner .install-text span {
+    font-size: 12px;
+    color: var(--text-mute);
+    line-height: 1.35;
+  }
+  .install-banner .install-cta {
+    flex-shrink: 0;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.2s ease;
+  }
+  .install-banner .install-cta:hover { background: var(--primary-dark); }
+  .install-banner .install-cta:active { transform: scale(0.94); }
+  .install-banner .install-dismiss {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .install-banner .install-dismiss:hover { color: var(--text); background: var(--surface-alt); }
+  .install-banner .install-dismiss svg { width: 16px; height: 16px; }
+  @media (max-width: 480px) {
+    .install-banner .install-text span { display: none; }
+  }
+
   /* ==================== BOTTOM NAV + FAB (MOBILE) ==================== */
   .bottom-nav {
     display: none;
@@ -4679,6 +4757,21 @@
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
+
+  <!-- ============ BANNER INSTALAR PWA ============ -->
+  <div class="install-banner" id="installBanner" style="display:none;">
+    <div class="install-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
+    </div>
+    <div class="install-text">
+      <strong>Instalar o Munny</strong>
+      <span>Acesse direto da tela inicial, abre rápido e funciona offline.</span>
+    </div>
+    <button type="button" class="install-cta" id="installAccept">Instalar</button>
+    <button type="button" class="install-dismiss" id="installDismiss" aria-label="Agora não">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
 
   <!-- ============ HEADER ============ -->
   <header class="app-header">
@@ -10153,6 +10246,62 @@ function doGet() {
       executeCmdkSelected();
     }
   });
+
+  // ============ PWA: Service Worker + Install Prompt ============
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((err) => {
+        console.warn('Service Worker não registrou:', err);
+      });
+    });
+  }
+
+  let deferredInstallPrompt = null;
+  const INSTALL_DISMISS_KEY = 'munny_install_dismissed';
+
+  function showInstallBanner() {
+    const banner = document.getElementById('installBanner');
+    if (!banner || !deferredInstallPrompt) return;
+    const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+    let dismissed = false;
+    try { dismissed = localStorage.getItem(INSTALL_DISMISS_KEY) === '1'; } catch (_) {}
+    if (isStandalone || dismissed) return;
+    banner.style.display = 'flex';
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallBanner();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const banner = document.getElementById('installBanner');
+    if (banner) banner.style.display = 'none';
+    showToast('🎉 Munny instalado! Abra pela tela inicial.', 'success');
+  });
+
+  (function wireInstallBanner() {
+    const accept = document.getElementById('installAccept');
+    const dismiss = document.getElementById('installDismiss');
+    if (accept) accept.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      let outcome = 'dismissed';
+      try { outcome = (await deferredInstallPrompt.userChoice).outcome; } catch (_) {}
+      deferredInstallPrompt = null;
+      const banner = document.getElementById('installBanner');
+      if (banner) banner.style.display = 'none';
+      if (outcome === 'accepted') showToast('Instalando o Munny…', 'success');
+    });
+    if (dismiss) dismiss.addEventListener('click', () => {
+      const banner = document.getElementById('installBanner');
+      if (banner) banner.style.display = 'none';
+      try { localStorage.setItem(INSTALL_DISMISS_KEY, '1'); } catch (_) {}
+    });
+  })();
 
   // Auth state listener — controla login screen vs app
   if (auth) {

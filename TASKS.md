@@ -70,6 +70,26 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 ## ✅ Concluído — movido pelo DEV após cada commit
 
+### TASK-F6-01 — PWA: Service Worker + offline + install prompt
+
+**Objetivo:** Munny vira app instalável que funciona offline. Service Worker cacheia o app shell; banner sutil oferece instalação.
+
+**Commit:** (a preencher após push) — 2026-06-07
+
+**Resumo da implementação:**
+- **Novo arquivo `sw.js`** (exceção justificada ao single-file: SW não pode ser inline por exigência do browser). Estratégia: network-first no HTML (deploys chegam na hora), cache-first em fontes/SDK gstatic, bypass total em Firebase/Firestore/Auth/Apps Script (dados ao vivo nunca cacheados). Cache versionado `munny-v1` com limpeza no activate.
+- **Registro** do SW no `window.load` (relativo `sw.js` → scope `/Gestordefinancias/`).
+- **Install prompt**: captura `beforeinstallprompt`, mostra banner `.install-banner` (ícone + texto + CTA Instalar + dismiss). Dismiss persiste em localStorage (`munny_install_dismissed`) — device-specific, não sincroniza. `appinstalled` esconde banner + toast.
+- **Manifest** reforçado: + ícone 512x512, `scope`, `description`, `orientation`, `purpose: any maskable` pra instalabilidade.
+
+**Validação:**
+- SW bypassa Firestore (testar: sync continua ao vivo com app instalado)
+- Banner só aparece quando instalável + não-dismissado + não-standalone
+- Offline: recarregar sem rede serve o app do cache
+- DevTools → Application → Service Workers mostra `activated`
+
+---
+
 ### TASK-F5-08 — Divulgação progressiva: Painel "modo simples" por padrão
 
 **Objetivo:** No primeiro carregamento, o Painel mostra só Summary Bar + Insights + Pie Chart. Categorias detalhadas ficam num accordion fechado ("Ver categorias detalhadas (N)").
