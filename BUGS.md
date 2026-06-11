@@ -21,8 +21,10 @@
 - **Causa raiz:** `respondWith(undefined)` no caminho de fallback + resposta redirecionada não tratada.
 - **Fix aplicado:** `sw.js` reescrito (commit `6ef59dd`, cache `munny-v2`): navegação usa `async` try/catch que SEMPRE devolve Response; `cleanRedirect()` remove a flag redirected; fallback final é uma página offline mínima. `skipWaiting` + `clients.claim` garantem que o SW novo assume e limpa o cache antigo na próxima visita.
 - **Recuperação do usuário:** fechar o Chrome e reabrir (baixa o SW novo) OU limpar dados do site.
-- **Status:** [x] Resolvido (aguardando confirmação do dono no device)
-- **Commit de resolução:** `6ef59dd` — 2026-06-07
+- **Decisão final:** mesmo com a v2 à prova de bala, o celular do dono continuou travado. Decidimos **reverter o PWA por completo** (sem Service Worker) — confiabilidade > offline pra um app de finanças com testers.
+- **Fix definitivo:** `sw.js` virou worker de **autodestruição** (sem fetch handler — impossível travar; limpa caches + `unregister()` + reload). `index.html` parou de registrar SW e passou a forçar update de SWs existentes (pra disparar a autodestruição). Manifest voltou pra versão mínima sem erro de sintaxe.
+- **Status:** [x] Resolvido — PWA revertido
+- **Commit de resolução:** `752f6b4` — 2026-06-07
 
 ---
 
