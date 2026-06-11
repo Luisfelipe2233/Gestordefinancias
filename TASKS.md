@@ -64,31 +64,28 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 ---
 
-### TASK-F5-08 — Divulgação progressiva: Painel "modo simples" por padrão
-
-**Objetivo:** No primeiro carregamento, o Painel mostra só Summary Bar + Pie Chart. Categorias detalhadas ficam num accordion fechado ("Ver categorias →"). Reduz carga cognitiva inicial conforme princípio #4 do briefing.
-
-**Escopo:**
-- HTML: wrapping das categorias num `<details>` ou container colapsável
-- CSS: animação de abertura suave
-- JS: salvar estado de expansão em `state.ui.categoriesExpanded`
-
-**Critérios de Aceite Técnico:**
-- Primeira visita: categorias estão escondidas, link "Ver categorias detalhadas" visível
-- Click revela com animação 0.4s `--ease-spring-soft`
-- Estado persiste por usuário
-- No mobile, mesmo comportamento + mesma animação
-
-**Riscos Arquiteturais:**
-- Usuário existente abre o app e fica confuso porque as categorias sumiram — adicionar microcopy "✨ Painel mais limpo. Categorias estão aqui ↓"
-
-**Fase do Projeto:** Fase 5
-
-**Branch sugerida:** `feat/progressive-disclosure-panel`
+*Nenhuma tarefa técnica pendente — aguardando próximo sprint do CEO.*
 
 ---
 
 ## ✅ Concluído — movido pelo DEV após cada commit
+
+### TASK-F5-08 — Divulgação progressiva: Painel "modo simples" por padrão
+
+**Objetivo:** No primeiro carregamento, o Painel mostra só Summary Bar + Insights + Pie Chart. Categorias detalhadas ficam num accordion fechado ("Ver categorias detalhadas (N)").
+
+**Commit:** (a preencher após push) — 2026-06-07
+
+**Resumo da implementação:**
+- HTML: `#categoriesGrid` envolvido em `.cats-collapse` + botão `.cats-toggle` com ícone de grid, label dinâmica e chevron animado. Inserido entre o card de Insights e o grid.
+- CSS: bloco novo "DIVULGAÇÃO PROGRESSIVA — CATEGORIAS". Botão dashed discreto (vira primary-soft no hover); collapse anima max-height + opacity + translateY em 0.4s `--ease-spring-soft`; chevron rotaciona 180° com a mesma spring.
+- JS: `state.ui.categoriesExpanded` (default `false`) no defaultState; função `applyCatsCollapse()` aplica classes + aria-expanded + label com contagem ("Ver categorias detalhadas (5)" / "Esconder categorias"); restaurada no `renderAll()` e alternada no handler do `#catsToggle` em setupEvents com persistência via `saveState()`.
+
+**Validação:**
+- Label com contagem serve de microcopy anti-confusão (risco mapeado): usuário existente vê "(N)" e entende onde as categorias estão
+- aria-expanded + aria-controls no botão (acessibilidade)
+- Estado persiste por usuário e sincroniza via Firestore (faz parte do `state.ui`)
+- Mesmo comportamento desktop e mobile (botão full-width, animação idêntica)
 
 ### TASK-F5-07 — Tipografia dramática nos saldos do Painel
 

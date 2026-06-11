@@ -928,6 +928,49 @@
   [data-theme="linho"] .summary-tile.spent .val { color: var(--warning); }
   .summary-tile.remaining.negative .val { color: var(--danger); }
 
+  /* ==================== DIVULGAÇÃO PROGRESSIVA — CATEGORIAS ==================== */
+  .cats-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .cats-toggle:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .cats-toggle .chev {
+    display: inline-flex;
+    transition: transform 0.35s var(--ease-spring-soft);
+  }
+  .cats-toggle.open .chev { transform: rotate(180deg); }
+  .cats-collapse {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: max-height 0.4s var(--ease-spring-soft), opacity 0.35s ease, transform 0.4s var(--ease-spring-soft);
+  }
+  .cats-collapse.open {
+    max-height: 4000px;
+    opacity: 1;
+    transform: translateY(0);
+    margin-top: 14px;
+  }
+
   /* ==================== CATEGORY CARDS ==================== */
   .categories-grid {
     display: grid;
@@ -4788,7 +4831,15 @@
       <div class="insights-dots" id="insightsDots"></div>
     </div>
 
-    <div class="categories-grid" id="categoriesGrid"></div>
+    <!-- DIVULGAÇÃO PROGRESSIVA: categorias detalhadas escondidas por padrão -->
+    <button class="cats-toggle" id="catsToggle" type="button" aria-expanded="false" aria-controls="catsCollapse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span id="catsToggleLabel">Ver categorias detalhadas</span>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </button>
+    <div class="cats-collapse" id="catsCollapse">
+      <div class="categories-grid" id="categoriesGrid"></div>
+    </div>
 
     <div class="chart-card mt-12" id="pieCard" style="display:none;">
       <h3>Distribuição dos Gastos</h3>
@@ -5368,6 +5419,7 @@
       schedule: [], // [{id, date, name, value, type, categoryId, notes, status, createdAt}] — agendamentos/eventos no calendário
       ui: {
         showPercentEditor: false,
+        categoriesExpanded: false, // divulgação progressiva: categorias detalhadas fechadas por padrão
         search: '',
         filter: 'all',
         notesOpen: false,
@@ -6283,6 +6335,22 @@
       incomeTile.textContent = extras > 0
         ? `Renda (base ${fmtBRL(state.income)} + extras ${fmtBRL(extras)})`
         : 'Renda';
+    }
+  }
+
+  // Divulgação progressiva: aplica estado aberto/fechado das categorias detalhadas
+  function applyCatsCollapse() {
+    const btn = document.getElementById('catsToggle');
+    const wrap = document.getElementById('catsCollapse');
+    if (!btn || !wrap) return;
+    const open = !!state.ui.categoriesExpanded;
+    btn.classList.toggle('open', open);
+    wrap.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    const label = document.getElementById('catsToggleLabel');
+    if (label) {
+      const n = (state.categories || []).length;
+      label.textContent = open ? 'Esconder categorias' : `Ver categorias detalhadas (${n})`;
     }
   }
 
@@ -8191,6 +8259,8 @@ function doGet() {
     const c = document.getElementById('percentCollapse');
     t.classList.toggle('open', state.ui.showPercentEditor);
     c.classList.toggle('open', state.ui.showPercentEditor);
+    // Divulgação progressiva: restaura estado das categorias detalhadas
+    applyCatsCollapse();
     // Apply tab
     switchTabSilent(state.activeTab);
     // Set today's date as default for date input
@@ -8333,6 +8403,13 @@ function doGet() {
       t.classList.toggle('open', state.ui.showPercentEditor);
       c.classList.toggle('open', state.ui.showPercentEditor);
       saveState();
+    });
+
+    // Divulgação progressiva: toggle das categorias detalhadas
+    document.getElementById('catsToggle').addEventListener('click', () => {
+      state.ui.categoriesExpanded = !state.ui.categoriesExpanded;
+      saveState();
+      applyCatsCollapse();
     });
 
     // Add category
