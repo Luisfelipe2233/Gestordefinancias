@@ -74,7 +74,7 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 **Objetivo:** Munny vira app instalável que funciona offline. Service Worker cacheia o app shell; banner sutil oferece instalação.
 
-**Commit:** (a preencher após push) — 2026-06-07
+**Commit:** `d5c24be` — 2026-06-07
 
 **Resumo da implementação:**
 - **Novo arquivo `sw.js`** (exceção justificada ao single-file: SW não pode ser inline por exigência do browser). Estratégia: network-first no HTML (deploys chegam na hora), cache-first em fontes/SDK gstatic, bypass total em Firebase/Firestore/Auth/Apps Script (dados ao vivo nunca cacheados). Cache versionado `munny-v1` com limpeza no activate.
