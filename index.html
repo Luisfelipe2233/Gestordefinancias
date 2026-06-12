@@ -7276,7 +7276,7 @@
       e.preventDefault();
       const fd = new FormData(form);
       const value = parseNumber(fd.get('value'));
-      if (value <= 0) { showToast('Valor inválido.', 'error'); return; }
+      if (value <= 0) { showToast('Digite um valor válido.', 'error'); return; }
       const nameCheck = safeText(fd.get('name'), { max: 60 });
       if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome.'), 'error'); return; }
       exp.name = nameCheck.value;
@@ -7353,7 +7353,7 @@
       e.preventDefault();
       const fd = new FormData(form);
       const v = parseNumber(fd.get('value'));
-      if (v <= 0) { showToast('Valor inválido.', 'error'); return; }
+      if (v <= 0) { showToast('Digite um valor válido.', 'error'); return; }
       const nameCheck = safeText(fd.get('name'), { max: 60 });
       if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome.'), 'error'); return; }
       const day = Math.max(1, Math.min(31, parseInt(fd.get('dayOfMonth'), 10) || 1));
@@ -7466,7 +7466,7 @@
       e.preventDefault();
       const fd = new FormData(form);
       const target = parseNumber(fd.get('target'));
-      if (target <= 0) { showToast('Valor objetivo inválido.', 'error'); return; }
+      if (target <= 0) { showToast('Digite o valor da meta.', 'error'); return; }
       const nameCheck = safeText(fd.get('name'), { max: 60 });
       if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome da meta.'), 'error'); return; }
       const payload = {
@@ -8099,7 +8099,7 @@ function doGet() {
         renderAll();
         showToast('Backup importado com sucesso!', 'success');
       } catch (err) {
-        showToast('Arquivo inválido. Use um backup gerado por esta ferramenta.', 'error');
+        showToast('Arquivo inválido. Use um backup que você exportou do Munny.', 'error');
       }
     };
     reader.onerror = () => showToast('Erro ao ler o arquivo.', 'error');
@@ -9295,7 +9295,7 @@ function doGet() {
 
   function loginWithGoogle() {
     if (!auth) {
-      showToast('Firebase não inicializou. Recarregue a página.', 'error');
+      showToast('Não consegui conectar agora. Recarregue a página, por favor.', 'error');
       return;
     }
     const btn = document.getElementById('googleLoginBtn');
@@ -9432,7 +9432,7 @@ function doGet() {
       });
     } catch (err) {
       console.error('Erro carregando dados:', err);
-      showToast('Erro ao carregar dados da nuvem.', 'error');
+      showToast('Não consegui carregar seus dados da nuvem. Tente recarregar a página.', 'error');
     }
   }
 
