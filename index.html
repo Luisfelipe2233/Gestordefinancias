@@ -43,6 +43,15 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
+<!-- Google Analytics (async, não bloqueia o render) — mede uso pra melhorar o app -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXP39XGNNQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXP39XGNNQ');
+</script>
 <style>
   /* ==================== THEME ==================== */
   :root {
@@ -5625,6 +5634,11 @@
   let isApplyingRemoteUpdate = false;
   const sessionId = Math.random().toString(36).slice(2, 12);
 
+  // Analytics — dispara evento se o gtag estiver disponível (no-op se bloqueado)
+  function track(event, params) {
+    try { if (window.gtag) window.gtag('event', event, params || {}); } catch (_) {}
+  }
+
   // Inicializa o Firebase. Chamado no DOMContentLoaded (depois dos scripts defer
   // carregarem), não mais bloqueando o boot. Idempotente.
   function initFirebase() {
@@ -7976,6 +7990,7 @@ function doGet() {
     state.recurring.forEach(r => applyRecurringForCurrentMonth(r));
     saveState();
     renderAll();
+    track('close_month');
     if (transferred) {
       showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} transferido pra "${transferred.name}".`, 'success');
       // 🎉 Confete porque transferiu pra meta
@@ -8679,6 +8694,7 @@ function doGet() {
 
   // Entra no app em modo preview (sem conta) e abre o onboarding
   function enterPreviewMode() {
+    track('guest_preview');
     showMainApp();
     showOnboarding();
   }
@@ -9094,6 +9110,7 @@ function doGet() {
       document.getElementById('expDate').value = todayISO();
       document.getElementById('suggestHint').classList.remove('show');
       renderAll();
+      track('add_expense');
       showToast('Despesa adicionada.', 'success');
       document.getElementById('expName').focus();
     });
@@ -9347,6 +9364,7 @@ function doGet() {
       const doc = await userDocRef.get();
       if (doc.exists) {
         // Já tem dados na nuvem — substitui local
+        track('login');
         const cloudData = doc.data();
         isApplyingRemoteUpdate = true;
         state = sanitizeImportedData(cloudData);
@@ -9364,11 +9382,13 @@ function doGet() {
         if (hasLocalData) {
           // Mantém estado atual e sobe pra nuvem
           await saveStateToCloud();
+          track('sign_up', { from: 'preview' });
           showToast('Bem-vindo! Seus dados locais foram salvos na sua conta.', 'success');
         } else {
           // Usuário novo zero — cria documento inicial
           state = defaultState();
           await saveStateToCloud();
+          track('sign_up', { from: 'direto' });
           showToast('Bem-vindo ao Munny! 💰', 'success');
         }
       }
