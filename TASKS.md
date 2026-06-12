@@ -74,7 +74,7 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 **Objetivo:** Remover a desistência no login. Pessoa entra sem conta, monta o orçamento (renda+método), e login vira obrigatório SÓ no fim do onboarding (pra salvar). Decisão do dono: login mandatório ao terminar o onboarding (senão perde dados ao limpar cache).
 
-**Commit:** (a preencher) — 2026-06-07
+**Commit:** `ec2c7f3` — 2026-06-07
 
 **Resumo da implementação:**
 - **Tela de login** ganhou CTA primário "Criar meu orçamento →" (`startPreviewBtn`) que entra em modo preview sem login; botão Google vira secundário "já tem conta?".
