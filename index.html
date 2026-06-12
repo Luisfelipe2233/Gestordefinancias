@@ -5639,6 +5639,29 @@
     try { if (window.gtag) window.gtag('event', event, params || {}); } catch (_) {}
   }
 
+  // Confiabilidade — captura erros JS não tratados, avisa o usuário e nunca deixa
+  // tela branca silenciosa. Os dados estão sempre salvos no localStorage.
+  let _errorToastShown = false;
+  window.addEventListener('error', (e) => {
+    // Só erros REAIS de JS (e.error existe). Ignora falha de carregar recurso
+    // de terceiro (ex: gtag/firebase bloqueado), que não quebra o app.
+    if (!e || !e.error) return;
+    try { console.error('Erro capturado:', e.error); } catch (_) {}
+    track('js_error', { msg: String(e.message || '').slice(0, 100) });
+    if (_errorToastShown) return;
+    _errorToastShown = true;
+    setTimeout(() => { _errorToastShown = false; }, 10000);
+    try {
+      if (typeof showToast === 'function') {
+        showToast('Algo não saiu como esperado, mas seus dados estão salvos. Se travar, é só recarregar.', 'error');
+      }
+    } catch (_) {}
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    // Rejeições de promise (ex: Firebase offline) — loga, mas não alarma o usuário
+    try { console.error('Promise rejeitada:', e && e.reason); } catch (_) {}
+  });
+
   // Inicializa o Firebase. Chamado no DOMContentLoaded (depois dos scripts defer
   // carregarem), não mais bloqueando o boot. Idempotente.
   function initFirebase() {
