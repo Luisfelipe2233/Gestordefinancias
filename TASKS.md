@@ -70,6 +70,26 @@ Combo Quick Wins entregue: chips de categoria mais usadas, card de Reserva de Em
 
 ## ✅ Concluído — movido pelo DEV após cada commit
 
+### TASK-F7-02 — Tirar o muro de login (funil "testa → salva")
+
+**Objetivo:** Remover a desistência no login. Pessoa entra sem conta, monta o orçamento (renda+método), e login vira obrigatório SÓ no fim do onboarding (pra salvar). Decisão do dono: login mandatório ao terminar o onboarding (senão perde dados ao limpar cache).
+
+**Commit:** (a preencher) — 2026-06-07
+
+**Resumo da implementação:**
+- **Tela de login** ganhou CTA primário "Criar meu orçamento →" (`startPreviewBtn`) que entra em modo preview sem login; botão Google vira secundário "já tem conta?".
+- **`enterPreviewMode()`**: showMainApp() + showOnboarding() sem autenticar.
+- **`maybeShowOnboarding`** agora só auto-abre pra usuário JÁ logado (deslogado vê login primeiro). `showOnboarding()` extraído.
+- **Passo 3 condicional** (`onbConfigureFinalStep`): logado → "Começar a usar" (fecha); preview → "Entrar com Google e salvar" (gate de login). Pular em preview pula pro gate, não fecha.
+- **Migração segura:** ao logar pelo gate, `loadUserData` mantém renda+método locais e sobe pra conta (cloud doc não existe → hasLocalData true). Flag `_onbAwaitingLogin` fecha o wizard e marca `onboardingDone` no sucesso do auth.
+
+**Validação (testar em aba anônima = estado deslogado fresco):**
+- Login screen mostra "Criar meu orçamento"; clicar abre onboarding sem logar
+- Renda + método → passo 3 pede login; logar preserva os dados (toast "salvos na sua conta")
+- Usuário com conta existente: "Entrar com Google" carrega dados da nuvem normalmente
+
+---
+
 ### TASK-F7-01 — Onboarding de primeiro uso (3 passos)
 
 **Objetivo:** Resolver a tela vazia/zerada que faz o novo usuário desistir nos primeiros 30s. Wizard guiado: boas-vindas → renda → método → painel montado.

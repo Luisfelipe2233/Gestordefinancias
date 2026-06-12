@@ -3276,6 +3276,48 @@
   .login-desc { display: none; }
 
   /* Login com Google premium */
+  /* Botão primário "Criar meu orçamento" — entra no preview/onboarding */
+  .login-start-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: transform 0.16s var(--ease-spring), box-shadow 0.2s ease;
+    box-shadow: 0 8px 22px rgba(111, 142, 127, 0.32);
+  }
+  .login-start-btn svg { transition: transform 0.25s var(--ease-spring); }
+  .login-start-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(111, 142, 127, 0.40); }
+  .login-start-btn:hover svg { transform: translateX(4px); }
+  .login-start-btn:active { transform: translateY(0) scale(0.98); }
+
+  /* Divisor "já tem conta?" */
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+    color: var(--text-mute);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .login-divider::before, .login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
   .login-google-btn {
     width: 100%;
     background: #fff;
@@ -4374,6 +4416,12 @@
   .onb-method:active { transform: scale(0.98); }
   .onb-method strong { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
   .onb-method span { font-size: 12.5px; color: var(--text-mute); line-height: 1.4; }
+  .onb-save-note {
+    font-size: 11.5px !important;
+    color: var(--text-mute) !important;
+    margin: 12px 0 0 !important;
+    line-height: 1.4;
+  }
 
   /* ==================== CONFIRM DIALOG (substitui confirm() nativo) ==================== */
   .confirm-backdrop {
@@ -4869,8 +4917,15 @@
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
         </svg>
       </div>
-      <h2 class="login-title">Bem-vindo</h2>
-      <p class="login-tagline">Entre com sua conta Google em 1 clique.</p>
+      <h2 class="login-title">Comece agora</h2>
+      <p class="login-tagline">Monte seu orçamento em 30 segundos. Sem cadastro pra testar.</p>
+
+      <button class="login-start-btn" id="startPreviewBtn" type="button">
+        Criar meu orçamento
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <div class="login-divider"><span>já tem conta?</span></div>
 
       <button class="login-google-btn" id="googleLoginBtn" type="button">
         <svg width="20" height="20" viewBox="0 0 48 48">
@@ -5355,12 +5410,13 @@
       <button type="button" class="onb-skip" data-onb="skip">Pular</button>
     </div>
 
-    <!-- Passo 3 — Pronto -->
+    <!-- Passo 3 — Pronto / Salvar -->
     <div class="onb-step" data-step="3" style="display:none;">
-      <div class="onb-emoji">✨</div>
-      <h2>Tudo pronto<span id="onbName"></span>!</h2>
-      <p>Seu painel já está montado. Agora é só ir lançando seus gastos — toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
-      <button type="button" class="btn-primary onb-next" data-onb="finish">Começar a usar</button>
+      <div class="onb-emoji" id="onbFinalEmoji">✨</div>
+      <h2 id="onbFinalTitle">Tudo pronto<span id="onbName"></span>!</h2>
+      <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos — toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
+      <button type="button" class="btn-primary onb-next" id="onbFinishBtn" data-onb="finish">Começar a usar</button>
+      <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados — só você acessa. Login leva 1 clique.</p>
     </div>
   </div>
 </div>
@@ -8542,11 +8598,13 @@ function doGet() {
   // ==================== RENDER ALL ====================
   // BUGFIX #5: Render is split into "always" (cheap, used everywhere) and "tab-specific" (heavier)
   // ==================== ONBOARDING (primeiro uso) ====================
+  // Funil: pessoa entra sem login → monta orçamento (renda+método) → no fim,
+  // login vira OBRIGATÓRIO pra salvar (senão perde os dados ao limpar o cache).
   let _onboardingShown = false;
-  function maybeShowOnboarding(isFirstTime) {
+  let _onbAwaitingLogin = false; // true quando o login foi disparado pelo gate do onboarding
+
+  function showOnboarding() {
     if (_onboardingShown) return;
-    if (state.ui.onboardingDone) return;
-    if (!isFirstTime) { state.ui.onboardingDone = true; return; } // já tem dados → não mostra
     _onboardingShown = true;
     onbGoToStep(1);
     const back = document.getElementById('onbBackdrop');
@@ -8554,12 +8612,51 @@ function doGet() {
     setTimeout(() => { const i = document.getElementById('onbIncome'); if (i) i.focus(); }, 400);
   }
 
+  // Auto-show só pra usuário JÁ LOGADO que está começando do zero.
+  // Deslogado vê a tela de login primeiro e dispara via "Criar meu orçamento".
+  function maybeShowOnboarding(isFirstTime) {
+    if (state.ui.onboardingDone) return;
+    if (!isFirstTime) { state.ui.onboardingDone = true; return; }
+    if (!currentUser) return; // deslogado: espera o botão "Criar meu orçamento"
+    showOnboarding();
+  }
+
+  // Entra no app em modo preview (sem conta) e abre o onboarding
+  function enterPreviewMode() {
+    showMainApp();
+    showOnboarding();
+  }
+
   function onbGoToStep(n) {
+    if (n === 3) onbConfigureFinalStep();
     document.querySelectorAll('.onb-step').forEach((s) => {
       s.style.display = (Number(s.dataset.step) === n) ? '' : 'none';
     });
     const dots = document.querySelectorAll('.onb-dot');
     dots.forEach((d, i) => d.classList.toggle('active', i < n));
+  }
+
+  // Configura o passo final conforme estar logado ou não
+  function onbConfigureFinalStep() {
+    const emoji = document.getElementById('onbFinalEmoji');
+    const title = document.getElementById('onbFinalTitle');
+    const text = document.getElementById('onbFinalText');
+    const btn = document.getElementById('onbFinishBtn');
+    const note = document.getElementById('onbSaveNote');
+    if (currentUser) {
+      const first = currentUser.displayName ? ', ' + currentUser.displayName.split(' ')[0] : '';
+      if (emoji) emoji.textContent = '✨';
+      if (title) title.textContent = 'Tudo pronto' + first + '!';
+      if (text) text.innerHTML = 'Seu painel já está montado. Agora é só ir lançando seus gastos — toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.';
+      if (btn) btn.textContent = 'Começar a usar';
+      if (note) note.style.display = 'none';
+    } else {
+      if (emoji) emoji.textContent = '💾';
+      if (title) title.textContent = 'Falta só salvar!';
+      if (text) text.innerHTML = 'Entre com sua conta pra <strong>guardar tudo</strong> e acessar de qualquer aparelho. Sem login, seus dados somem se você limpar o navegador.';
+      if (btn) btn.textContent = 'Entrar com Google e salvar';
+      if (note) note.style.display = '';
+    }
   }
 
   function finishOnboarding() {
@@ -8578,11 +8675,6 @@ function doGet() {
     back.querySelector('[data-onb="next1"]').addEventListener('click', () => {
       const val = parseNumber(document.getElementById('onbIncome').value);
       if (val > 0) { state.income = val; saveState(); }
-      // Nome no passo 3 (se logado)
-      const nameEl = document.getElementById('onbName');
-      if (nameEl && currentUser && currentUser.displayName) {
-        nameEl.textContent = ', ' + currentUser.displayName.split(' ')[0];
-      }
       onbGoToStep(2);
     });
     // Enter no input avança
@@ -8604,11 +8696,21 @@ function doGet() {
       });
     });
 
-    // Pular / Finalizar
-    back.querySelectorAll('[data-onb="skip"]').forEach((b) => b.addEventListener('click', finishOnboarding));
-    back.querySelector('[data-onb="finish"]').addEventListener('click', () => {
-      finishOnboarding();
-      showToast('Bora! Seu painel está pronto. 🍃', 'success');
+    // Pular: logado fecha; preview pula pro gate de login (passo 3)
+    back.querySelectorAll('[data-onb="skip"]').forEach((b) => b.addEventListener('click', () => {
+      if (currentUser) finishOnboarding();
+      else onbGoToStep(3);
+    }));
+
+    // Passo final: logado começa a usar; preview precisa logar pra salvar
+    document.getElementById('onbFinishBtn').addEventListener('click', () => {
+      if (currentUser) {
+        finishOnboarding();
+        showToast('Bora! Seu painel está pronto. 🍃', 'success');
+      } else {
+        _onbAwaitingLogin = true;
+        loginWithGoogle(); // ao logar, loadUserData migra renda+método pra conta
+      }
     });
   }
 
@@ -10445,6 +10547,10 @@ function doGet() {
   const loginBtn = document.getElementById('googleLoginBtn');
   if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
 
+  // "Criar meu orçamento" — entra sem login e abre o onboarding (login vem no fim)
+  const startBtn = document.getElementById('startPreviewBtn');
+  if (startBtn) startBtn.addEventListener('click', enterPreviewMode);
+
   // ============ Calendário ============
   document.getElementById('calPrevBtn').addEventListener('click', () => navigateCalendar(-1));
   document.getElementById('calNextBtn').addEventListener('click', () => navigateCalendar(+1));
@@ -10593,6 +10699,15 @@ function doGet() {
           showMainApp();
           updateUserInfoBar(user);
           await loadUserData(user);
+          // Veio do gate de login do onboarding: fecha o wizard e marca como concluído
+          if (_onbAwaitingLogin) {
+            _onbAwaitingLogin = false;
+            state.ui.onboardingDone = true;
+            saveState();
+            const onb = document.getElementById('onbBackdrop');
+            if (onb) onb.style.display = 'none';
+            showToast('Pronto! Seus dados estão salvos na sua conta. 🍃', 'success');
+          }
         } else {
           currentUser = null;
           showLoginScreen();
