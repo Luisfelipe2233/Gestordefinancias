@@ -3276,47 +3276,25 @@
   .login-desc { display: none; }
 
   /* Login com Google premium */
-  /* Botão primário "Criar meu orçamento" — entra no preview/onboarding */
-  .login-start-btn {
+  /* Link discreto "modo visitante" — saída secundária, abaixo do login */
+  .login-guest-link {
+    display: block;
     width: 100%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: #fff;
+    margin-top: 14px;
+    background: transparent;
     border: none;
-    border-radius: 12px;
-    padding: 16px 18px;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: inherit;
-    letter-spacing: -0.01em;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    transition: transform 0.16s var(--ease-spring), box-shadow 0.2s ease;
-    box-shadow: 0 8px 22px rgba(111, 142, 127, 0.32);
-  }
-  .login-start-btn svg { transition: transform 0.25s var(--ease-spring); }
-  .login-start-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(111, 142, 127, 0.40); }
-  .login-start-btn:hover svg { transform: translateX(4px); }
-  .login-start-btn:active { transform: translateY(0) scale(0.98); }
-
-  /* Divisor "já tem conta?" */
-  .login-divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 16px 0;
     color: var(--text-mute);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--border-strong);
+    transition: color 0.15s ease;
   }
-  .login-divider::before, .login-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+  .login-guest-link:hover { color: var(--text-soft); }
 
   .login-google-btn {
     width: 100%;
@@ -4918,14 +4896,7 @@
         </svg>
       </div>
       <h2 class="login-title">Comece agora</h2>
-      <p class="login-tagline">Monte seu orçamento em 30 segundos. Sem cadastro pra testar.</p>
-
-      <button class="login-start-btn" id="startPreviewBtn" type="button">
-        Criar meu orçamento
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </button>
-
-      <div class="login-divider"><span>já tem conta?</span></div>
+      <p class="login-tagline">Entre com o Google pra salvar seus dados e acessar de qualquer aparelho.</p>
 
       <button class="login-google-btn" id="googleLoginBtn" type="button">
         <svg width="20" height="20" viewBox="0 0 48 48">
@@ -4936,6 +4907,8 @@
         </svg>
         <span>Entrar com Google</span>
       </button>
+
+      <button class="login-guest-link" id="startPreviewBtn" type="button">Explorar no modo visitante</button>
 
       <div class="login-trust">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
