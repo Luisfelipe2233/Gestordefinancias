@@ -8,22 +8,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Munny" />
-<title>Munny — Gestor de finanças</title>
-<meta name="description" content="Munny — gestor de finanças pessoais. Distribua sua renda nos métodos 50/30/20 ou 6 Potes, defina metas e acompanhe seus gastos de qualquer aparelho. Sem planilhas, sem complicação." />
+<title>Munny: Gestor de finanças</title>
+<meta name="description" content="Munny: gestor de finanças pessoais. Distribua sua renda nos métodos 50/30/20 ou 6 Potes, defina metas e acompanhe seus gastos de qualquer aparelho. Sem planilhas, sem complicação." />
 
 <!-- ============ Preview de compartilhamento (Open Graph + Twitter) ============ -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Munny" />
-<meta property="og:title" content="Munny — Gestor de finanças" />
-<meta property="og:description" content="Seu dinheiro, sob controle. Distribua sua renda, defina metas e acompanhe seus gastos — sem planilhas, de qualquer aparelho." />
+<meta property="og:title" content="Munny: Gestor de finanças" />
+<meta property="og:description" content="Seu dinheiro, sob controle. Distribua sua renda, defina metas e acompanhe seus gastos, sem planilhas, de qualquer aparelho." />
 <meta property="og:url" content="https://luisfelipe2233.github.io/Gestordefinancias/" />
 <meta property="og:image" content="https://luisfelipe2233.github.io/Gestordefinancias/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Munny — Seu dinheiro, sob controle." />
+<meta property="og:image:alt" content="Munny. Seu dinheiro, sob controle." />
 <meta property="og:locale" content="pt_BR" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Munny — Gestor de finanças" />
+<meta name="twitter:title" content="Munny: Gestor de finanças" />
 <meta name="twitter:description" content="Seu dinheiro, sob controle. Sem planilhas, de qualquer aparelho." />
 <meta name="twitter:image" content="https://luisfelipe2233.github.io/Gestordefinancias/og-image.png" />
 <link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","start_url":".","display":"standalone","background_color":"%23F7F3EA","theme_color":"%23F7F3EA"}' />
@@ -4852,7 +4852,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         </svg>
-        <span>Seus dados ficam privados — só você acessa.</span>
+        <span>Seus dados ficam privados, só você acessa.</span>
       </div>
 
       <p class="login-footer">Ao continuar você concorda com nossos Termos e Política de Privacidade.</p>
@@ -4865,9 +4865,6 @@
 
   </div>
 
-  <div class="login-credit">
-    Feito com ❤ por <a href="https://github.com/Luisfelipe2233" target="_blank" rel="noopener">Luis Felipe</a>
-  </div>
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
@@ -5012,7 +5009,7 @@
     </div>
 
     <div class="section-title">
-      <span>Ainda Posso Gastar — Saldo por Categoria</span>
+      <span>Ainda Posso Gastar: Saldo por Categoria</span>
     </div>
 
     <div class="summary-bar">
@@ -5290,7 +5287,7 @@
     <div class="onb-step" data-step="1">
       <div class="onb-emoji">👋</div>
       <h2>Oi! Bem-vindo ao Munny</h2>
-      <p>Vamos deixar seu dinheiro sob controle — leva 30 segundos. Pra começar: <strong>quanto entra por mês?</strong></p>
+      <p>Vamos deixar seu dinheiro sob controle. Leva 30 segundos. Pra começar: <strong>quanto entra por mês?</strong></p>
       <div class="onb-income-wrap">
         <span class="onb-currency">R$</span>
         <input type="text" id="onbIncome" inputmode="decimal" placeholder="0,00" autocomplete="off" />
@@ -5325,9 +5322,9 @@
     <div class="onb-step" data-step="3" style="display:none;">
       <div class="onb-emoji" id="onbFinalEmoji">✨</div>
       <h2 id="onbFinalTitle">Tudo pronto<span id="onbName"></span>!</h2>
-      <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos — toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
+      <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
       <button type="button" class="btn-primary onb-next" id="onbFinishBtn" data-onb="finish">Começar a usar</button>
-      <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados — só você acessa. Login leva 1 clique.</p>
+      <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados, só você acessa. Login leva 1 clique.</p>
     </div>
   </div>
 </div>
@@ -6369,7 +6366,7 @@
         const used = state.expenses.some(ex => ex.categoryId === cat.id);
         if (used && !(await confirmDialog({
           title: 'Excluir categoria?',
-          message: `"${cat.name}" tem despesas registradas. Elas serão movidas pra outra categoria — nada se perde.`,
+          message: `"${cat.name}" tem despesas registradas. Elas serão movidas pra outra categoria, e nada se perde.`,
           okLabel: 'Excluir e mover', danger: true,
         }))) return;
         if (used) {
@@ -6415,7 +6412,7 @@
       span.textContent = label + ' (digite renda para validar)';
     } else if (grandTotalPct > 100) {
       el.classList.add('error');
-      span.textContent = label + ' — passou de 100%!';
+      span.textContent = label + ' passou de 100%!';
     } else {
       el.classList.add('error');
       span.textContent = label + ' (ideal: 100%)';
@@ -6650,7 +6647,7 @@
         ul.innerHTML = '<li>' + emptyStateHtml(
           'receipt',
           'Nenhuma despesa ainda',
-          'Comece registrando seu primeiro gasto do mês. Pode ser o café, o iFood, o que for — eu sugiro a categoria automaticamente.',
+          'Comece registrando seu primeiro gasto do mês. Pode ser o café, o iFood, o que for. Eu sugiro a categoria automaticamente.',
           'Adicionar despesa',
           'goToExpenses'
         ) + '</li>';
@@ -6767,7 +6764,7 @@
           <div class="goal-name">
             <span class="dot" style="background:${goal.color}"></span>
             ${escapeHtml(goal.name)}
-            ${isDefault ? '<span class="default-goal-badge" title="Meta padrão — recebe o saldo ao fechar o mês">⭐ padrão</span>' : ''}
+            ${isDefault ? '<span class="default-goal-badge" title="Meta padrão, recebe o saldo ao fechar o mês">⭐ padrão</span>' : ''}
           </div>
           <div class="goal-actions">
             <button data-action="edit" data-id="${goal.id}" title="Editar / Excluir">✎</button>
@@ -7357,7 +7354,7 @@
       const goalOpts = state.goals.map(g => {
         const pct = g.target > 0 ? Math.min((g.current / g.target) * 100, 100) : 0;
         const sel = g.id === defaultGid ? 'selected' : '';
-        return `<option value="${g.id}" ${sel}>${escapeHtml(g.name)} (${Math.round(pct)}% — ${fmtBRL(g.current)} / ${fmtBRL(g.target)})</option>`;
+        return `<option value="${g.id}" ${sel}>${escapeHtml(g.name)} (${Math.round(pct)}% · ${fmtBRL(g.current)} / ${fmtBRL(g.target)})</option>`;
       }).join('');
       // OPT-IN explícito: default NÃO transfere, usuário precisa marcar a caixa
       const hadDefault = state.ui.defaultGoalId && state.goals.find(g => g.id === state.ui.defaultGoalId);
@@ -7396,13 +7393,13 @@
     } else if (saved <= 0) {
       goalSection = `
         <div style="background:var(--danger-bg); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--danger);">
-          ⚠ Não houve sobra este mês — nada será transferido pra metas.
+          ⚠ Não houve sobra este mês, nada será transferido pra metas.
         </div>
       `;
     }
 
     openModal(`
-      <h3>Fechar Mês — ${capitalize(fmtMonthName(state.currentMonth))}</h3>
+      <h3>Fechar Mês de ${capitalize(fmtMonthName(state.currentMonth))}</h3>
       <p class="modal-sub">Os dados deste mês serão arquivados no histórico. Sua renda base e categorias continuam. Despesas e entradas extras serão zeradas.</p>
       <div style="background:var(--surface-alt); padding:14px; border-radius:10px; margin-bottom:14px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
@@ -7663,7 +7660,7 @@
       <details style="margin-bottom:16px; background:var(--surface-alt); border-radius:10px; padding:12px;">
         <summary style="cursor:pointer; font-weight:600; font-size:13px; color:var(--primary-dark);">📖 Como configurar (5 minutos)</summary>
         <ol style="font-size:13px; color:var(--text-soft); margin:10px 0 0; padding-left:20px; line-height:1.7;">
-          <li>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--primary);">sheets.new</a> — cria uma planilha em branco.</li>
+          <li>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--primary);">sheets.new</a> para criar uma planilha em branco.</li>
           <li>Dá um nome pra ela (ex: "Feedback Gestão Financeira").</li>
           <li>No menu da planilha: <strong>Extensões → Apps Script</strong>.</li>
           <li>Apaga o código que aparecer e cola o <strong>script abaixo</strong>.</li>
@@ -7712,7 +7709,7 @@ function doGet() {
       </div>
 
       <div class="form-row" style="margin-bottom:14px;">
-        <label>URL do webhook (personalizada — opcional)</label>
+        <label>URL do webhook (personalizada, opcional)</label>
         <input type="text" id="syncUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(currentUrl)}" />
         <div style="font-size:11px; color:var(--text-mute); margin-top:4px;">
           ${isUsingDefault
@@ -7780,7 +7777,7 @@ function doGet() {
         // Manda uma nota de teste
         const testNote = {
           id: newId('test'),
-          text: '✅ Teste de conexão — configuração ok!',
+          text: '✅ Teste de conexão: configuração ok!',
           createdAt: Date.now(),
           syncedAt: 0,
         };
@@ -8558,7 +8555,7 @@ function doGet() {
       const first = currentUser.displayName ? ', ' + currentUser.displayName.split(' ')[0] : '';
       if (emoji) emoji.textContent = '✨';
       if (title) title.textContent = 'Tudo pronto' + first + '!';
-      if (text) text.innerHTML = 'Seu painel já está montado. Agora é só ir lançando seus gastos — toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.';
+      if (text) text.innerHTML = 'Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.';
       if (btn) btn.textContent = 'Começar a usar';
       if (note) note.style.display = 'none';
     } else {
@@ -8834,7 +8831,7 @@ function doGet() {
       const freeCats = state.categories.filter(c => !c.locked && c.mode !== 'fixed');
 
       if (freeCats.length === 0) {
-        showToast('Todas as categorias estão bloqueadas — não há o que ajustar.', 'error');
+        showToast('Todas as categorias estão bloqueadas, não há o que ajustar.', 'error');
         return;
       }
 
@@ -9457,8 +9454,8 @@ function doGet() {
       if (dateStr === state.ui.calendarSelectedDay) btn.classList.add('selected');
       btn.dataset.date = dateStr;
       btn.title = value > 0
-        ? `${dateStr} — ${fmtBRL(value)}`
-        : `${dateStr} — sem gastos`;
+        ? `${dateStr}: ${fmtBRL(value)}`
+        : `${dateStr}: sem gastos`;
       // Conteúdo: número do dia + valor (se houver) + bolinhas dos agendamentos
       const schedItems = getScheduleForDate(dateStr);
       const dotsHtml = schedItems.length > 0
@@ -9952,7 +9949,7 @@ function doGet() {
           type: 'danger',
           icon: ICONS.flame,
           title: `Você estourou ${o.cat.name}`,
-          html: `Já gastou <strong>${fmtBRL(o.spent)}</strong> de <strong>${fmtBRL(o.budget)}</strong> — passou em <span class="accent">${fmtBRL(over)}</span>. Hora de segurar a onda nessa categoria.`
+          html: `Já gastou <strong>${fmtBRL(o.spent)}</strong> de <strong>${fmtBRL(o.budget)}</strong>, passou em <span class="accent">${fmtBRL(over)}</span>. Hora de segurar a onda nessa categoria.`
         });
       }
       if (warningCats.length > 0) {
@@ -9983,7 +9980,7 @@ function doGet() {
             type: 'info',
             icon: ICONS.barChart,
             title: `Top categoria: ${cat.name}`,
-            html: `Você gastou <strong>${fmtBRL(value)}</strong> aqui — representa <span class="accent">${pct.toFixed(0)}%</span> de todos seus gastos do mês.`
+            html: `Você gastou <strong>${fmtBRL(value)}</strong> aqui, representa <span class="accent">${pct.toFixed(0)}%</span> de todos seus gastos do mês.`
           });
         }
       }
@@ -9999,7 +9996,7 @@ function doGet() {
         icon: ICONS.trendingUp,
         title: willOverspend ? 'Atenção ao ritmo do mês' : 'Você está no controle',
         html: willOverspend
-          ? `Gasta em média <strong>${fmtBRL(dailyAvg)}/dia</strong>. No ritmo atual, fecha o mês em <span class="accent">${fmtBRL(projection)}</span> — <strong>${fmtBRL(projection - income)}</strong> acima da renda.`
+          ? `Gasta em média <strong>${fmtBRL(dailyAvg)}/dia</strong>. No ritmo atual, fecha o mês em <span class="accent">${fmtBRL(projection)}</span>, <strong>${fmtBRL(projection - income)}</strong> acima da renda.`
           : `Gasta em média <strong>${fmtBRL(dailyAvg)}/dia</strong>. No ritmo atual, fecha o mês em <span class="accent">${fmtBRL(projection)}</span> e sobra <strong>${fmtBRL(income - projection)}</strong>.`
       });
     }
@@ -10057,7 +10054,7 @@ function doGet() {
           type: 'success',
           icon: ICONS.trophy,
           title: `Meta "${goal.name}" atingida!`,
-          html: `Parabéns! Você bateu sua meta de <strong>${fmtBRL(target)}</strong>. Hora de comemorar — ou criar uma nova.`
+          html: `Parabéns! Você bateu sua meta de <strong>${fmtBRL(target)}</strong>. Hora de comemorar, ou criar uma nova.`
         });
       }
     });
