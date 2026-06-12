@@ -4388,6 +4388,80 @@
     line-height: 1.4;
   }
 
+  /* ==================== DOC LEGAL (Termos / Privacidade) ==================== */
+  .legal-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--text-soft);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  .legal-link:hover { color: var(--primary); }
+  .legal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 20px;
+    animation: backdropIn 0.2s ease;
+  }
+  .legal-sheet {
+    background: var(--surface);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: confirmIn 0.3s var(--ease-spring) both;
+    overflow: hidden;
+  }
+  .legal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 22px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .legal-head h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+  .legal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .legal-close:hover { color: var(--text); background: var(--surface-alt); }
+  .legal-close svg { width: 20px; height: 20px; }
+  .legal-body {
+    padding: 18px 22px 24px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-soft);
+  }
+  .legal-body h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 20px 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .legal-body h3:first-child { margin-top: 0; }
+  .legal-body p { margin: 0 0 10px; }
+  .legal-body .legal-updated { font-size: 12px; color: var(--text-mute); margin-bottom: 18px; }
+
   /* ==================== CONFIRM DIALOG (substitui confirm() nativo) ==================== */
   .confirm-backdrop {
     position: fixed;
@@ -4855,7 +4929,7 @@
         <span>Seus dados ficam privados, só você acessa.</span>
       </div>
 
-      <p class="login-footer">Ao continuar você concorda com nossos Termos e Política de Privacidade.</p>
+      <p class="login-footer">Ao continuar você concorda com nossos <button type="button" class="legal-link" data-legal="terms">Termos</button> e <button type="button" class="legal-link" data-legal="privacy">Política de Privacidade</button>.</p>
 
       <div class="login-loading hidden" id="loginLoading">
         <div class="spinner"></div>
@@ -5326,6 +5400,19 @@
       <button type="button" class="btn-primary onb-next" id="onbFinishBtn" data-onb="finish">Começar a usar</button>
       <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados, só você acessa. Login leva 1 clique.</p>
     </div>
+  </div>
+</div>
+
+<!-- ============ DOC LEGAL (Termos / Privacidade) ============ -->
+<div class="legal-overlay" id="legalOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+  <div class="legal-sheet">
+    <div class="legal-head">
+      <h2 id="legalTitle">Documento</h2>
+      <button type="button" class="legal-close" id="legalClose" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="legal-body" id="legalBody"></div>
   </div>
 </div>
 
@@ -6044,6 +6131,67 @@
       maximumFractionDigits: 2,
     });
   }
+
+  // ==================== DOC LEGAL (Termos / Privacidade) ====================
+  const LEGAL_DOCS = {
+    privacy: {
+      title: 'Política de Privacidade',
+      html: `
+        <p class="legal-updated">Última atualização: junho de 2026</p>
+        <h3>O que guardamos</h3>
+        <p>O Munny guarda só o que você digita: sua renda, despesas, metas, categorias e agendamentos. Esses dados ficam no seu próprio navegador e, se você fizer login, numa conta privada na nuvem (Firebase, do Google), acessível só por você.</p>
+        <h3>Login com Google</h3>
+        <p>O login do Google serve só pra identificar sua conta e sincronizar seus dados entre aparelhos. Recebemos apenas seu nome, e-mail e foto de perfil. Nunca temos acesso à sua senha.</p>
+        <h3>Não vendemos seus dados</h3>
+        <p>Seus dados financeiros são seus. A gente não vende, não aluga e não compartilha com terceiros pra publicidade.</p>
+        <h3>Métricas de uso</h3>
+        <p>Usamos estatísticas de uso anônimas (Google Analytics) pra entender como o app é usado e melhorá-lo: quantas pessoas usam, quais telas, e por aí vai. Isso não identifica você pessoalmente.</p>
+        <h3>Apagar seus dados</h3>
+        <p>Quando quiser, você pode exportar um backup, resetar tudo (Configurações, opção "Apagar tudo") ou sair da conta. Resetar enquanto logado também limpa os dados da nuvem.</p>
+        <h3>Contato</h3>
+        <p>Dúvidas sobre privacidade? Use o bloco de notas no canto do app pra falar com a gente.</p>
+      `,
+    },
+    terms: {
+      title: 'Termos de Uso',
+      html: `
+        <p class="legal-updated">Última atualização: junho de 2026</p>
+        <h3>O que é o Munny</h3>
+        <p>O Munny é uma ferramenta de organização financeira pessoal. Ele te ajuda a planejar e acompanhar seu orçamento de forma simples.</p>
+        <h3>Não é consultoria financeira</h3>
+        <p>O Munny é uma ferramenta de organização, não um consultor financeiro. As sugestões e cálculos são informativos. As decisões sobre o seu dinheiro são suas.</p>
+        <h3>Seus dados, sua responsabilidade</h3>
+        <p>Os valores e informações que você registra são de sua responsabilidade. Faça backups (Configurações, opção "Exportar") pra não correr risco de perder nada.</p>
+        <h3>Disponibilidade</h3>
+        <p>A gente faz o possível pra manter o Munny no ar e funcionando bem, mas ele é oferecido "como está", sem garantia de funcionamento ininterrupto.</p>
+        <h3>Uso responsável</h3>
+        <p>Use o Munny pra organizar suas finanças. Não tente sobrecarregar, invadir ou usar o serviço pra fins ilegais.</p>
+        <h3>Mudanças</h3>
+        <p>Estes termos podem ser atualizados com o tempo. Mudanças importantes serão avisadas no próprio app.</p>
+      `,
+    },
+  };
+  function openLegalDoc(which) {
+    const doc = LEGAL_DOCS[which];
+    if (!doc) return;
+    document.getElementById('legalTitle').textContent = doc.title;
+    document.getElementById('legalBody').innerHTML = doc.html;
+    document.getElementById('legalOverlay').style.display = 'flex';
+  }
+  function closeLegalDoc() {
+    const o = document.getElementById('legalOverlay');
+    if (o) o.style.display = 'none';
+  }
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest && e.target.closest('[data-legal]');
+    if (link) { e.preventDefault(); openLegalDoc(link.dataset.legal); }
+  });
+  (function wireLegal() {
+    const ov = document.getElementById('legalOverlay');
+    const close = document.getElementById('legalClose');
+    if (close) close.addEventListener('click', closeLegalDoc);
+    if (ov) ov.addEventListener('click', (e) => { if (e.target === ov) closeLegalDoc(); });
+  })();
 
   // ==================== CONFIRM DIALOG ====================
   // Substitui o confirm() nativo por um modal no estilo do app.
