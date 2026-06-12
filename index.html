@@ -18,10 +18,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
 
-<!-- Firebase SDK (compat mode para uso global no IIFE existente) -->
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<!-- Conexões antecipadas pro CDN do Firebase (acelera o download em paralelo) -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+<!-- Firebase SDK — DEFER: baixa em paralelo sem bloquear o render/splash.
+     Executam em ordem antes do DOMContentLoaded, onde o app inicializa o Firebase. -->
+<script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <style>
   /* ==================== THEME ==================== */
   :root {
@@ -5553,18 +5557,23 @@
   let isApplyingRemoteUpdate = false;
   const sessionId = Math.random().toString(36).slice(2, 12);
 
-  try {
-    if (typeof firebase !== 'undefined') {
-      firebaseApp = firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
-      // Habilita persistência offline (Firestore guarda em IndexedDB)
-      db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-        console.warn('Persistência offline não habilitada:', err.code);
-      });
+  // Inicializa o Firebase. Chamado no DOMContentLoaded (depois dos scripts defer
+  // carregarem), não mais bloqueando o boot. Idempotente.
+  function initFirebase() {
+    if (firebaseApp) return; // já inicializado
+    try {
+      if (typeof firebase !== 'undefined') {
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        // Habilita persistência offline (Firestore guarda em IndexedDB)
+        db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+          console.warn('Persistência offline não habilitada:', err.code);
+        });
+      }
+    } catch (e) {
+      console.error('Erro inicializando Firebase:', e);
     }
-  } catch (e) {
-    console.error('Erro inicializando Firebase:', e);
   }
 
   // Paleta orgânica — tons de cerâmica, linho e sálvia (briefing de design)
@@ -10559,22 +10568,36 @@ function doGet() {
   })();
 
   // Auth state listener — controla login screen vs app
-  if (auth) {
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUser = user;
-        showMainApp();
-        updateUserInfoBar(user);
-        await loadUserData(user);
-      } else {
-        currentUser = null;
-        showLoginScreen();
-      }
-    });
+  function setupAuth() {
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          showMainApp();
+          updateUserInfoBar(user);
+          await loadUserData(user);
+        } else {
+          currentUser = null;
+          showLoginScreen();
+        }
+      });
+    } else {
+      // Firebase não disponível (não carregou ou bloqueado) — app em modo offline
+      showMainApp();
+      console.warn('Firebase não disponível, rodando em modo offline-only.');
+    }
+  }
+
+  // Boot do Firebase: roda quando os scripts defer já carregaram (DOMContentLoaded).
+  // O app já renderizou do localStorage de forma síncrona — isto só liga login/sync.
+  function bootFirebase() {
+    initFirebase();
+    setupAuth();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootFirebase);
   } else {
-    // Firebase não disponível — mostra a app mesmo (modo offline)
-    showMainApp();
-    console.warn('Firebase não disponível, rodando em modo offline-only.');
+    bootFirebase();
   }
 
   function updateUserInfoBar(user) {
