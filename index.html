@@ -4919,9 +4919,11 @@
       bottom: calc(84px + env(safe-area-inset-bottom));
     }
     .app { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-    /* Notes FAB sobe pra não conflitar com bottom-nav + add-fab (safe-area aware) */
-    .notes-fab { bottom: calc(156px + env(safe-area-inset-bottom)) !important; }
-    .notes-panel { bottom: calc(220px + env(safe-area-inset-bottom)) !important; }
+    /* ⌘K é inútil sem teclado → escondido no mobile */
+    .cmdk-trigger { display: none !important; }
+    /* Notas viram item do menu ⚙ no mobile → some o FAB que competia com o "+" */
+    .notes-fab { display: none !important; }
+    .notes-panel { bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
   }
   @media (max-width: 480px) {
     .app { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
@@ -7774,6 +7776,7 @@
         <div class="divider"></div>
         <div class="label">Engajamento</div>
         <button class="item" data-act="achievements"><span class="menu-icon">${ICONS.trophy}</span><span>Conquistas e Stats</span></button>
+        <button class="item" data-act="notes"><span class="menu-icon">${ICONS.messageSquare}</span><span>Notas / Enviar feedback</span></button>
         <div class="divider"></div>
         <div class="label">Sincronização</div>
         <button class="item" data-act="syncConfig"><span class="menu-icon">${ICONS.sheets}</span><span>Conectar com Google Sheets (notas)</span></button>
@@ -7808,6 +7811,8 @@
     modal.querySelector('[data-act="syncConfig"]').addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
     const achBtn = modal.querySelector('[data-act="achievements"]');
     if (achBtn) achBtn.addEventListener('click', () => { closeModal(); openAchievementsModal(); });
+    const notesBtn = modal.querySelector('[data-act="notes"]');
+    if (notesBtn) notesBtn.addEventListener('click', () => { closeModal(); toggleNotesPanel(true); });
     const logoutBtn = modal.querySelector('[data-act="logout"]');
     if (logoutBtn) logoutBtn.addEventListener('click', () => { closeModal(); logout(); });
     modal.querySelector('[data-act="reset"]').addEventListener('click', async () => {
