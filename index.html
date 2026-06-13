@@ -1001,6 +1001,74 @@
     margin-top: 14px;
   }
 
+  /* ==================== PAINEL — AÇÃO PRINCIPAL "ADICIONAR GASTO" ==================== */
+  .painel-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin: 14px 0 18px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    box-shadow: 0 8px 22px rgba(111, 142, 127, 0.28);
+    transition: transform 0.16s var(--ease-spring), box-shadow 0.2s ease;
+  }
+  .painel-add-btn svg { width: 22px; height: 22px; }
+  .painel-add-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(111, 142, 127, 0.36); }
+  .painel-add-btn:active { transform: translateY(0) scale(0.98); }
+
+  /* ==================== PAINEL — CONFIGURAÇÃO RECOLHIDA (renda + método) ==================== */
+  .config-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 24px;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-mute);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .config-toggle:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .config-toggle .chev {
+    display: inline-flex;
+    transition: transform 0.35s var(--ease-spring-soft);
+  }
+  .config-toggle.open .chev { transform: rotate(180deg); }
+  .config-collapse {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: max-height 0.45s var(--ease-spring-soft), opacity 0.35s ease, transform 0.45s var(--ease-spring-soft);
+  }
+  .config-collapse.open {
+    max-height: 5000px;
+    opacity: 1;
+    transform: translateY(0);
+    margin-top: 14px;
+  }
+
   /* ==================== CATEGORY CARDS ==================== */
   .categories-grid {
     display: grid;
@@ -5020,81 +5088,8 @@
 
   <!-- ============ PAINEL ============ -->
   <div class="tab-panel active" id="tab-painel">
-    <div class="grid-2">
-      <div class="card">
-        <h2>Renda Mensal <span id="onboardingBadge" class="onboarding-badge hidden">comece por aqui</span></h2>
-        <p class="subtitle">Salário líquido ou receita total do mês.</p>
-        <label for="income">Valor da renda</label>
-        <div class="income-input-wrap">
-          <input type="text" id="income" placeholder="0,00" inputmode="decimal" autocomplete="off" />
-        </div>
-        <p class="onboarding-hint hidden" id="onboardingHint">
-          💡 <strong>Primeiro passo:</strong> digite sua renda mensal aqui. Aceita vírgula (ex: <em>3500,50</em>).
-          Depois escolha um método ao lado e adicione suas despesas na aba <strong>Despesas</strong>.
-        </p>
 
-        <!-- ENTRADAS EXTRAS -->
-        <div class="extra-incomes-block" id="extraIncomesBlock">
-          <button type="button" class="extra-toggle" id="extraToggle">
-            <span class="extra-label">+ Adicionar entrada extra</span>
-            <span class="extra-total" id="extraTotalBadge"></span>
-          </button>
-          <div class="extra-body" id="extraBody">
-            <form id="extraForm" autocomplete="off">
-              <div style="display:grid; grid-template-columns:1fr 110px auto; gap:6px;">
-                <input type="text" id="extraName" placeholder="Ex: Bônus, Freela..." maxlength="40" required />
-                <input type="text" id="extraValue" placeholder="0,00" inputmode="decimal" required />
-                <button type="submit" class="btn-primary" style="width:auto; padding:10px 14px;">+</button>
-              </div>
-            </form>
-            <ul class="extras-list" id="extrasList"></ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Metodologia de Orçamento</h2>
-        <p class="subtitle">Escolha um método e ajuste se quiser.</p>
-        <div class="method-buttons" id="methodButtons">
-          <button class="method-btn" data-method="50-30-20" type="button">
-            <span class="method-title">Regra 50/30/20</span>
-            <span class="method-desc">Necessidades, desejos e poupança.</span>
-          </button>
-          <button class="method-btn" data-method="6-potes" type="button">
-            <span class="method-title">Método dos 6 Potes</span>
-            <span class="method-desc">Distribui em 6 categorias-chave.</span>
-          </button>
-          <button class="method-btn" data-method="custom" type="button">
-            <span class="method-title">Personalizado</span>
-            <span class="method-desc">Defina suas próprias categorias.</span>
-          </button>
-        </div>
-        <button class="collapse-toggle" id="percentToggle" type="button">
-          <span class="chev">▼</span> Personalizar nomes, cores e %
-        </button>
-        <div class="collapse-content" id="percentCollapse">
-          <div class="percent-editor" id="percentEditor"></div>
-          <div class="percent-total" id="percentTotal">
-            <span class="total-text">Total: 0%</span>
-            <div class="actions">
-              <button type="button" id="addCategoryBtn">+ Categoria</button>
-              <button type="button" id="normalizeBtn">Ajustar pra 100%</button>
-            </div>
-          </div>
-          <div class="mode-shortcut">
-            <span>Atalho:</span>
-            <button type="button" id="allPctBtn">Tudo em %</button>
-            <button type="button" id="allFixedBtn">Tudo em R$ fixo</button>
-            <span style="margin-left:auto; opacity:0.7;">Misture livremente!</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">
-      <span>Ainda Posso Gastar: Saldo por Categoria</span>
-    </div>
-
+    <!-- 1. RESUMO DO MÊS — o que importa primeiro -->
     <div class="summary-bar">
       <div class="summary-tile income">
         <div class="lbl">Renda</div>
@@ -5109,6 +5104,12 @@
         <div class="val" id="sumRemaining">R$ 0,00</div>
       </div>
     </div>
+
+    <!-- 2. AÇÃO PRINCIPAL — adicionar gasto, óbvio e grande -->
+    <button class="painel-add-btn" id="painelAddBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Adicionar um gasto
+    </button>
 
     <!-- INSIGHTS CARD -->
     <div class="insights-card type-info" id="insightsCard" style="display:none;">
@@ -5131,6 +5132,9 @@
       <div class="insights-dots" id="insightsDots"></div>
     </div>
 
+    <!-- 4. PRA ONDE FOI MEU DINHEIRO -->
+    <div class="section-title"><span>Ainda posso gastar</span></div>
+
     <!-- DIVULGAÇÃO PROGRESSIVA: categorias detalhadas escondidas por padrão -->
     <button class="cats-toggle" id="catsToggle" type="button" aria-expanded="false" aria-controls="catsCollapse">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
@@ -5148,6 +5152,84 @@
       <div class="chart-wrap">
         <div><svg class="pie-chart" id="pieChart" viewBox="0 0 200 200"></svg></div>
         <div class="pie-legend" id="pieLegend"></div>
+      </div>
+    </div>
+
+    <!-- 5. CONFIGURAÇÃO — renda e método (recolhido; é coisa de uma vez) -->
+    <button class="config-toggle" id="configToggle" type="button" aria-expanded="false" aria-controls="configCollapse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span id="configToggleLabel">Configurar renda e método</span>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </button>
+    <div class="config-collapse" id="configCollapse">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Renda Mensal <span id="onboardingBadge" class="onboarding-badge hidden">comece por aqui</span></h2>
+          <p class="subtitle">Salário líquido ou o total que entra no mês.</p>
+          <label for="income">Valor da renda</label>
+          <div class="income-input-wrap">
+            <input type="text" id="income" placeholder="0,00" inputmode="decimal" autocomplete="off" />
+          </div>
+          <p class="onboarding-hint hidden" id="onboardingHint">
+            💡 <strong>Primeiro passo:</strong> digite quanto você ganha por mês. Aceita vírgula (ex: <em>3500,50</em>).
+          </p>
+
+          <!-- ENTRADAS EXTRAS -->
+          <div class="extra-incomes-block" id="extraIncomesBlock">
+            <button type="button" class="extra-toggle" id="extraToggle">
+              <span class="extra-label">+ Adicionar entrada extra</span>
+              <span class="extra-total" id="extraTotalBadge"></span>
+            </button>
+            <div class="extra-body" id="extraBody">
+              <form id="extraForm" autocomplete="off">
+                <div style="display:grid; grid-template-columns:1fr 110px auto; gap:6px;">
+                  <input type="text" id="extraName" placeholder="Ex: Bônus, Freela..." maxlength="40" required />
+                  <input type="text" id="extraValue" placeholder="0,00" inputmode="decimal" required />
+                  <button type="submit" class="btn-primary" style="width:auto; padding:10px 14px;">+</button>
+                </div>
+              </form>
+              <ul class="extras-list" id="extrasList"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Como dividir seu dinheiro</h2>
+          <p class="subtitle">Escolha um jeito de organizar. Dá pra ajustar depois.</p>
+          <div class="method-buttons" id="methodButtons">
+            <button class="method-btn" data-method="50-30-20" type="button">
+              <span class="method-title">Regra 50/30/20</span>
+              <span class="method-desc">Necessidades, desejos e poupança.</span>
+            </button>
+            <button class="method-btn" data-method="6-potes" type="button">
+              <span class="method-title">6 Potes</span>
+              <span class="method-desc">Divide em 6 áreas da sua vida.</span>
+            </button>
+            <button class="method-btn" data-method="custom" type="button">
+              <span class="method-title">Do meu jeito</span>
+              <span class="method-desc">Crie suas próprias categorias.</span>
+            </button>
+          </div>
+          <button class="collapse-toggle" id="percentToggle" type="button">
+            <span class="chev">▼</span> Personalizar minhas categorias
+          </button>
+          <div class="collapse-content" id="percentCollapse">
+            <div class="percent-editor" id="percentEditor"></div>
+            <div class="percent-total" id="percentTotal">
+              <span class="total-text">Total: 0%</span>
+              <div class="actions">
+                <button type="button" id="addCategoryBtn">+ Categoria</button>
+                <button type="button" id="normalizeBtn">Ajustar pra 100%</button>
+              </div>
+            </div>
+            <div class="mode-shortcut">
+              <span>Atalho:</span>
+              <button type="button" id="allPctBtn">Tudo em %</button>
+              <button type="button" id="allFixedBtn">Tudo em R$ fixo</button>
+              <span style="margin-left:auto; opacity:0.7;">Misture livremente!</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -6813,6 +6895,18 @@
       const n = (state.categories || []).length;
       label.textContent = open ? 'Esconder categorias' : `Ver categorias detalhadas (${n})`;
     }
+  }
+
+  // Configuração recolhida (renda + método) — abre/fecha
+  function setConfigOpen(open) {
+    const btn = document.getElementById('configToggle');
+    const wrap = document.getElementById('configCollapse');
+    if (!btn || !wrap) return;
+    btn.classList.toggle('open', open);
+    wrap.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    const label = document.getElementById('configToggleLabel');
+    if (label) label.textContent = open ? 'Fechar configuração' : 'Configurar renda e método';
   }
 
   // ==================== RENDER: DESPESAS ====================
@@ -8857,6 +8951,8 @@ function doGet() {
     if (hint) hint.classList.toggle('hidden', !isFirstTime);
     // Wizard de primeiro uso: só pra quem está realmente começando do zero
     maybeShowOnboarding(isFirstTime);
+    // Sem renda definida: abre a Configuração pra pessoa achar o campo (nunca fecha sozinha)
+    if (state.income <= 0) setConfigOpen(true);
     // BUGFIX #15: show search clear if already has a query
     const searchClear = document.getElementById('searchClearBtn');
     if (searchClear) searchClear.classList.toggle('show', !!(state.ui.search));
@@ -8902,19 +8998,27 @@ function doGet() {
     });
 
     // FAB "+" — atalho mobile pra adicionar despesa
-    const fabAdd = document.getElementById('fabAdd');
-    if (fabAdd) {
-      fabAdd.addEventListener('click', () => {
-        switchTab('despesas');
-        setTimeout(() => {
-          const input = document.getElementById('expName');
-          if (input) {
-            input.focus({ preventScroll: true });
-            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 220);
-      });
+    function goToAddExpense() {
+      switchTab('despesas');
+      setTimeout(() => {
+        const input = document.getElementById('expName');
+        if (input) {
+          input.focus({ preventScroll: true });
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 220);
     }
+    const fabAdd = document.getElementById('fabAdd');
+    if (fabAdd) fabAdd.addEventListener('click', goToAddExpense);
+    const painelAddBtn = document.getElementById('painelAddBtn');
+    if (painelAddBtn) painelAddBtn.addEventListener('click', goToAddExpense);
+
+    // Configuração recolhida (renda + método) — toggle
+    const configToggle = document.getElementById('configToggle');
+    if (configToggle) configToggle.addEventListener('click', () => {
+      const wrap = document.getElementById('configCollapse');
+      setConfigOpen(!wrap.classList.contains('open'));
+    });
 
     // Income
     document.getElementById('income').addEventListener('input', (e) => {
