@@ -1079,7 +1079,7 @@
   .recurring-details[open] {
     border-style: solid;
     border-color: var(--border);
-    background: var(--card-bg);
+    background: var(--surface);
   }
   .recurring-summary {
     display: flex;
@@ -1118,6 +1118,123 @@
   .recurring-body {
     padding: 0 16px 16px;
   }
+
+  /* ==================== CARTÕES DE CRÉDITO ==================== */
+  .cards-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .cards-month-total {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .cards-month-total .cmt-lbl {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-mute);
+  }
+  .cards-month-total .cmt-val {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text);
+  }
+  .cc-card {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--cc, var(--primary));
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 12px;
+    background: var(--surface);
+  }
+  .cc-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cc-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .cc-edit {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    display: inline-flex;
+  }
+  .cc-edit:hover { color: var(--primary); background: var(--primary-soft); }
+  .cc-invoice {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0 4px;
+    font-size: 13px;
+    color: var(--text-mute);
+  }
+  .cc-invoice strong { color: var(--text); font-size: 15px; }
+  .cc-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .cc-badge.paid { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .cc-badge.open { color: var(--primary); background: var(--primary-soft); }
+  .cc-purchases {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .cc-purchase {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .cc-purchase:hover { background: var(--primary-soft); }
+  .cc-purchase .ccp-info { min-width: 0; flex: 1; }
+  .cc-purchase .ccp-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cc-purchase .ccp-meta { font-size: 12px; color: var(--text-mute); }
+  .cc-purchase .ccp-amount { font-weight: 700; font-size: 14px; color: var(--text); flex-shrink: 0; }
+  .cc-purchase.done { opacity: 0.55; }
+  .cc-add-purchase {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: 10px;
+    padding: 9px;
+    color: var(--text-mute);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .cc-add-purchase:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
 
   /* ==================== CATEGORY CARDS ==================== */
   .categories-grid {
@@ -4873,7 +4990,7 @@
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
     z-index: 800;
     box-shadow: 0 -6px 24px rgba(0,0,0,0.08);
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 2px;
     backdrop-filter: saturate(140%) blur(12px);
     -webkit-backdrop-filter: saturate(140%) blur(12px);
@@ -5133,6 +5250,7 @@
   <nav class="tabs" role="tablist">
     <button class="tab-btn active" data-tab="painel" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tab-text">Painel</span></button>
     <button class="tab-btn" data-tab="despesas" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg></span><span class="tab-text">Despesas</span></button>
+    <button class="tab-btn" data-tab="cartao" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span class="tab-text">Cartão</span></button>
     <button class="tab-btn" data-tab="metas" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="tab-text">Metas</span></button>
     <button class="tab-btn" data-tab="calendario" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tab-text">Agenda</span></button>
     <button class="tab-btn" data-tab="historico" role="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span><span class="tab-text">Histórico</span></button>
@@ -5346,6 +5464,21 @@
         </select>
       </div>
       <ul class="expenses-list" id="expensesList"></ul>
+    </div>
+  </div>
+
+  <!-- ============ CARTÃO ============ -->
+  <div class="tab-panel" id="tab-cartao">
+    <div class="card">
+      <div class="cards-head">
+        <div>
+          <h2>Cartões</h2>
+          <p class="subtitle">Lance compras parceladas. No vencimento, a fatura do mês vira uma despesa automática.</p>
+        </div>
+        <div class="cards-month-total" id="cardsMonthTotal" style="display:none;"></div>
+      </div>
+      <div id="cardsList"></div>
+      <button class="btn-primary mt-12" id="addCardBtn" type="button" style="width:100%;">+ Novo cartão</button>
     </div>
   </div>
 
@@ -5585,6 +5718,10 @@
   <button class="bnav-btn" data-tab="despesas" type="button" aria-label="Despesas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
     <span class="bnav-label">Despesas</span>
+  </button>
+  <button class="bnav-btn" data-tab="cartao" type="button" aria-label="Cartão">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    <span class="bnav-label">Cartão</span>
   </button>
   <button class="bnav-btn" data-tab="metas" type="button" aria-label="Metas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
@@ -5944,6 +6081,8 @@
       categories: cloneCats(METHODS['50-30-20'].categories),
       expenses: [],
       recurring: [],
+      cards: [], // [{id, name, color, dueDay, categoryId, createdAt}] — cartões de crédito
+      cardPurchases: [], // [{id, cardId, name, total, installments, firstMonth, createdAt}] — compras parceladas
       goals: [],
       history: {}, // 'YYYY-MM' → snapshot
       learned: {}, // expenseName.lower → categoryId
@@ -6078,6 +6217,7 @@
         date: typeof e?.date === 'string' ? e.date : todayISO(),
         timestamp: Number(e && e.timestamp) || Date.now(),
         fromRecurring: e && e.fromRecurring,
+        fromCardInvoice: e && e.fromCardInvoice,
       }))
       .filter(e => e.value > 0);
     // recurring
@@ -6164,6 +6304,32 @@
     out.currentMonth = (typeof data.currentMonth === 'string' && /^\d{4}-\d{2}$/.test(data.currentMonth))
       ? data.currentMonth : nowYM();
     out.ui = Object.assign(fresh.ui, data.ui || {});
+    // cards (cartões de crédito)
+    out.cards = (Array.isArray(data.cards) ? data.cards : [])
+      .map((c, i) => ({
+        id: String(c && c.id || newId('card')),
+        name: String(c && c.name || 'Cartão ' + (i + 1)),
+        color: typeof c?.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.color)
+          ? c.color
+          : COLOR_PALETTE[i % COLOR_PALETTE.length],
+        dueDay: Math.max(1, Math.min(31, Number(c && c.dueDay) || 1)),
+        categoryId: validCatIds.has(c && c.categoryId) ? c.categoryId : firstCatId,
+        createdAt: Number(c && c.createdAt) || Date.now(),
+      }))
+      .filter(c => c.name);
+    const validCardIds = new Set(out.cards.map(c => c.id));
+    // cardPurchases (compras parceladas)
+    out.cardPurchases = (Array.isArray(data.cardPurchases) ? data.cardPurchases : [])
+      .map(p => ({
+        id: String(p && p.id || newId('cp')),
+        cardId: String(p && p.cardId || ''),
+        name: String(p && p.name || '?'),
+        total: Number(p && p.total) || 0,
+        installments: Math.max(1, Math.min(99, Number(p && p.installments) || 1)),
+        firstMonth: (typeof p?.firstMonth === 'string' && /^\d{4}-\d{2}$/.test(p.firstMonth)) ? p.firstMonth : nowYM(),
+        createdAt: Number(p && p.createdAt) || Date.now(),
+      }))
+      .filter(p => p.total > 0 && validCardIds.has(p.cardId));
     return out;
   }
 
@@ -6529,6 +6695,7 @@
     // BUGFIX #5: render the now-active tab's content
     if (name === 'painel') { renderCategories(); renderPieChart(); }
     else if (name === 'despesas') { renderExpenses(); renderRecurring(); }
+    else if (name === 'cartao') { renderCards(); }
     else if (name === 'metas') { renderGoals(); }
     else if (name === 'calendario') { renderCalendar(); }
     else if (name === 'historico') { renderHistory(); renderBarChart(); }
@@ -7013,6 +7180,7 @@
           <div class="expense-name">
             ${escapeHtml(exp.name)}
             ${exp.fromRecurring ? '<span class="recurring-badge">↻ fixo</span>' : ''}
+            ${exp.fromCardInvoice ? '<span class="recurring-badge">💳 fatura</span>' : ''}
           </div>
           <div class="expense-meta">${escapeHtml(catName)} · ${dateStr}</div>
         </div>
@@ -8138,6 +8306,8 @@ function doGet() {
 
   // ==================== CLOSE MONTH ====================
   function closeMonth(transferToGoalId) {
+    // Fecha as faturas do mês que está encerrando (mesmo que o vencimento ainda não tenha chegado)
+    (state.cards || []).forEach(c => applyCardInvoiceForCurrentMonth(c, true));
     const totalSpent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
     const incomeTotal = effectiveIncome(); // base + extras
     const saved = incomeTotal - totalSpent;
@@ -8171,6 +8341,8 @@ function doGet() {
     state.currentMonth = next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0');
     // re-apply recurring
     state.recurring.forEach(r => applyRecurringForCurrentMonth(r));
+    // faturas do novo mês (só materializam quando o vencimento chegar)
+    ensureCardInvoicesForCurrentMonth();
     saveState();
     renderAll();
     track('close_month');
@@ -8211,6 +8383,424 @@ function doGet() {
   // Run recurring check on load (if no expenses exist this month yet from these recs)
   function ensureRecurringForCurrentMonth() {
     state.recurring.forEach(r => applyRecurringForCurrentMonth(r));
+  }
+
+  // ==================== CARTÃO DE CRÉDITO ====================
+  // Modelo "fatura": as parcelas de cada compra somam na fatura do mês.
+  // Quando o vencimento chega (ou o mês fecha), a fatura do mês vira UMA despesa.
+
+  // Aritmética de mês (YYYY-MM)
+  function ymAddMonths(ym, n) {
+    const [y, m] = ym.split('-').map(Number);
+    const d = new Date(y, (m - 1) + n, 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+  function ymDiffMonths(from, to) {
+    const [fy, fm] = from.split('-').map(Number);
+    const [ty, tm] = to.split('-').map(Number);
+    return (ty - fy) * 12 + (tm - fm);
+  }
+
+  // Valor da parcela `idx` (0-based). A última absorve o arredondamento.
+  function purchaseInstallmentAmount(p, idx) {
+    const per = Math.round((p.total / p.installments) * 100) / 100;
+    if (idx >= p.installments - 1) {
+      return Math.round((p.total - per * (p.installments - 1)) * 100) / 100;
+    }
+    return per;
+  }
+
+  // Soma das parcelas que caem no mês `ym` para um cartão (a fatura daquele mês).
+  function cardInvoiceForMonth(cardId, ym) {
+    let total = 0;
+    const items = [];
+    state.cardPurchases.filter(p => p.cardId === cardId).forEach(p => {
+      const idx = ymDiffMonths(p.firstMonth, ym);
+      if (idx >= 0 && idx < p.installments) {
+        const amt = purchaseInstallmentAmount(p, idx);
+        total += amt;
+        items.push({ purchase: p, idx, amt });
+      }
+    });
+    return { total: Math.round(total * 100) / 100, items };
+  }
+
+  // Progresso de uma compra em relação ao mês atual.
+  function purchaseProgress(p) {
+    const idxNow = ymDiffMonths(p.firstMonth, state.currentMonth);
+    const paid = Math.max(0, Math.min(p.installments, idxNow + 1));
+    const per = Math.round((p.total / p.installments) * 100) / 100;
+    let remaining = 0;
+    for (let i = Math.max(0, paid); i < p.installments; i++) remaining += purchaseInstallmentAmount(p, i);
+    return {
+      paid,
+      per,
+      remaining: Math.round(remaining * 100) / 100,
+      done: idxNow >= p.installments,
+      notStarted: idxNow < 0,
+    };
+  }
+
+  // Materializa a fatura do cartão no mês atual como despesa (espelha applyRecurring).
+  function applyCardInvoiceForCurrentMonth(card, force) {
+    const ym = state.currentMonth;
+    const { total } = cardInvoiceForMonth(card.id, ym);
+    if (total <= 0) return;
+    const [y, m] = ym.split('-').map(Number);
+    const dim = new Date(y, m, 0).getDate();
+    const day = Math.min(card.dueDay || 1, dim);
+    const today = new Date();
+    const isCurrentMonth = (today.getFullYear() === y) && (today.getMonth() + 1 === m);
+    // só lança quando o vencimento já chegou — a não ser que o mês esteja sendo fechado (force)
+    if (!force && isCurrentMonth && today.getDate() < day) return;
+    const alreadyExists = state.expenses.some(e =>
+      e.fromCardInvoice === card.id && (e.date || '').startsWith(ym)
+    );
+    if (alreadyExists) return;
+    const date = `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    state.expenses.push({
+      id: newId('e'),
+      name: `Fatura ${card.name}`,
+      value: total,
+      categoryId: card.categoryId,
+      date,
+      timestamp: new Date(date).getTime(),
+      fromCardInvoice: card.id,
+    });
+  }
+
+  function ensureCardInvoicesForCurrentMonth() {
+    (state.cards || []).forEach(c => applyCardInvoiceForCurrentMonth(c));
+  }
+
+  // ==================== RENDER: CARTÕES ====================
+  function renderCards() {
+    const wrap = document.getElementById('cardsList');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    const totalEl = document.getElementById('cardsMonthTotal');
+
+    if (!state.cards || state.cards.length === 0) {
+      wrap.innerHTML = emptyStateHtml(
+        'card',
+        'Nenhum cartão ainda',
+        'Cadastre seu cartão de crédito e lance as compras parceladas. A fatura de cada mês entra sozinha como despesa no vencimento.',
+        'Adicionar cartão',
+        'addCard'
+      );
+      if (totalEl) totalEl.style.display = 'none';
+      return;
+    }
+
+    let monthTotal = 0;
+    state.cards.forEach(card => {
+      const cat = state.categories.find(c => c.id === card.categoryId);
+      const invoice = cardInvoiceForMonth(card.id, state.currentMonth);
+      monthTotal += invoice.total;
+      const paid = state.expenses.some(e => e.fromCardInvoice === card.id && (e.date || '').startsWith(state.currentMonth));
+      const purchases = state.cardPurchases.filter(p => p.cardId === card.id);
+
+      const div = document.createElement('div');
+      div.className = 'cc-card';
+      div.style.setProperty('--cc', card.color);
+
+      let purchasesHtml = '';
+      if (purchases.length === 0) {
+        purchasesHtml = '<div class="subtitle" style="margin:10px 0 0;">Nenhuma compra lançada nesse cartão ainda.</div>';
+      } else {
+        const items = purchases
+          .slice()
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          .map(p => {
+            const pr = purchaseProgress(p);
+            let meta;
+            if (pr.notStarted) meta = `Começa em ${capitalize(fmtMonthName(p.firstMonth))} · ${p.installments}x de ${fmtBRL(pr.per)}`;
+            else if (pr.done) meta = `Quitada · ${p.installments}x de ${fmtBRL(pr.per)}`;
+            else meta = `Parcela ${pr.paid}/${p.installments} · ${fmtBRL(pr.per)}/mês · faltam ${fmtBRL(pr.remaining)}`;
+            return `
+              <li class="cc-purchase ${pr.done ? 'done' : ''}" data-purchase="${p.id}">
+                <div class="ccp-info">
+                  <div class="ccp-name">${escapeHtml(p.name)}</div>
+                  <div class="ccp-meta">${meta}</div>
+                </div>
+                <div class="ccp-amount">${fmtBRL(p.total)}</div>
+              </li>`;
+          }).join('');
+        purchasesHtml = `<ul class="cc-purchases">${items}</ul>`;
+      }
+
+      const invoiceLine = invoice.total > 0
+        ? `<div class="cc-invoice">
+             Fatura de ${escapeHtml(capitalize(fmtMonthName(state.currentMonth)))}: <strong>${fmtBRL(invoice.total)}</strong>
+             <span class="cc-badge ${paid ? 'paid' : 'open'}">${paid ? 'lançada' : 'a vencer dia ' + card.dueDay}</span>
+           </div>`
+        : `<div class="cc-invoice">Sem fatura neste mês · vence dia ${card.dueDay}</div>`;
+
+      div.innerHTML = `
+        <div class="cc-head">
+          <span class="cc-name">${escapeHtml(card.name)}</span>
+          <button class="cc-edit" type="button" data-edit-card="${card.id}" aria-label="Editar cartão">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+        ${invoiceLine}
+        <div class="subtitle" style="margin:0;">Fatura cai em: ${cat ? escapeHtml(cat.name) : 'Sem categoria'}</div>
+        ${purchasesHtml}
+        <button class="cc-add-purchase" type="button" data-add-purchase="${card.id}">+ Lançar compra</button>
+      `;
+      wrap.appendChild(div);
+    });
+
+    // delegação: editar cartão / lançar compra / editar compra
+    wrap.querySelectorAll('[data-edit-card]').forEach(b => {
+      b.addEventListener('click', () => {
+        const c = state.cards.find(x => x.id === b.dataset.editCard);
+        if (c) openCardModal(c);
+      });
+    });
+    wrap.querySelectorAll('[data-add-purchase]').forEach(b => {
+      b.addEventListener('click', () => openCardPurchaseModal(null, b.dataset.addPurchase));
+    });
+    wrap.querySelectorAll('[data-purchase]').forEach(li => {
+      li.addEventListener('click', () => {
+        const p = state.cardPurchases.find(x => x.id === li.dataset.purchase);
+        if (p) openCardPurchaseModal(p);
+      });
+    });
+
+    if (totalEl) {
+      if (monthTotal > 0) {
+        totalEl.style.display = '';
+        totalEl.innerHTML = `<span class="cmt-lbl">Faturas do mês</span><span class="cmt-val">${fmtBRL(monthTotal)}</span>`;
+      } else {
+        totalEl.style.display = 'none';
+      }
+    }
+  }
+
+  function openCardModal(card) {
+    const isNew = !card;
+    card = card || { name: '', color: COLOR_PALETTE[(state.cards.length) % COLOR_PALETTE.length], dueDay: 10, categoryId: state.categories[0]?.id };
+    const opts = state.categories.map(c =>
+      `<option value="${c.id}" ${c.id === card.categoryId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+    ).join('');
+    openModal(`
+      <h3>${isNew ? 'Novo cartão' : 'Editar cartão'}</h3>
+      <p class="modal-sub">A fatura de cada mês entra como uma despesa nesta categoria, no dia do vencimento.</p>
+      <form id="cardForm">
+        <div class="form-row">
+          <label>Nome do cartão</label>
+          <input type="text" name="name" value="${escapeHtml(card.name)}" placeholder="Ex: Nubank, Itaú" required maxlength="40" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Dia do vencimento</label>
+            <input type="number" name="dueDay" value="${card.dueDay || 10}" min="1" max="31" required />
+          </div>
+          <div class="form-row">
+            <label>Cor</label>
+            <button type="button" class="color-swatch-btn" id="cardColorBtn" style="background:${card.color}; height:42px; width:100%; border:1px solid var(--border); border-radius:10px; cursor:pointer;"></button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Fatura cai na categoria</label>
+          <select name="categoryId">${opts}</select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
+          ${isNew ? '' : '<button type="button" class="btn-danger" data-act="delete">🗑 Excluir</button>'}
+          <button type="submit" class="btn-primary">${isNew ? 'Adicionar' : 'Salvar'}</button>
+        </div>
+      </form>
+    `);
+    const form = document.getElementById('cardForm');
+    let pickedColor = card.color;
+    document.getElementById('cardColorBtn').addEventListener('click', (ev) => {
+      openColorPicker(ev.currentTarget, pickedColor, (col) => {
+        pickedColor = col;
+        ev.currentTarget.style.background = col;
+      });
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const nameCheck = safeText(fd.get('name'), { max: 40 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o nome do cartão.'), 'error'); return; }
+      const dueDay = Math.max(1, Math.min(31, parseInt(fd.get('dueDay'), 10) || 1));
+      const payload = {
+        id: card.id || newId('card'),
+        name: nameCheck.value,
+        color: pickedColor,
+        dueDay,
+        categoryId: String(fd.get('categoryId')),
+        createdAt: card.createdAt || Date.now(),
+      };
+      if (isNew) {
+        state.cards.push(payload);
+      } else {
+        const idx = state.cards.findIndex(c => c.id === card.id);
+        if (idx >= 0) state.cards[idx] = payload;
+        applyCardInvoiceForCurrentMonth(payload); // lança a fatura do mês se o venc. já chegou
+        syncCurrentInvoiceExpense(payload.id); // atualiza a despesa se a fatura já estava lançada
+      }
+      saveState();
+      renderAll();
+      closeModal();
+      showToast(isNew ? 'Cartão adicionado.' : 'Cartão atualizado.', 'success');
+    });
+    form.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
+    const delBtn = form.querySelector('[data-act="delete"]');
+    if (delBtn) delBtn.addEventListener('click', async () => {
+      const linked = state.cardPurchases.filter(p => p.cardId === card.id).length;
+      if (!(await confirmDialog({
+        title: 'Excluir cartão?',
+        message: linked > 0
+          ? `Esse cartão tem ${linked} compra${linked > 1 ? 's' : ''} lançada${linked > 1 ? 's' : ''}. Excluir o cartão também remove essas compras. As faturas já lançadas como despesa continuam no histórico.`
+          : 'As faturas já lançadas como despesa continuam no histórico.',
+        okLabel: 'Excluir', danger: true,
+      }))) return;
+      state.cards = state.cards.filter(c => c.id !== card.id);
+      state.cardPurchases = state.cardPurchases.filter(p => p.cardId !== card.id);
+      saveState();
+      renderAll();
+      closeModal();
+      showToast('Cartão excluído.', 'success');
+    });
+  }
+
+  function openCardPurchaseModal(purchase, presetCardId) {
+    if (!state.cards || state.cards.length === 0) { openCardModal(); return; }
+    const isNew = !purchase;
+    // Default do mês da 1ª parcela: se o vencimento já passou neste mês, joga pra próxima fatura.
+    const defCardId = presetCardId || state.cards[0].id;
+    let defFirstMonth = state.currentMonth;
+    const defCard = state.cards.find(c => c.id === defCardId);
+    if (defCard) {
+      const today = new Date();
+      const [cy, cm] = state.currentMonth.split('-').map(Number);
+      const isCur = today.getFullYear() === cy && (today.getMonth() + 1) === cm;
+      if (isCur && today.getDate() > (defCard.dueDay || 1)) defFirstMonth = ymAddMonths(state.currentMonth, 1);
+    }
+    purchase = purchase || { cardId: defCardId, name: '', total: 0, installments: 1, firstMonth: defFirstMonth };
+    const cardOpts = state.cards.map(c =>
+      `<option value="${c.id}" ${c.id === purchase.cardId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+    ).join('');
+    openModal(`
+      <h3>${isNew ? 'Lançar compra' : 'Editar compra'}</h3>
+      <p class="modal-sub">O valor total dividido nas parcelas. Cada parcela entra na fatura do mês dela.</p>
+      <form id="cardPurchaseForm">
+        <div class="form-row">
+          <label>Cartão</label>
+          <select name="cardId">${cardOpts}</select>
+        </div>
+        <div class="form-row">
+          <label>O que você comprou</label>
+          <input type="text" name="name" value="${escapeHtml(purchase.name)}" placeholder="Ex: Geladeira, tênis" required maxlength="60" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Valor total</label>
+            <input type="text" name="total" value="${purchase.total ? String(purchase.total).replace('.', ',') : ''}" inputmode="decimal" required />
+          </div>
+          <div class="form-row">
+            <label>Parcelas</label>
+            <input type="number" name="installments" value="${purchase.installments || 1}" min="1" max="99" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Primeira parcela em</label>
+          <input type="month" name="firstMonth" value="${purchase.firstMonth || state.currentMonth}" required />
+        </div>
+        <div class="cardpurchase-preview" id="cpPreview" style="font-size:13px; color:var(--text-mute); margin:-2px 0 8px;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
+          ${isNew ? '' : '<button type="button" class="btn-danger" data-act="delete">🗑 Excluir</button>'}
+          <button type="submit" class="btn-primary">${isNew ? 'Lançar' : 'Salvar'}</button>
+        </div>
+      </form>
+    `);
+    const form = document.getElementById('cardPurchaseForm');
+    const totalInput = form.querySelector('input[name="total"]');
+    attachBRLFormat(totalInput);
+    const preview = document.getElementById('cpPreview');
+    const updatePreview = () => {
+      const total = parseNumber(totalInput.value);
+      const n = Math.max(1, Math.min(99, parseInt(form.querySelector('input[name="installments"]').value, 10) || 1));
+      if (total > 0) {
+        const per = Math.round((total / n) * 100) / 100;
+        preview.textContent = n > 1 ? `${n}x de ${fmtBRL(per)}` : `À vista: ${fmtBRL(total)}`;
+      } else {
+        preview.textContent = '';
+      }
+    };
+    totalInput.addEventListener('input', updatePreview);
+    form.querySelector('input[name="installments"]').addEventListener('input', updatePreview);
+    updatePreview();
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const total = parseNumber(fd.get('total'));
+      if (total <= 0) { showToast('Digite um valor válido.', 'error'); return; }
+      const nameCheck = safeText(fd.get('name'), { max: 60 });
+      if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Digite o que você comprou.'), 'error'); return; }
+      const installments = Math.max(1, Math.min(99, parseInt(fd.get('installments'), 10) || 1));
+      const firstMonth = /^\d{4}-\d{2}$/.test(fd.get('firstMonth')) ? String(fd.get('firstMonth')) : state.currentMonth;
+      const payload = {
+        id: purchase.id || newId('cp'),
+        cardId: String(fd.get('cardId')),
+        name: nameCheck.value,
+        total,
+        installments,
+        firstMonth,
+        createdAt: purchase.createdAt || Date.now(),
+      };
+      if (isNew) {
+        state.cardPurchases.push(payload);
+      } else {
+        const idx = state.cardPurchases.findIndex(p => p.id === purchase.id);
+        if (idx >= 0) state.cardPurchases[idx] = payload;
+      }
+      // materializa a fatura do mês se o vencimento já chegou, e sincroniza se já existia
+      const cardRef = state.cards.find(c => c.id === payload.cardId);
+      if (cardRef) applyCardInvoiceForCurrentMonth(cardRef);
+      syncCurrentInvoiceExpense(payload.cardId);
+      saveState();
+      renderAll();
+      closeModal();
+      showToast(isNew ? 'Compra lançada.' : 'Compra atualizada.', 'success');
+    });
+    form.querySelector('[data-act="cancel"]').addEventListener('click', closeModal);
+    const delBtn = form.querySelector('[data-act="delete"]');
+    if (delBtn) delBtn.addEventListener('click', async () => {
+      if (!(await confirmDialog({
+        title: 'Excluir compra?',
+        message: 'A compra some das próximas faturas. Faturas já lançadas como despesa continuam no histórico.',
+        okLabel: 'Excluir', danger: true,
+      }))) return;
+      const cardId = purchase.cardId;
+      state.cardPurchases = state.cardPurchases.filter(p => p.id !== purchase.id);
+      syncCurrentInvoiceExpense(cardId);
+      saveState();
+      renderAll();
+      closeModal();
+      showToast('Compra excluída.', 'success');
+    });
+  }
+
+  // Se a fatura do mês corrente já virou despesa, recalcula seu valor (ou remove se zerou).
+  function syncCurrentInvoiceExpense(cardId) {
+    const card = state.cards.find(c => c.id === cardId);
+    if (!card) return;
+    const idx = state.expenses.findIndex(e => e.fromCardInvoice === cardId && (e.date || '').startsWith(state.currentMonth));
+    if (idx < 0) return;
+    const { total } = cardInvoiceForMonth(cardId, state.currentMonth);
+    if (total <= 0) {
+      state.expenses.splice(idx, 1);
+    } else {
+      state.expenses[idx].value = total;
+      state.expenses[idx].name = `Fatura ${card.name}`;
+      state.expenses[idx].categoryId = card.categoryId;
+    }
   }
 
   // ==================== BACKUP ====================
@@ -8254,6 +8844,7 @@ function doGet() {
         state = sanitizeImportedData(data);
         // BUGFIX #3: re-apply recurring expenses for current month after import
         ensureRecurringForCurrentMonth();
+        ensureCardInvoicesForCurrentMonth();
         applyTheme();
         saveState();
         renderAll();
@@ -8615,6 +9206,7 @@ function doGet() {
     archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>',
     notepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
     barChart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+    card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
   };
 
   function emptyStateHtml(iconKey, title, desc, ctaText, ctaAction) {
@@ -8658,6 +9250,12 @@ function doGet() {
       switchTab('despesas');
       setTimeout(() => {
         const btn = document.getElementById('addRecurringBtn');
+        if (btn) btn.click();
+      }, 300);
+    } else if (action === 'addCard') {
+      switchTab('cartao');
+      setTimeout(() => {
+        const btn = document.getElementById('addCardBtn');
         if (btn) btn.click();
       }, 300);
     }
@@ -8986,6 +9584,9 @@ function doGet() {
       renderExpenses();
       renderRecurring();
       renderCategories(); // summary tiles still depend on this
+    } else if (state.activeTab === 'cartao') {
+      renderCards();
+      renderCategories();
     } else if (state.activeTab === 'metas') {
       renderGoals();
       renderCategories();
@@ -9357,6 +9958,9 @@ function doGet() {
     // Recurring
     document.getElementById('addRecurringBtn').addEventListener('click', () => openRecurringModal());
 
+    // Cartões
+    document.getElementById('addCardBtn').addEventListener('click', () => openCardModal());
+
     // Goals
     document.getElementById('addGoalBtn').addEventListener('click', () => openGoalModal());
 
@@ -9564,6 +10168,7 @@ function doGet() {
         // Preserva alguns campos locais (ex: nome do dispositivo) se a nuvem não tiver
         if (!state.deviceName) state.deviceName = '';
         ensureRecurringForCurrentMonth();
+        ensureCardInvoicesForCurrentMonth();
         saveState();
         renderAll();
         applyTheme();
@@ -10557,6 +11162,7 @@ function doGet() {
     // Navegação
     cmds.push({ group: 'Navegação', label: 'Ir para Painel', icon: ICONS.barChart, action: () => switchTab('painel'), keywords: 'painel inicio dashboard home' });
     cmds.push({ group: 'Navegação', label: 'Ir para Despesas', icon: ICONS.receipt, action: () => switchTab('despesas'), keywords: 'despesas gastos lista' });
+    cmds.push({ group: 'Navegação', label: 'Ir para Cartão', icon: ICONS.creditCard, action: () => switchTab('cartao'), keywords: 'cartao credito fatura parcela parcelado' });
     cmds.push({ group: 'Navegação', label: 'Ir para Metas', icon: ICONS.target, action: () => switchTab('metas'), keywords: 'metas objetivos poupanca' });
     cmds.push({ group: 'Navegação', label: 'Ir para Agenda', icon: ICONS.calendar, action: () => switchTab('calendario'), keywords: 'agenda calendario contas agendamentos heatmap dias semana padrao' });
     cmds.push({ group: 'Navegação', label: 'Ir para Histórico', icon: ICONS.trendingUp, action: () => switchTab('historico'), keywords: 'historico passado meses' });
@@ -10564,6 +11170,7 @@ function doGet() {
     cmds.push({ group: 'Ações', label: 'Adicionar despesa', icon: ICONS.receipt, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('expName').focus(), 200); }, keywords: 'nova adicionar despesa gasto novo' });
     cmds.push({ group: 'Ações', label: 'Criar nova meta', icon: ICONS.target, action: () => { switchTab('metas'); setTimeout(() => document.getElementById('addGoalBtn').click(), 200); }, keywords: 'nova meta sonho objetivo' });
     cmds.push({ group: 'Ações', label: 'Adicionar despesa recorrente', icon: ICONS.refresh, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('addRecurringBtn').click(), 200); }, keywords: 'recorrente fixa mensal' });
+    cmds.push({ group: 'Ações', label: 'Lançar compra no cartão', icon: ICONS.creditCard, action: () => { switchTab('cartao'); setTimeout(() => openCardPurchaseModal(), 200); }, keywords: 'cartao compra parcelar parcela fatura credito' });
     cmds.push({ group: 'Ações', label: 'Agendar despesa / evento', icon: ICONS.calendar, action: () => openScheduleModal(state.ui.calendarSelectedDay || todayISO()), keywords: 'agendar futuro lembrete evento marcar aluguel salario aniversario' });
     cmds.push({ group: 'Ações', label: 'Fechar mês atual', icon: ICONS.calendarCheck, action: () => openCloseMonthModal(), keywords: 'fechar mes arquivar mes mes' });
     cmds.push({ group: 'Ações', label: 'Bloco de notas / feedback', icon: ICONS.messageSquare, action: () => toggleNotesPanel(true), keywords: 'notas feedback ideias melhorias' });
@@ -10792,6 +11399,7 @@ function doGet() {
   updateStreak();
   applyTheme();
   ensureRecurringForCurrentMonth();
+  ensureCardInvoicesForCurrentMonth();
   setupEvents();
   renderAll();
   generateAppleTouchIcon();
