@@ -4093,7 +4093,7 @@
   .color-swatch-btn:hover { transform: scale(1.1); }
   .color-popover {
     position: absolute;
-    z-index: 1000;
+    z-index: 2100; /* acima do modal-backdrop (1000) — senão o picker abre atrás do modal (metas, cartão) */
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -8615,10 +8615,12 @@ function doGet() {
     `);
     const form = document.getElementById('cardForm');
     let pickedColor = card.color;
-    document.getElementById('cardColorBtn').addEventListener('click', (ev) => {
-      openColorPicker(ev.currentTarget, pickedColor, (col) => {
+    const cardColorBtn = document.getElementById('cardColorBtn');
+    cardColorBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openColorPicker(cardColorBtn, pickedColor, (col) => {
         pickedColor = col;
-        ev.currentTarget.style.background = col;
+        cardColorBtn.style.background = col;
       });
     });
     form.addEventListener('submit', (e) => {
@@ -8685,6 +8687,19 @@ function doGet() {
     const cardOpts = state.cards.map(c =>
       `<option value="${c.id}" ${c.id === purchase.cardId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
     ).join('');
+    // Seletor de mês amigável (dropdown), em vez do input[type=month] nativo que é ruim de usar
+    const selMonth = purchase.firstMonth || defFirstMonth;
+    let startM = state.currentMonth;
+    if (ymDiffMonths(selMonth, state.currentMonth) > 0) startM = selMonth; // compra antiga sendo editada
+    const nextM = ymAddMonths(state.currentMonth, 1);
+    const monthList = [];
+    for (let i = 0; i <= 12; i++) monthList.push(ymAddMonths(startM, i));
+    const monthOpts = monthList.map(ym => {
+      let label = capitalize(fmtMonthName(ym));
+      if (ym === state.currentMonth) label += ' · este mês';
+      else if (ym === nextM) label += ' · próximo mês';
+      return `<option value="${ym}" ${ym === selMonth ? 'selected' : ''}>${label}</option>`;
+    }).join('');
     openModal(`
       <h3>${isNew ? 'Lançar compra' : 'Editar compra'}</h3>
       <p class="modal-sub">O valor total dividido nas parcelas. Cada parcela entra na fatura do mês dela.</p>
@@ -8709,7 +8724,7 @@ function doGet() {
         </div>
         <div class="form-row">
           <label>Primeira parcela em</label>
-          <input type="month" name="firstMonth" value="${purchase.firstMonth || state.currentMonth}" required />
+          <select name="firstMonth">${monthOpts}</select>
         </div>
         <div class="cardpurchase-preview" id="cpPreview" style="font-size:13px; color:var(--text-mute); margin:-2px 0 8px;"></div>
         <div class="modal-actions">
