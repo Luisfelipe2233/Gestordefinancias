@@ -2817,6 +2817,58 @@
     background: rgba(255,255,255,0.85);
   }
 
+  /* ==================== QUICK-ADD (bottom-sheet) ==================== */
+  .qadd-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1200;
+    align-items: flex-end;
+    justify-content: center;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+  .qadd-backdrop.show { display: flex; }
+  .qadd-sheet {
+    background: var(--surface);
+    width: 100%;
+    max-width: 460px;
+    border-radius: 22px 22px 0 0;
+    padding: 10px 18px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.25);
+    transform: translateY(100%);
+    transition: transform 0.32s var(--ease-spring-soft, cubic-bezier(0.34,1.1,0.64,1));
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .qadd-backdrop.show .qadd-sheet { transform: translateY(0); }
+  .qadd-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--border-strong); margin: 4px auto 12px; }
+  .qadd-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .qadd-head h3 { margin: 0; font-size: 17px; }
+  .qadd-close { background: transparent; border: none; color: var(--text-mute); cursor: pointer; padding: 6px; display: inline-flex; border-radius: 8px; }
+  .qadd-close:hover { background: var(--surface-alt); color: var(--text); }
+  .qadd-value-row { display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--border); padding: 6px 2px 10px; margin-bottom: 14px; }
+  .qadd-currency { font-size: 24px; font-weight: 700; color: var(--text-mute); }
+  #qaddValue { flex: 1; border: none; background: transparent; font-size: 34px; font-weight: 800; color: var(--text); font-family: inherit; outline: none; padding: 0; letter-spacing: -0.02em; min-width: 0; }
+  #qaddValue::placeholder { color: var(--text-mute); opacity: 0.45; }
+  .qadd-pills { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+  .qadd-name { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-alt); font-size: 14px; font-family: inherit; color: var(--text); margin-bottom: 10px; box-sizing: border-box; }
+  .qadd-name:focus { outline: none; border-color: var(--primary); }
+  .qadd-date-toggle { display: inline-flex; align-items: center; gap: 7px; background: transparent; border: none; color: var(--text-mute); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 2px; margin-bottom: 8px; }
+  .qadd-date-toggle:hover { color: var(--primary); }
+  .qadd-date-toggle .qadd-chev { display: inline-flex; transition: transform 0.25s ease; }
+  .qadd-date-toggle.open .qadd-chev { transform: rotate(180deg); }
+  .qadd-date-wrap { margin-bottom: 12px; }
+  .qadd-date-wrap input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-alt); font-family: inherit; font-size: 14px; color: var(--text); box-sizing: border-box; }
+  .qadd-save { width: 100%; margin-top: 4px; }
+  @media (min-width: 761px) {
+    .qadd-backdrop { align-items: center; }
+    .qadd-sheet { border-radius: 18px; max-height: 88vh; transform: translateY(20px) scale(0.98); opacity: 0; transition: transform 0.25s ease, opacity 0.2s ease; padding-bottom: 20px; }
+    .qadd-backdrop.show .qadd-sheet { transform: translateY(0) scale(1); opacity: 1; }
+    .qadd-grip { display: none; }
+  }
+
   /* ==================== MODO STEALTH ==================== */
   /* Borra todos os valores em R$ pra privacidade rápida (todas as abas) */
   body.stealth-mode .summary-tile .val,
@@ -5741,6 +5793,34 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </button>
 
+<!-- ============ QUICK-ADD (bottom-sheet rápido pelo +) ============ -->
+<div class="qadd-backdrop" id="quickAddBackdrop">
+  <div class="qadd-sheet" id="quickAddSheet" role="dialog" aria-modal="true" aria-label="Adicionar gasto rápido">
+    <div class="qadd-grip"></div>
+    <div class="qadd-head">
+      <h3>Novo gasto</h3>
+      <button class="qadd-close" id="qaddClose" type="button" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="qadd-value-row">
+      <span class="qadd-currency">R$</span>
+      <input type="text" id="qaddValue" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Valor" />
+    </div>
+    <div class="qadd-pills" id="qaddPills"></div>
+    <input type="text" id="qaddName" class="qadd-name" placeholder="Nome (opcional)" maxlength="60" autocomplete="off" />
+    <button type="button" class="qadd-date-toggle" id="qaddDateToggle">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span id="qaddDateLabel">Hoje</span>
+      <span class="qadd-chev"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </button>
+    <div class="qadd-date-wrap" id="qaddDateWrap" style="display:none;">
+      <input type="date" id="qaddDate" />
+    </div>
+    <button type="button" class="btn-primary qadd-save" id="qaddSave">+ Adicionar</button>
+  </div>
+</div>
+
 <!-- ============ BLOCO DE NOTAS (feedback pessoal) ============ -->
 <button class="notes-fab" id="notesFab" title="Bloco de notas" aria-label="Abrir bloco de notas">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
@@ -6958,6 +7038,122 @@
         sel.dispatchEvent(new Event('change', { bubbles: true }));
         renderQuickChips();
       });
+    });
+  }
+
+  // ==================== QUICK-ADD (bottom-sheet rápido) ====================
+  let quickAddSelectedCat = null;
+  let quickAddNameTouched = false;
+
+  function openQuickAdd() {
+    if (!state.categories || state.categories.length === 0) { goToAddExpense(); return; }
+    const back = document.getElementById('quickAddBackdrop');
+    document.getElementById('qaddValue').value = '';
+    document.getElementById('qaddName').value = '';
+    document.getElementById('qaddDate').value = todayISO();
+    document.getElementById('qaddDateLabel').textContent = 'Hoje';
+    document.getElementById('qaddDateWrap').style.display = 'none';
+    document.getElementById('qaddDateToggle').classList.remove('open');
+    quickAddNameTouched = false;
+    // pré-seleciona a categoria mais usada (ou a primeira)
+    const counts = {};
+    (state.expenses || []).forEach(e => { counts[e.categoryId] = (counts[e.categoryId] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    quickAddSelectedCat = (top && state.categories.some(c => c.id === top[0]))
+      ? top[0] : state.categories[0].id;
+    renderQuickAddPills();
+    back.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('qaddValue').focus(), 80);
+  }
+
+  function closeQuickAdd() {
+    document.getElementById('quickAddBackdrop').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function renderQuickAddPills() {
+    const wrap = document.getElementById('qaddPills');
+    if (!wrap) return;
+    wrap.innerHTML = state.categories.map(cat => `
+      <button type="button" class="quick-chip ${cat.id === quickAddSelectedCat ? 'active' : ''}"
+              data-qadd-cat="${cat.id}"
+              style="--chip-color:${cat.color}; --chip-color-soft:${cat.color}1a; --chip-color-shadow:${cat.color}40;">
+        <span class="dot"></span>${escapeHtml(cat.name)}
+      </button>
+    `).join('');
+    wrap.querySelectorAll('[data-qadd-cat]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        quickAddSelectedCat = btn.dataset.qaddCat;
+        renderQuickAddPills();
+      });
+    });
+  }
+
+  function saveQuickAdd() {
+    const value = parseNumber(document.getElementById('qaddValue').value);
+    if (value <= 0) { showToast('Digite um valor maior que zero.', 'error'); document.getElementById('qaddValue').focus(); return; }
+    if (!quickAddSelectedCat) { showToast('Escolha uma categoria.', 'error'); return; }
+    const cat = state.categories.find(c => c.id === quickAddSelectedCat);
+    const nameCheck = safeText(document.getElementById('qaddName').value, { max: 60, allowEmpty: true });
+    if (!nameCheck.ok) { showToast(safeTextErrorMsg(nameCheck.reason, 'Nome inválido.'), 'error'); return; }
+    const name = nameCheck.value || (cat ? cat.name : 'Gasto');
+    const date = document.getElementById('qaddDate').value || todayISO();
+    state.expenses.push({
+      id: newId('e'),
+      name,
+      value,
+      categoryId: quickAddSelectedCat,
+      date,
+      timestamp: new Date(date).getTime() || Date.now(),
+    });
+    if (nameCheck.value) teach(nameCheck.value, quickAddSelectedCat);
+    saveState();
+    closeQuickAdd();
+    const fab = document.getElementById('fabAdd');
+    floatingMoney(value, (fab && fab.offsetParent) ? fab : document.getElementById('qaddSave'), false);
+    renderAll();
+    track('add_expense');
+    showToast('Gasto adicionado.', 'success');
+  }
+
+  function setupQuickAdd() {
+    const back = document.getElementById('quickAddBackdrop');
+    if (!back || back.dataset.wired) return;
+    back.dataset.wired = '1';
+    back.addEventListener('click', (e) => { if (e.target === back) closeQuickAdd(); });
+    document.getElementById('qaddClose').addEventListener('click', closeQuickAdd);
+    document.getElementById('qaddSave').addEventListener('click', saveQuickAdd);
+    attachBRLFormat(document.getElementById('qaddValue'));
+    // Enter no valor salva direto
+    document.getElementById('qaddValue').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); saveQuickAdd(); }
+    });
+    // Auto-sugere categoria conforme digita o nome
+    document.getElementById('qaddName').addEventListener('input', (e) => {
+      quickAddNameTouched = true;
+      const cat = suggestCategory(e.target.value);
+      if (cat && cat.id !== quickAddSelectedCat) {
+        quickAddSelectedCat = cat.id;
+        renderQuickAddPills();
+      }
+    });
+    // Data recolhida ("Hoje ▾")
+    const dateToggle = document.getElementById('qaddDateToggle');
+    dateToggle.addEventListener('click', () => {
+      const wrap = document.getElementById('qaddDateWrap');
+      const open = wrap.style.display !== 'none';
+      wrap.style.display = open ? 'none' : 'block';
+      dateToggle.classList.toggle('open', !open);
+    });
+    document.getElementById('qaddDate').addEventListener('change', (e) => {
+      const v = e.target.value;
+      const label = document.getElementById('qaddDateLabel');
+      label.textContent = (!v || v === todayISO()) ? 'Hoje' : formatDateBR(v);
+    });
+    // Esc fecha
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && back.classList.contains('show')) closeQuickAdd();
     });
   }
 
@@ -9691,9 +9887,10 @@ function doGet() {
       }, 220);
     }
     const fabAdd = document.getElementById('fabAdd');
-    if (fabAdd) fabAdd.addEventListener('click', goToAddExpense);
+    if (fabAdd) fabAdd.addEventListener('click', openQuickAdd);
     const painelAddBtn = document.getElementById('painelAddBtn');
-    if (painelAddBtn) painelAddBtn.addEventListener('click', goToAddExpense);
+    if (painelAddBtn) painelAddBtn.addEventListener('click', openQuickAdd);
+    setupQuickAdd();
 
     // Configuração recolhida (renda + método) — toggle
     const configToggle = document.getElementById('configToggle');
