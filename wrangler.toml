@@ -1,0 +1,8 @@
+name = "munny"
+compatibility_date = "2026-06-01"
+
+# Munny é um site estático (index.html + ícones + manifest).
+# Servimos a pasta raiz como assets, sem script de Worker.
+[assets]
+directory = "."
+not_found_handling = "single-page-application"
