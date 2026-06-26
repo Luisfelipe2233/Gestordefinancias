@@ -1,6 +1,12 @@
 name = "munny"
 compatibility_date = "2026-06-01"
 
+# Domínio próprio (a zona já está na conta Cloudflare, então o deploy provisiona DNS + HTTPS sozinho).
+routes = [
+  { pattern = "munnygestorfinanceiro.com", custom_domain = true },
+  { pattern = "www.munnygestorfinanceiro.com", custom_domain = true }
+]
+
 # Munny é um site estático (index.html + ícones + manifest).
 # Servimos a pasta raiz como assets, sem script de Worker.
 [assets]
