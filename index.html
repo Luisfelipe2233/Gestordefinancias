@@ -8198,6 +8198,11 @@
         <div class="label">Aparência</div>
         <button class="item" data-act="themePicker"><span class="menu-icon">${ICONS.palette}</span><span>Escolher tema (7 opções)</span></button>
         <button class="item" data-act="theme"><span class="menu-icon">${ICONS.moon}</span><span>Alternar claro/escuro (atalho)</span></button>
+        ${isAppInstalled() ? '' : `
+        <div class="divider"></div>
+        <div class="label">App</div>
+        <button class="item" data-act="install"><span class="menu-icon">${ICONS.download}</span><span>Instalar na área de trabalho</span></button>
+        `}
         <div class="divider"></div>
         <div class="label">Engajamento</div>
         <button class="item" data-act="achievements"><span class="menu-icon">${ICONS.trophy}</span><span>Conquistas e Stats</span></button>
@@ -8234,6 +8239,8 @@
     const themePickerBtn = modal.querySelector('[data-act="themePicker"]');
     if (themePickerBtn) themePickerBtn.addEventListener('click', () => { closeModal(); openThemePicker(); });
     modal.querySelector('[data-act="syncConfig"]').addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
+    const installBtn = modal.querySelector('[data-act="install"]');
+    if (installBtn) installBtn.addEventListener('click', () => { closeModal(); triggerInstall(); });
     const achBtn = modal.querySelector('[data-act="achievements"]');
     if (achBtn) achBtn.addEventListener('click', () => { closeModal(); openAchievementsModal(); });
     const notesBtn = modal.querySelector('[data-act="notes"]');
@@ -11735,15 +11742,62 @@ function doGet() {
   let deferredInstallPrompt = null;
   const INSTALL_DISMISS_KEY = 'munny_install_dismissed';
 
+  function isAppInstalled() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+  }
+
   function showInstallBanner() {
     const banner = document.getElementById('installBanner');
     if (!banner || !deferredInstallPrompt) return;
-    const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-      || window.navigator.standalone === true;
     let dismissed = false;
     try { dismissed = localStorage.getItem(INSTALL_DISMISS_KEY) === '1'; } catch (_) {}
-    if (isStandalone || dismissed) return;
+    if (isAppInstalled() || dismissed) return;
     banner.style.display = 'flex';
+  }
+
+  // Disparado pelo botão "Instalar na área de trabalho" do menu de Configurações.
+  async function triggerInstall() {
+    if (isAppInstalled()) { showToast('O Munny já está instalado neste aparelho. 🍃', 'success'); return; }
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      let outcome = 'dismissed';
+      try { outcome = (await deferredInstallPrompt.userChoice).outcome; } catch (_) {}
+      deferredInstallPrompt = null;
+      const banner = document.getElementById('installBanner');
+      if (banner) banner.style.display = 'none';
+      if (outcome === 'accepted') showToast('Instalando o Munny…', 'success');
+      return;
+    }
+    // Navegador sem prompt nativo (Safari, Firefox, ou Chrome ainda sem o gatilho): mostra o passo a passo.
+    showInstallInstructions();
+  }
+
+  function showInstallInstructions() {
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+    const isFirefox = /Firefox/i.test(ua);
+    let steps;
+    if (isIOS) {
+      steps = 'No <strong>Safari</strong>: toque no botão <strong>Compartilhar</strong> (quadrado com seta pra cima) e escolha <strong>“Adicionar à Tela de Início”</strong>.';
+    } else if (isAndroid) {
+      steps = 'No <strong>Chrome</strong>: toque no menu <strong>⋮</strong> (canto superior direito) e escolha <strong>“Instalar app”</strong> ou <strong>“Adicionar à tela inicial”</strong>.';
+    } else if (isFirefox) {
+      steps = 'O <strong>Firefox</strong> não instala sites como app no computador. Abra o Munny no <strong>Chrome</strong> ou <strong>Edge</strong> e a opção “Instalar” aparece na barra de endereço.';
+    } else {
+      steps = 'No <strong>Chrome</strong> ou <strong>Edge</strong>: clique no ícone de <strong>instalar</strong> na barra de endereço (um monitor com uma seta), ou abra o menu <strong>⋮ → “Instalar Munny…”</strong>. O atalho vai pra área de trabalho e abre em janela própria.';
+    }
+    openModal(`
+      <h3>Instalar o Munny</h3>
+      <p class="modal-sub">Pra ter o Munny na área de trabalho e abrir com um clique, sem precisar do link:</p>
+      <p style="font-size:14px; line-height:1.55; color:var(--text);">${steps}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" data-act="ok" style="width:100%;">Entendi</button>
+      </div>
+    `);
+    const okBtn = document.querySelector('#modalContent [data-act="ok"]');
+    if (okBtn) okBtn.addEventListener('click', closeModal);
   }
 
   window.addEventListener('beforeinstallprompt', (e) => {
