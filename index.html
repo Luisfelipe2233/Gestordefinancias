@@ -26,10 +26,10 @@
 <meta name="twitter:title" content="Munny: Gestor de finanças" />
 <meta name="twitter:description" content="Seu dinheiro, sob controle. Sem planilhas, de qualquer aparelho." />
 <meta name="twitter:image" content="https://luisfelipe2233.github.io/Gestordefinancias/og-image.png" />
-<link rel="manifest" href='data:application/manifest+json,{"name":"Munny: Gestor de finanças","short_name":"Munny","start_url":".","display":"standalone","background_color":"%23F7F3EA","theme_color":"%23F7F3EA"}' />
+<link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%236F8E7F"/><text x="16" y="22" font-size="16" text-anchor="middle" fill="%23FDFBF4" font-family="Arial" font-weight="bold">R$</text></svg>' />
-<!-- BUGFIX #16: Apple touch icon — generated at runtime as PNG via canvas (see init) -->
-<link rel="apple-touch-icon" id="appleTouchIcon" />
+<!-- Apple touch icon — arquivo estático (runtime ainda pode sobrescrever via canvas) -->
+<link rel="apple-touch-icon" id="appleTouchIcon" href="icon-192.png" />
 <!-- Fonte premium Inter (mesma da Stripe, Linear, Vercel) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -5248,7 +5248,7 @@
     </div>
     <div class="install-text">
       <strong>Instalar o Munny</strong>
-      <span>Acesse direto da tela inicial, abre rápido e funciona offline.</span>
+      <span>Coloque na tela inicial e abra direto, igual a um app.</span>
     </div>
     <button type="button" class="install-cta" id="installAccept">Instalar</button>
     <button type="button" class="install-dismiss" id="installDismiss" aria-label="Agora não">
