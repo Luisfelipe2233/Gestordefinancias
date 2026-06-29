@@ -3551,8 +3551,18 @@
   }
 
   .login-tagline {
-    margin: 0 0 26px;
-    font-size: 14px;
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Uma linha concreta do que o app faz — clareza pra quem chega frio, sem virar hero */
+  .login-pitch {
+    margin: 0 auto 24px;
+    max-width: 300px;
+    font-size: 13px;
+    line-height: 1.5;
     color: var(--text-mute);
   }
 
@@ -5207,6 +5217,7 @@
       </div>
       <h1 class="login-title">Munny</h1>
       <p class="login-tagline">Seu dinheiro, sob controle.</p>
+      <p class="login-pitch">Divida sua renda, acompanhe os gastos e veja quanto ainda sobra. Sem planilha.</p>
 
       <button class="login-google-btn" id="googleLoginBtn" type="button">
         <svg width="20" height="20" viewBox="0 0 48 48">
@@ -5218,7 +5229,7 @@
         <span>Entrar com Google</span>
       </button>
 
-      <button class="login-guest-link" id="startPreviewBtn" type="button">Explorar no modo visitante</button>
+      <button class="login-guest-link" id="startPreviewBtn" type="button">Explorar sem cadastro</button>
 
       <div class="login-trust">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
