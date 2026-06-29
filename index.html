@@ -5229,7 +5229,7 @@
         <span>Entrar com Google</span>
       </button>
 
-      <button class="login-guest-link" id="startPreviewBtn" type="button">Explorar sem cadastro</button>
+      <button class="login-guest-link" id="startPreviewBtn" type="button">Explorar no modo visitante</button>
 
       <div class="login-trust">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -5717,7 +5717,7 @@
     <!-- Passo 2 — Método -->
     <div class="onb-step" data-step="2" style="display:none;">
       <div class="onb-emoji">🍃</div>
-      <h2>Como dividir esse dinheiro?</h2>
+      <h2>Como dividir seu dinheiro?</h2>
       <p>Escolha um ponto de partida. Dá pra ajustar nomes, cores e valores depois.</p>
       <div class="onb-methods">
         <button type="button" class="onb-method" data-onb-method="50-30-20">
@@ -5729,7 +5729,7 @@
           <span>Divide em 6 categorias-chave. Bom pra quem quer detalhe.</span>
         </button>
         <button type="button" class="onb-method" data-onb-method="custom">
-          <strong>Personalizado</strong>
+          <strong>Do meu jeito</strong>
           <span>Comece com categorias do dia a dia e ajuste do seu jeito.</span>
         </button>
       </div>
@@ -10295,6 +10295,8 @@ function doGet() {
   function showMainApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
+    // Reavalia o banner de instalar agora que a pessoa está no app (e não mais no login/onboarding)
+    setTimeout(() => { try { showInstallBanner(); } catch (_) {} }, 1200);
   }
 
   function loginWithGoogle() {
@@ -11764,6 +11766,9 @@ function doGet() {
     let dismissed = false;
     try { dismissed = localStorage.getItem(INSTALL_DISMISS_KEY) === '1'; } catch (_) {}
     if (isAppInstalled() || dismissed) return;
+    // Não competir com a tela de login nem com o onboarding na primeira vez
+    const isVisible = (id) => { const el = document.getElementById(id); return el && getComputedStyle(el).display !== 'none'; };
+    if (isVisible('loginScreen') || isVisible('onbBackdrop')) return;
     banner.style.display = 'flex';
   }
 
