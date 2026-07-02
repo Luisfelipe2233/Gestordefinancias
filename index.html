@@ -1057,6 +1057,37 @@
   .painel-add-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(111, 142, 127, 0.36); }
   .painel-add-btn:active { transform: translateY(0) scale(0.98); }
 
+  /* Prompt de renda do mês — aparece no topo quando a renda ainda não foi lançada */
+  .income-prompt {
+    background: var(--primary-soft);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .income-prompt-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .income-prompt-icon {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .income-prompt-icon svg { width: 20px; height: 20px; }
+  .income-prompt-title { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+  .income-prompt-sub { font-size: 12.5px; color: var(--text-mute); margin-top: 1px; line-height: 1.35; }
+  .income-prompt-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 6px 8px 6px 14px;
+  }
+  .income-prompt-cur { font-size: 20px; font-weight: 700; color: var(--text-mute); flex-shrink: 0; }
+  #incomePromptInput {
+    flex: 1; min-width: 0; border: none; background: transparent; outline: none;
+    font-family: inherit; font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; padding: 6px 0;
+  }
+  #incomePromptInput::placeholder { color: var(--text-mute); opacity: 0.45; }
+  .income-prompt-row .btn-primary { width: auto; padding: 12px 20px; flex-shrink: 0; }
+
   /* ==================== PAINEL — CONFIGURAÇÃO RECOLHIDA (renda + método) ==================== */
   .config-toggle {
     display: flex;
@@ -4360,6 +4391,75 @@
     margin-top: 1px;
   }
 
+  /* ==================== HISTÓRICO (novo) ==================== */
+  .hist-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  @media (max-width: 620px) { .hist-stats { grid-template-columns: repeat(2, 1fr); } }
+  .hist-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .hist-stat .ic { font-size: 16px; line-height: 1; }
+  .hist-stat .v { font-size: clamp(16px, 3.5vw, 20px); font-weight: 800; letter-spacing: -0.02em; color: var(--text); margin-top: 6px; }
+  .hist-stat .l { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+  .hist-months { display: flex; flex-direction: column; gap: 10px; }
+  .hist-month {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hist-month.open { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+  .hist-month-head {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; background: transparent; border: none; cursor: pointer;
+    font-family: inherit; text-align: left; color: var(--text);
+  }
+  .hist-month-head:hover { background: var(--surface-alt); }
+  .hist-month-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .hist-month-name { font-weight: 700; font-size: 15px; text-transform: capitalize; }
+  .hist-badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .hist-badge.pos { color: var(--success-dark, var(--success)); background: var(--success-soft, var(--primary-soft)); }
+  .hist-badge.neg { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .hist-chev { display: inline-flex; color: var(--text-mute); transition: transform 0.3s var(--ease-spring-soft, ease); flex-shrink: 0; }
+  .hist-month.open .hist-chev { transform: rotate(180deg); }
+  .hist-chev svg { width: 18px; height: 18px; }
+
+  .hist-month-body {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.4s var(--ease-spring-soft, ease), opacity 0.3s ease;
+  }
+  .hist-month.open .hist-month-body { max-height: 1200px; opacity: 1; }
+  .hist-month-body > * { margin: 0 16px; }
+  .hist-figs { display: flex; gap: 8px; padding-top: 4px; }
+  .hist-figs > div { flex: 1; background: var(--surface-alt); border-radius: 10px; padding: 8px 10px; }
+  .hist-figs .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); display: block; }
+  .hist-figs .v { font-size: 15px; font-weight: 700; color: var(--text); display: block; margin-top: 2px; }
+  .hist-figs .v.neg { color: var(--danger); }
+  .hist-bar { height: 8px; border-radius: 4px; background: var(--surface-alt); margin-top: 12px; overflow: hidden; }
+  .hist-bar > span { display: block; height: 100%; background: var(--primary); border-radius: 4px; }
+  .hist-barlbl { font-size: 12px; color: var(--text-mute); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hist-trend { font-weight: 700; font-size: 11px; }
+  .hist-trend.up { color: var(--danger); }
+  .hist-trend.down { color: var(--success-dark, var(--success)); }
+  .hist-detail { margin-top: 14px; padding-bottom: 16px; }
+  .hist-detail-title { font-size: 12px; font-weight: 700; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .hist-catrow { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 13px; }
+  .hist-catrow .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .hist-catrow .nm { color: var(--text); min-width: 84px; }
+  .hist-catrow .bar { flex: 1; height: 6px; background: var(--surface-alt); border-radius: 3px; overflow: hidden; }
+  .hist-catrow .bar > span { display: block; height: 100%; border-radius: 3px; }
+  .hist-catrow .vl { font-weight: 600; color: var(--text); flex-shrink: 0; }
+
   /* ==================== CHARTS ==================== */
   .chart-card {
     background: var(--surface);
@@ -5353,6 +5453,24 @@
   <!-- ============ PAINEL ============ -->
   <div class="tab-panel active" id="tab-painel">
 
+    <!-- 0. RENDA DO MÊS — destaque quando ainda não foi lançada (ex: depois de fechar o mês) -->
+    <div class="income-prompt" id="incomePrompt" style="display:none;">
+      <div class="income-prompt-top">
+        <div class="income-prompt-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div>
+          <div class="income-prompt-title" id="incomePromptTitle">Adicionar renda do mês</div>
+          <div class="income-prompt-sub">Quanto entrou este mês? É o que divide seu dinheiro nas categorias.</div>
+        </div>
+      </div>
+      <div class="income-prompt-row">
+        <span class="income-prompt-cur">R$</span>
+        <input type="text" id="incomePromptInput" inputmode="decimal" placeholder="0,00" autocomplete="off" />
+        <button class="btn-primary" id="incomePromptBtn" type="button">Adicionar</button>
+      </div>
+    </div>
+
     <!-- 1. RESUMO DO MÊS — o que importa primeiro -->
     <div class="summary-bar">
       <div class="summary-tile income">
@@ -5692,6 +5810,9 @@
       </div>
     </div>
 
+    <!-- Visão geral do histórico -->
+    <div class="hist-stats" id="histStats"></div>
+
     <div class="chart-card mt-12" id="barCard" style="display:none;">
       <h3>Comparativo Mensal</h3>
       <p class="sub">Renda, gastos e poupança ao longo do tempo.</p>
@@ -5706,8 +5827,8 @@
 
     <div class="card mt-12">
       <h2>Meses Anteriores</h2>
-      <p class="subtitle">Histórico de meses fechados.</p>
-      <ul class="history-list" id="historyList"></ul>
+      <p class="subtitle">Toque num mês pra ver pra onde o dinheiro foi.</p>
+      <div class="hist-months" id="historyList"></div>
     </div>
   </div>
 
@@ -6866,12 +6987,17 @@
       capitalize(fmtMonthName(state.currentMonth));
     document.getElementById('currentMonthName').textContent =
       capitalize(fmtMonthName(state.currentMonth));
+    const mes = capitalize(fmtMonthName(state.currentMonth));
     const incTitle = document.getElementById('incomeCardTitle');
     if (incTitle) {
       // Se a renda do mês ainda não foi lançada, convida a adicionar; senão, mostra "Renda de [mês]"
-      const mes = capitalize(fmtMonthName(state.currentMonth));
       incTitle.textContent = (Number(state.income) > 0) ? `Renda de ${mes}` : `Adicionar renda de ${mes}`;
     }
+    // Prompt de renda no topo do painel — só quando a renda do mês ainda não foi lançada
+    const incPrompt = document.getElementById('incomePrompt');
+    const incPromptTitle = document.getElementById('incomePromptTitle');
+    if (incPrompt) incPrompt.style.display = (Number(state.income) > 0) ? 'none' : 'block';
+    if (incPromptTitle) incPromptTitle.textContent = `Adicionar renda de ${mes}`;
     // Botão "voltar pro mês passado" só aparece se houver um mês fechado pra reabrir
     const reopenBtn = document.getElementById('reopenMonthBtn');
     if (reopenBtn) reopenBtn.style.display = reopenableMonth() ? 'inline-flex' : 'none';
@@ -7617,33 +7743,102 @@
 
   // ==================== RENDER: HISTÓRICO ====================
   function renderHistory() {
-    const ul = document.getElementById('historyList');
-    ul.innerHTML = '';
-    const months = Object.keys(state.history).sort().reverse();
+    const months = Object.keys(state.history).sort().reverse(); // mais novo primeiro
+    const wrap = document.getElementById('historyList');
+    const statsEl = document.getElementById('histStats');
+
+    // ---- Visão geral (stats) ----
+    if (statsEl) {
+      if (months.length === 0) {
+        statsEl.innerHTML = '';
+      } else {
+        const totalSpent = months.reduce((s, ym) => s + Number(state.history[ym].totalSpent || 0), 0);
+        const avgSpent = totalSpent / months.length;
+        const guardado = Number(state.savedBalance || 0);
+        // melhor mês (mais poupou)
+        let best = null;
+        months.forEach(ym => { const h = state.history[ym]; const sv = Number(h.income || 0) - Number(h.totalSpent || 0); if (best === null || sv > best.sv) best = { ym, sv }; });
+        const stat = (ic, v, l) => `<div class="hist-stat"><div class="ic">${ic}</div><div class="v">${v}</div><div class="l">${l}</div></div>`;
+        statsEl.innerHTML =
+          stat('💰', fmtBRL(guardado), 'Guardado agora') +
+          stat('📅', String(months.length), months.length === 1 ? 'Mês fechado' : 'Meses fechados') +
+          stat('📊', fmtBRL(avgSpent), 'Gasto médio/mês') +
+          stat('🏆', best ? capitalize(fmtMonthName(best.ym)).split(' de ')[0] : '—', 'Mês que mais poupou');
+      }
+    }
+
+    // ---- Cards por mês ----
+    wrap.innerHTML = '';
     if (months.length === 0) {
-      ul.innerHTML = '<li>' + emptyStateHtml(
+      wrap.innerHTML = emptyStateHtml(
         'archive',
-        'Histórico vazio',
-        'Quando você fechar o mês atual (botão acima), ele vai pra cá arquivado. Útil pra acompanhar evolução ao longo do tempo.'
-      ) + '</li>';
+        'Nenhum mês fechado ainda',
+        'Quando você fechar o mês atual, ele vem pra cá com o resumo completo. Ótimo pra ver sua evolução e pra onde o dinheiro foi.'
+      );
       return;
     }
-    months.forEach(ym => {
+    const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    months.forEach((ym, idx) => {
       const h = state.history[ym];
-      const saved = h.income - h.totalSpent;
-      const li = document.createElement('li');
-      li.className = 'history-item';
-      li.innerHTML = `
-        <div>
-          <div class="month-name">${capitalize(fmtMonthName(ym))}</div>
-          <div class="month-stats">${h.expenseCount} despesa(s) · Renda ${fmtBRL(h.income)}</div>
-        </div>
-        <div class="month-money">
-          <div class="saved ${saved < 0 ? 'negative' : ''}">${saved >= 0 ? '+' : ''}${fmtBRL(saved)}</div>
-          <div class="sub">${fmtBRL(h.totalSpent)} gastos</div>
+      const income = Number(h.income || 0);
+      const spent = Number(h.totalSpent || 0);
+      const saved = income - spent;
+      const pctSpent = income > 0 ? Math.min(100, (spent / income) * 100) : (spent > 0 ? 100 : 0);
+      // tendência vs mês anterior (o próximo na lista reversa é o mês mais antigo)
+      let trend = '';
+      const prevYm = months[idx + 1];
+      if (prevYm) {
+        const prevSpent = Number(state.history[prevYm].totalSpent || 0);
+        if (prevSpent > 0) {
+          const diff = ((spent - prevSpent) / prevSpent) * 100;
+          if (Math.abs(diff) >= 1) {
+            const up = diff > 0;
+            trend = `<span class="hist-trend ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(diff).toFixed(0)}% ${up ? 'a mais' : 'a menos'}</span>`;
+          }
+        }
+      }
+      // breakdown por categoria (a partir das despesas do mês)
+      const cats = Array.isArray(h.categories) ? h.categories : [];
+      const exps = Array.isArray(h.expenses) ? h.expenses : [];
+      const byCat = {};
+      exps.forEach(e => { byCat[e.categoryId] = (byCat[e.categoryId] || 0) + Number(e.value || 0); });
+      let catRows = cats.map(c => {
+        const v = byCat[c.id] || 0; if (v <= 0) return '';
+        const p = spent > 0 ? (v / spent) * 100 : 0;
+        return `<div class="hist-catrow"><span class="dot" style="background:${c.color}"></span><span class="nm">${escapeHtml(c.name)}</span><span class="bar"><span style="width:${p.toFixed(0)}%;background:${c.color}"></span></span><span class="vl">${fmtBRL(v)}</span></div>`;
+      }).filter(Boolean).join('');
+      if (!catRows) catRows = '<div class="subtitle" style="margin:0;">Sem gastos registrados neste mês.</div>';
+
+      const card = document.createElement('div');
+      card.className = 'hist-month';
+      card.innerHTML = `
+        <button class="hist-month-head" type="button" aria-expanded="false">
+          <span class="hist-month-title">
+            <span class="hist-month-name">${capitalize(fmtMonthName(ym))}</span>
+            <span class="hist-badge ${saved >= 0 ? 'pos' : 'neg'}">${saved >= 0 ? 'poupou' : 'estourou'} ${fmtBRL(Math.abs(saved))}</span>
+          </span>
+          <span class="hist-chev">${chev}</span>
+        </button>
+        <div class="hist-month-body">
+          <div class="hist-figs">
+            <div><span class="l">Renda</span><span class="v">${fmtBRL(income)}</span></div>
+            <div><span class="l">Gasto</span><span class="v">${fmtBRL(spent)}</span></div>
+            <div><span class="l">Sobrou</span><span class="v ${saved < 0 ? 'neg' : ''}">${fmtBRL(saved)}</span></div>
+          </div>
+          <div class="hist-bar"><span style="width:${pctSpent.toFixed(0)}%"></span></div>
+          <div class="hist-barlbl"><span>${pctSpent.toFixed(0)}% da renda gasta</span> ${trend}</div>
+          <div class="hist-detail">
+            <div class="hist-detail-title">Pra onde foi</div>
+            ${catRows}
+          </div>
         </div>
       `;
-      ul.appendChild(li);
+      const head = card.querySelector('.hist-month-head');
+      head.addEventListener('click', () => {
+        const open = card.classList.toggle('open');
+        head.setAttribute('aria-expanded', String(open));
+      });
+      wrap.appendChild(card);
     });
   }
 
@@ -9971,7 +10166,7 @@ function doGet() {
     // Wizard de primeiro uso: só pra quem está realmente começando do zero
     maybeShowOnboarding(isFirstTime);
     // Sem renda definida: abre a Configuração pra pessoa achar o campo (nunca fecha sozinha)
-    if (state.income <= 0) setConfigOpen(true);
+    // (renda 0: o prompt de renda no topo já cuida disso; não força abrir a Configuração)
     // BUGFIX #15: show search clear if already has a query
     const searchClear = document.getElementById('searchClearBtn');
     if (searchClear) searchClear.classList.toggle('show', !!(state.ui.search));
@@ -10319,6 +10514,22 @@ function doGet() {
 
     // Close month
     document.getElementById('closeMonthBtn').addEventListener('click', () => openCloseMonthModal());
+
+    // Prompt de renda do topo (aparece quando a renda do mês não foi lançada)
+    const incPromptInput = document.getElementById('incomePromptInput');
+    const incPromptBtn = document.getElementById('incomePromptBtn');
+    if (incPromptInput) attachBRLFormat(incPromptInput);
+    const submitIncomePrompt = () => {
+      const v = parseNumber(incPromptInput.value);
+      if (v <= 0) { showToast('Digite quanto entrou este mês.', 'error'); incPromptInput.focus(); return; }
+      state.income = v;
+      saveState();
+      incPromptInput.value = '';
+      renderAll();
+      showToast(`Renda de ${capitalize(fmtMonthName(state.currentMonth))} adicionada! 🍃`, 'success');
+    };
+    if (incPromptBtn) incPromptBtn.addEventListener('click', submitIncomePrompt);
+    if (incPromptInput) incPromptInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitIncomePrompt(); } });
 
     // Botão "Voltar pro mês passado" — desfaz um Fechar Mês feito por engano
     const reopenBtn = document.getElementById('reopenMonthBtn');
