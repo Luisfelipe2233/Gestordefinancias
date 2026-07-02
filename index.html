@@ -5364,17 +5364,17 @@
         <div class="val" id="sumSpent">R$ 0,00</div>
       </div>
       <div class="summary-tile remaining" id="sumRemainingTile">
-        <div class="lbl">Sobrou no mês</div>
+        <div class="lbl">Quanto você tem</div>
         <div class="val" id="sumRemaining">R$ 0,00</div>
       </div>
     </div>
 
-    <!-- GUARDADO — sobras acumuladas dos meses fechados (não some ao fechar) -->
+    <!-- O que rolou dos meses anteriores (já somado no "quanto você tem") -->
     <div class="guardado-card" id="guardadoCard" style="display:none;">
       <div class="guardado-icon">💰</div>
       <div class="guardado-info">
-        <div class="guardado-lbl">Guardado</div>
-        <div class="guardado-sub">O que sobrou dos meses anteriores, acumulado</div>
+        <div class="guardado-lbl">De meses anteriores</div>
+        <div class="guardado-sub">O que sobrou e rolou. Já está somado no total acima.</div>
       </div>
       <div class="guardado-val" id="guardadoVal">R$ 0,00</div>
     </div>
@@ -5438,9 +5438,9 @@
     <div class="config-collapse" id="configCollapse">
       <div class="grid-2">
         <div class="card">
-          <h2>Renda Mensal <span id="onboardingBadge" class="onboarding-badge hidden">comece por aqui</span></h2>
-          <p class="subtitle">Salário líquido ou o total que entra no mês.</p>
-          <label for="income">Valor da renda</label>
+          <h2><span id="incomeCardTitle">Renda do mês</span> <span id="onboardingBadge" class="onboarding-badge hidden">comece por aqui</span></h2>
+          <p class="subtitle">Quanto entrou neste mês. Pode variar de um mês pro outro.</p>
+          <label for="income">Valor da renda deste mês</label>
           <div class="income-input-wrap">
             <input type="text" id="income" placeholder="0,00" inputmode="decimal" autocomplete="off" />
           </div>
@@ -6862,6 +6862,12 @@
       capitalize(fmtMonthName(state.currentMonth));
     document.getElementById('currentMonthName').textContent =
       capitalize(fmtMonthName(state.currentMonth));
+    const incTitle = document.getElementById('incomeCardTitle');
+    if (incTitle) {
+      // Se a renda do mês ainda não foi lançada, convida a adicionar; senão, mostra "Renda de [mês]"
+      const mes = capitalize(fmtMonthName(state.currentMonth));
+      incTitle.textContent = (Number(state.income) > 0) ? `Renda de ${mes}` : `Adicionar renda de ${mes}`;
+    }
     renderGreeting();
   }
   function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -7332,34 +7338,33 @@
   const _lastSummaryValues = { income: 0, spent: 0, remaining: 0 };
 
   function renderSummary() {
-    const income = effectiveIncome(); // base + extras
+    const income = effectiveIncome(); // renda do mês (base + extras)
     const spent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
-    const remaining = income - spent;
+    const carried = Number(state.savedBalance || 0); // o que rolou dos meses anteriores
+    const available = carried + income - spent; // "quanto você tem" = rolou + renda - gastos
     // Renda e gasto: countup smooth (700ms, ease-out-cubic)
     animateNumber(document.getElementById('sumIncome'), _lastSummaryValues.income, income, 700, fmtBRL, _easeOutCubic);
     animateNumber(document.getElementById('sumSpent'), _lastSummaryValues.spent, spent, 700, fmtBRL, _easeOutCubic);
-    // Saldo (herói): countup com spring physics (800ms, leve overshoot)
-    animateNumber(document.getElementById('sumRemaining'), _lastSummaryValues.remaining, remaining, 800, fmtBRL, _easeSpring);
+    // Quanto você tem (herói): countup com spring physics (800ms, leve overshoot)
+    animateNumber(document.getElementById('sumRemaining'), _lastSummaryValues.remaining, available, 800, fmtBRL, _easeSpring);
     _lastSummaryValues.income = income;
     _lastSummaryValues.spent = spent;
-    _lastSummaryValues.remaining = remaining;
-    document.getElementById('sumRemainingTile').classList.toggle('negative', remaining < 0);
+    _lastSummaryValues.remaining = available;
+    document.getElementById('sumRemainingTile').classList.toggle('negative', available < 0);
     // Tooltip / detalhe quando há extras
     const extras = totalExtraIncome();
-    const tile = document.getElementById('sumRemainingTile').parentElement;
     const incomeTile = document.querySelector('.summary-tile.income .lbl');
     if (incomeTile) {
       incomeTile.textContent = extras > 0
         ? `Renda (base ${fmtBRL(state.income)} + extras ${fmtBRL(extras)})`
         : 'Renda';
     }
-    // Guardado (cofrinho acumulado das sobras) — só aparece quando tem algo
+    // "De meses anteriores": mostra quanto do total acima rolou (só quando > 0)
     const guardadoCard = document.getElementById('guardadoCard');
     const guardadoVal = document.getElementById('guardadoVal');
-    const gb = Number(state.savedBalance || 0);
     if (guardadoCard && guardadoVal) {
-      guardadoVal.textContent = fmtBRL(gb);
-      guardadoCard.style.display = gb > 0 ? 'flex' : 'none';
+      guardadoVal.textContent = fmtBRL(carried);
+      guardadoCard.style.display = carried > 0 ? 'flex' : 'none';
     }
   }
 
@@ -8136,7 +8141,7 @@
             <span>
               <strong>Transferir esse saldo para uma meta</strong>
               <div style="font-size:11px; color:var(--text-mute); margin-top:2px;">
-                Sem isso marcado, o que sobrou vai pro seu <strong>Guardado</strong> (acumula, não some).
+                Sem isso marcado, o que sobrou <strong>rola pro próximo mês</strong> (continua no seu saldo).
               </div>
             </span>
           </label>
@@ -8155,7 +8160,7 @@
     } else if (saved > 0 && !hasGoals) {
       goalSection = `
         <div style="background:var(--success-soft, var(--primary-soft)); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
-          💰 O que sobrou vai pro seu <strong>Guardado</strong> (acumula, não some). Se quiser mandar pra um objetivo específico, crie uma <strong>Meta</strong>.
+          💰 O que sobrou <strong>rola pro próximo mês</strong> (continua no seu saldo). Se quiser mandar pra um objetivo específico, crie uma <strong>Meta</strong>.
         </div>
       `;
     } else if (saved <= 0) {
@@ -8574,26 +8579,26 @@ function doGet() {
     // Fecha as faturas do mês que está encerrando (mesmo que o vencimento ainda não tenha chegado)
     (state.cards || []).forEach(c => applyCardInvoiceForCurrentMonth(c, true));
     const totalSpent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
-    const incomeTotal = effectiveIncome(); // base + extras
-    const saved = incomeTotal - totalSpent;
-    // Transferir saldo para meta, se solicitado e saldo positivo
+    const incomeTotal = effectiveIncome(); // renda do mês (base + extras)
+    const monthLeftover = incomeTotal - totalSpent; // sobra do mês
+    // Opcional: mandar a sobra do mês pra uma meta
     let transferred = null;
-    if (transferToGoalId && saved > 0) {
+    let transferAmt = 0;
+    if (transferToGoalId && monthLeftover > 0) {
       const goal = state.goals.find(g => g.id === transferToGoalId);
       if (goal) {
-        goal.current = Number(goal.current || 0) + saved;
-        transferred = { name: goal.name, amount: saved };
+        goal.current = Number(goal.current || 0) + monthLeftover;
+        transferAmt = monthLeftover;
+        transferred = { name: goal.name, amount: monthLeftover };
       }
     }
-    // Sobra que NÃO foi pra uma meta acumula no "Guardado" (em vez de sumir).
-    // Se gastou mais que ganhou (saved negativo), abate do Guardado, sem passar de 0.
-    let addedToGuardado = 0;
-    if (!transferred && saved !== 0) {
-      const before = Number(state.savedBalance || 0);
-      state.savedBalance = Math.max(0, before + saved);
-      addedToGuardado = state.savedBalance - before;
-    }
+    // CARTEIRA QUE ROLA: o que você já tinha + a sobra do mês (menos o que foi pra meta)
+    // vira o saldo com que você COMEÇA o próximo mês. A renda é adicionada por mês.
+    const carriedBefore = Number(state.savedBalance || 0);
+    state.savedBalance = Math.max(0, carriedBefore + monthLeftover - transferAmt);
+    const newBalance = state.savedBalance;
     state.history[state.currentMonth] = {
+      carriedBalance: carriedBefore,
       income: incomeTotal,
       incomeBase: state.income,
       extraIncomes: (state.extraIncomes || []).slice(),
@@ -8608,6 +8613,7 @@ function doGet() {
     };
     state.expenses = [];
     state.extraIncomes = []; // entradas extras são por mês, zera ao fechar
+    state.income = 0; // renda é por mês (varia) — usuário adiciona a do mês novo
     // Advance current month
     const [y, m] = state.currentMonth.split('-').map(Number);
     const next = new Date(y, m, 1); // month is 0-based, +1 from m-1
@@ -8619,15 +8625,15 @@ function doGet() {
     saveState();
     renderAll();
     track('close_month');
+    const novoMes = capitalize(fmtMonthName(state.currentMonth));
     if (transferred) {
-      showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} transferido pra "${transferred.name}".`, 'success');
-      // 🎉 Confete porque transferiu pra meta
+      showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} pra "${transferred.name}". Você começa ${novoMes} com ${fmtBRL(newBalance)}. Agora adicione a renda de ${novoMes}.`, 'success');
       setTimeout(() => emitConfetti({ count: 30 }), 100);
-    } else if (addedToGuardado > 0) {
-      showToast(`Mês fechado! 💰 ${fmtBRL(addedToGuardado)} foi pro seu Guardado.`, 'success');
+    } else if (newBalance > 0) {
+      showToast(`Mês fechado! Você começa ${novoMes} com ${fmtBRL(newBalance)} que sobrou. Agora adicione a renda de ${novoMes}.`, 'success');
       setTimeout(() => emitConfetti({ count: 24 }), 100);
     } else {
-      showToast(`Mês fechado! Bem-vindo ao ${capitalize(fmtMonthName(state.currentMonth))}.`, 'success');
+      showToast(`Mês fechado! Adicione a renda de ${novoMes} pra começar.`, 'success');
     }
   }
 
