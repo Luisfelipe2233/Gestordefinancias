@@ -898,6 +898,37 @@
     margin-bottom: 16px;
   }
   @media (max-width: 680px) { .summary-bar { grid-template-columns: 1fr; } }
+
+  /* Guardado — cofrinho acumulado das sobras dos meses fechados */
+  .guardado-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--success-soft, var(--primary-soft));
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--success, var(--primary));
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+  .guardado-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+  .guardado-info { flex: 1; min-width: 0; }
+  .guardado-lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-mute);
+    font-weight: 600;
+  }
+  .guardado-sub { font-size: 12px; color: var(--text-mute); margin-top: 1px; }
+  .guardado-val {
+    font-size: clamp(18px, 3.5vw, 24px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--success-dark, var(--text));
+    flex-shrink: 0;
+  }
+
   .summary-tile {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -5338,6 +5369,16 @@
       </div>
     </div>
 
+    <!-- GUARDADO — sobras acumuladas dos meses fechados (não some ao fechar) -->
+    <div class="guardado-card" id="guardadoCard" style="display:none;">
+      <div class="guardado-icon">💰</div>
+      <div class="guardado-info">
+        <div class="guardado-lbl">Guardado</div>
+        <div class="guardado-sub">O que sobrou dos meses anteriores, acumulado</div>
+      </div>
+      <div class="guardado-val" id="guardadoVal">R$ 0,00</div>
+    </div>
+
     <!-- 2. AÇÃO PRINCIPAL — adicionar gasto, óbvio e grande -->
     <button class="painel-add-btn" id="painelAddBtn" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -6175,6 +6216,7 @@
       cards: [], // [{id, name, color, dueDay, categoryId, createdAt}] — cartões de crédito
       cardPurchases: [], // [{id, cardId, name, total, installments, firstMonth, createdAt}] — compras parceladas
       goals: [],
+      savedBalance: 0, // "Guardado" — sobras acumuladas dos meses fechados (não some ao fechar)
       history: {}, // 'YYYY-MM' → snapshot
       learned: {}, // expenseName.lower → categoryId
       currentMonth: nowYM(),
@@ -6391,6 +6433,7 @@
     // theme + income + method
     out.theme = (data.theme === 'dark' ? 'dark' : 'light');
     out.income = Number(data.income) || 0;
+    out.savedBalance = Number(data.savedBalance) || 0;
     out.method = ['50-30-20', '6-potes', 'custom'].includes(data.method) ? data.method : '50-30-20';
     out.currentMonth = (typeof data.currentMonth === 'string' && /^\d{4}-\d{2}$/.test(data.currentMonth))
       ? data.currentMonth : nowYM();
@@ -7310,6 +7353,14 @@
         ? `Renda (base ${fmtBRL(state.income)} + extras ${fmtBRL(extras)})`
         : 'Renda';
     }
+    // Guardado (cofrinho acumulado das sobras) — só aparece quando tem algo
+    const guardadoCard = document.getElementById('guardadoCard');
+    const guardadoVal = document.getElementById('guardadoVal');
+    const gb = Number(state.savedBalance || 0);
+    if (guardadoCard && guardadoVal) {
+      guardadoVal.textContent = fmtBRL(gb);
+      guardadoCard.style.display = gb > 0 ? 'flex' : 'none';
+    }
   }
 
   // Divulgação progressiva: aplica estado aberto/fechado das categorias detalhadas
@@ -8085,7 +8136,7 @@
             <span>
               <strong>Transferir esse saldo para uma meta</strong>
               <div style="font-size:11px; color:var(--text-mute); margin-top:2px;">
-                Sem isso marcado, o dinheiro fica só no histórico do mês fechado.
+                Sem isso marcado, o que sobrou vai pro seu <strong>Guardado</strong> (acumula, não some).
               </div>
             </span>
           </label>
@@ -8103,8 +8154,8 @@
       `;
     } else if (saved > 0 && !hasGoals) {
       goalSection = `
-        <div style="background:var(--primary-soft); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
-          💡 Você ainda não tem metas. Crie uma na aba <strong>Metas</strong> antes de fechar pra guardar o saldo automaticamente.
+        <div style="background:var(--success-soft, var(--primary-soft)); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
+          💰 O que sobrou vai pro seu <strong>Guardado</strong> (acumula, não some). Se quiser mandar pra um objetivo específico, crie uma <strong>Meta</strong>.
         </div>
       `;
     } else if (saved <= 0) {
@@ -8534,6 +8585,14 @@ function doGet() {
         transferred = { name: goal.name, amount: saved };
       }
     }
+    // Sobra que NÃO foi pra uma meta acumula no "Guardado" (em vez de sumir).
+    // Se gastou mais que ganhou (saved negativo), abate do Guardado, sem passar de 0.
+    let addedToGuardado = 0;
+    if (!transferred && saved !== 0) {
+      const before = Number(state.savedBalance || 0);
+      state.savedBalance = Math.max(0, before + saved);
+      addedToGuardado = state.savedBalance - before;
+    }
     state.history[state.currentMonth] = {
       income: incomeTotal,
       incomeBase: state.income,
@@ -8564,6 +8623,9 @@ function doGet() {
       showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} transferido pra "${transferred.name}".`, 'success');
       // 🎉 Confete porque transferiu pra meta
       setTimeout(() => emitConfetti({ count: 30 }), 100);
+    } else if (addedToGuardado > 0) {
+      showToast(`Mês fechado! 💰 ${fmtBRL(addedToGuardado)} foi pro seu Guardado.`, 'success');
+      setTimeout(() => emitConfetti({ count: 24 }), 100);
     } else {
       showToast(`Mês fechado! Bem-vindo ao ${capitalize(fmtMonthName(state.currentMonth))}.`, 'success');
     }
@@ -8685,6 +8747,22 @@ function doGet() {
 
   function ensureCardInvoicesForCurrentMonth() {
     (state.cards || []).forEach(c => applyCardInvoiceForCurrentMonth(c));
+  }
+
+  // Resgate único: recupera pro "Guardado" as sobras dos meses já fechados no histórico
+  // (renda - gasto - o que foi pra meta), que antes se perdiam. Roda uma vez só.
+  function backfillGuardado() {
+    if (!state.ui) state.ui = {};
+    if (state.ui.guardadoBackfilled) return;
+    let sum = 0;
+    Object.values(state.history || {}).forEach(h => {
+      const leftover = (Number(h.income) || 0) - (Number(h.totalSpent) || 0);
+      const toGuardado = leftover - (Number(h.transferredAmount) || 0);
+      if (toGuardado > 0) sum += toGuardado;
+    });
+    state.savedBalance = Math.max(0, Number(state.savedBalance || 0) + sum);
+    state.ui.guardadoBackfilled = true;
+    saveState();
   }
 
   // ==================== RENDER: CARTÕES ====================
@@ -9074,6 +9152,7 @@ function doGet() {
         // BUGFIX #3: re-apply recurring expenses for current month after import
         ensureRecurringForCurrentMonth();
         ensureCardInvoicesForCurrentMonth();
+        backfillGuardado();
         applyTheme();
         saveState();
         renderAll();
@@ -10401,6 +10480,7 @@ function doGet() {
         if (!state.deviceName) state.deviceName = '';
         ensureRecurringForCurrentMonth();
         ensureCardInvoicesForCurrentMonth();
+        backfillGuardado();
         saveState();
         renderAll();
         applyTheme();
@@ -11632,6 +11712,7 @@ function doGet() {
   applyTheme();
   ensureRecurringForCurrentMonth();
   ensureCardInvoicesForCurrentMonth();
+  backfillGuardado();
   setupEvents();
   renderAll();
   generateAppleTouchIcon();
