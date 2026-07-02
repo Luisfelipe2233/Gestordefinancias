@@ -5675,12 +5675,16 @@
   <div class="tab-panel" id="tab-historico">
     <div class="card">
       <h2>Mês Atual</h2>
-      <p class="subtitle">Quando terminar de fechar o mês, clique abaixo. Suas categorias e renda continuam, só as despesas são zeradas.</p>
+      <p class="subtitle">Quando terminar o mês, feche aqui. As despesas zeram, você adiciona a renda do mês novo, e o que sobrou rola pro próximo mês. Fechou sem querer? É só voltar.</p>
       <div class="row" style="gap:10px; flex-wrap:wrap;">
         <div class="grow">
           <div class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.06em;">Período atual</div>
           <div style="font-weight:600; font-size:17px; text-transform:capitalize;" id="currentMonthName">—</div>
         </div>
+        <button class="btn-ghost" id="reopenMonthBtn" type="button" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:6px;"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          <span id="reopenMonthLabel">Voltar pro mês passado</span>
+        </button>
         <button class="btn-secondary" id="closeMonthBtn" type="button">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:6px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
           Fechar Mês
@@ -6868,6 +6872,9 @@
       const mes = capitalize(fmtMonthName(state.currentMonth));
       incTitle.textContent = (Number(state.income) > 0) ? `Renda de ${mes}` : `Adicionar renda de ${mes}`;
     }
+    // Botão "voltar pro mês passado" só aparece se houver um mês fechado pra reabrir
+    const reopenBtn = document.getElementById('reopenMonthBtn');
+    if (reopenBtn) reopenBtn.style.display = reopenableMonth() ? 'inline-flex' : 'none';
     renderGreeting();
   }
   function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -8637,6 +8644,37 @@ function doGet() {
     }
   }
 
+  // Qual é o mês que dá pra reabrir (o fechado logo antes do atual), se existir no histórico
+  function reopenableMonth() {
+    const prev = ymAddMonths(state.currentMonth, -1);
+    return state.history && state.history[prev] ? prev : null;
+  }
+
+  // Desfaz o último "Fechar Mês": reconstrói o mês anterior a partir do snapshot do histórico
+  // e reverte a transferência pra meta / o rolo do saldo. É o "botão de voltar".
+  function reopenLastMonth() {
+    const prev = reopenableMonth();
+    if (!prev) return false;
+    const snap = state.history[prev];
+    // Reverte a transferência que foi pra meta ao fechar
+    if (snap.transferredToGoalId && Number(snap.transferredAmount) > 0) {
+      const goal = (state.goals || []).find(g => g.id === snap.transferredToGoalId);
+      if (goal) goal.current = Math.max(0, Number(goal.current || 0) - Number(snap.transferredAmount));
+    }
+    // Restaura o estado exatamente como estava antes de fechar
+    state.currentMonth = prev;
+    state.income = Number(snap.incomeBase || 0);
+    state.extraIncomes = Array.isArray(snap.extraIncomes) ? snap.extraIncomes.slice() : [];
+    state.expenses = Array.isArray(snap.expenses) ? snap.expenses.slice() : [];
+    if (Array.isArray(snap.categories) && snap.categories.length) state.categories = cloneCats(snap.categories);
+    if (snap.method) state.method = snap.method;
+    state.savedBalance = Number(snap.carriedBalance || 0);
+    delete state.history[prev];
+    saveState();
+    renderAll();
+    return true;
+  }
+
   function applyRecurringForCurrentMonth(rec) {
     const [y, m] = state.currentMonth.split('-').map(Number);
     const dim = new Date(y, m, 0).getDate();
@@ -10281,6 +10319,26 @@ function doGet() {
 
     // Close month
     document.getElementById('closeMonthBtn').addEventListener('click', () => openCloseMonthModal());
+
+    // Botão "Voltar pro mês passado" — desfaz um Fechar Mês feito por engano
+    const reopenBtn = document.getElementById('reopenMonthBtn');
+    if (reopenBtn) reopenBtn.addEventListener('click', async () => {
+      const prev = reopenableMonth();
+      if (!prev) return;
+      const prevName = capitalize(fmtMonthName(prev));
+      // Se já lançou algo no mês atual (fora recorrentes/faturas) ou já pôs renda, avisa que perde
+      const hasWork = (state.expenses || []).some(e => !e.fromRecurring && !e.fromCardInvoice) || Number(state.income) > 0;
+      const ok = await confirmDialog({
+        title: `Voltar pro ${prevName}?`,
+        message: hasWork
+          ? `Reabre ${prevName} do jeito que estava e desfaz o fechamento. Atenção: o que você já lançou no mês atual será descartado.`
+          : `Reabre ${prevName} exatamente como estava antes de fechar. Nada se perde.`,
+        okLabel: 'Sim, voltar',
+        danger: hasWork,
+      });
+      if (!ok) return;
+      if (reopenLastMonth()) showToast(`Voltou pro ${prevName}. Fechamento desfeito.`, 'success');
+    });
 
     // Theme
     document.getElementById('themeBtn').addEventListener('click', toggleTheme);
