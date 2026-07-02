@@ -4394,11 +4394,11 @@
   /* ==================== HISTÓRICO (novo) ==================== */
   .hist-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-top: 12px;
   }
-  @media (max-width: 620px) { .hist-stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px) { .hist-stats { grid-template-columns: 1fr; } }
   .hist-stat {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -4406,7 +4406,8 @@
     padding: 12px 14px;
     box-shadow: var(--shadow-sm);
   }
-  .hist-stat .ic { font-size: 16px; line-height: 1; }
+  .hist-stat .ic { color: var(--primary); line-height: 0; }
+  .hist-stat .ic svg { width: 20px; height: 20px; }
   .hist-stat .v { font-size: clamp(16px, 3.5vw, 20px); font-weight: 800; letter-spacing: -0.02em; color: var(--text); margin-top: 6px; }
   .hist-stat .l { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
 
@@ -4628,19 +4629,42 @@
   }
 
   .bar-chart-wrap {
+    position: relative;
     overflow-x: auto;
     padding-bottom: 4px;
   }
+  /* height:auto + sem preserveAspectRatio none => barras/textos com proporção certa (não achatam) */
   .bar-chart {
     width: 100%;
-    height: 240px;
+    height: auto;
     min-width: 320px;
+    display: block;
   }
   .bar-chart text { fill: var(--text-mute); font-size: 11px; }
   .bar-chart .axis-line { stroke: var(--border); }
-  .bar-chart .bar { fill: var(--primary); transition: fill 0.15s ease; }
+  .bar-chart .bar { fill: var(--primary); transition: fill 0.15s ease; cursor: pointer; }
   .bar-chart .bar:hover { fill: var(--primary-dark); }
   .bar-chart .bar-saved { fill: var(--success); }
+  .bar-chart .bar-saved:hover { fill: var(--success-dark, var(--success)); }
+  .bar-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--text);
+    color: var(--surface);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: nowrap;
+    transform: translate(-50%, calc(-100% - 10px));
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    z-index: 5;
+    box-shadow: var(--shadow-md);
+  }
+  .bar-tooltip.show { opacity: 1; }
+  .bar-tooltip strong { display: block; font-weight: 700; }
+  .bar-tooltip span { opacity: 0.85; }
 
   /* ==================== MODAL ==================== */
   .modal-backdrop {
@@ -4736,10 +4760,17 @@
     to { opacity: 1; transform: translateY(0); }
   }
   .onb-emoji {
-    font-size: 40px;
-    line-height: 1;
-    margin-bottom: 14px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    margin: 0 auto 14px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .onb-emoji svg { width: 28px; height: 28px; }
   .onb-card h2 {
     font-size: 21px;
     font-weight: 800;
@@ -5489,7 +5520,7 @@
 
     <!-- O que rolou dos meses anteriores (já somado no "quanto você tem") -->
     <div class="guardado-card" id="guardadoCard" style="display:none;">
-      <div class="guardado-icon">💰</div>
+      <div class="guardado-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
       <div class="guardado-info">
         <div class="guardado-lbl">De meses anteriores</div>
         <div class="guardado-sub">O que sobrou e rolou. Já está somado no total acima.</div>
@@ -5563,7 +5594,7 @@
             <input type="text" id="income" placeholder="0,00" inputmode="decimal" autocomplete="off" />
           </div>
           <p class="onboarding-hint hidden" id="onboardingHint">
-            💡 <strong>Primeiro passo:</strong> digite quanto você ganha por mês. Aceita vírgula (ex: <em>3500,50</em>).
+<strong>Primeiro passo:</strong> digite quanto você ganha por mês. Aceita vírgula (ex: <em>3500,50</em>).
           </p>
 
           <!-- ENTRADAS EXTRAS -->
@@ -5817,7 +5848,8 @@
       <h3>Comparativo Mensal</h3>
       <p class="sub">Renda, gastos e poupança ao longo do tempo.</p>
       <div class="bar-chart-wrap">
-        <svg class="bar-chart" id="barChart" viewBox="0 0 600 240" preserveAspectRatio="none"></svg>
+        <svg class="bar-chart" id="barChart" viewBox="0 0 600 240"></svg>
+        <div class="bar-tooltip" id="barTooltip"></div>
       </div>
       <div class="pie-legend" style="flex-direction:row; justify-content:center; flex-wrap:wrap; gap:16px; margin-top:12px;">
         <div class="item"><span class="swatch" style="background:var(--primary)"></span><span class="nm">Gastos</span></div>
@@ -5869,7 +5901,7 @@
 
     <!-- Passo 1 — Renda -->
     <div class="onb-step" data-step="1">
-      <div class="onb-emoji">👋</div>
+      <div class="onb-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
       <h2>Oi! Bem-vindo ao Munny</h2>
       <p>Vamos deixar seu dinheiro sob controle. Leva 30 segundos. Pra começar: <strong>quanto entra por mês?</strong></p>
       <div class="onb-income-wrap">
@@ -5882,7 +5914,7 @@
 
     <!-- Passo 2 — Método -->
     <div class="onb-step" data-step="2" style="display:none;">
-      <div class="onb-emoji">🍃</div>
+      <div class="onb-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
       <h2>Como dividir seu dinheiro?</h2>
       <p>Escolha um ponto de partida. Dá pra ajustar nomes, cores e valores depois.</p>
       <div class="onb-methods">
@@ -5904,7 +5936,7 @@
 
     <!-- Passo 3 — Pronto / Salvar -->
     <div class="onb-step" data-step="3" style="display:none;">
-      <div class="onb-emoji" id="onbFinalEmoji">✨</div>
+      <div class="onb-emoji" id="onbFinalEmoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <h2 id="onbFinalTitle">Tudo pronto<span id="onbName"></span>!</h2>
       <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
       <button type="button" class="btn-primary onb-next" id="onbFinishBtn" data-onb="finish">Começar a usar</button>
@@ -7576,7 +7608,7 @@
           <div class="expense-name">
             ${escapeHtml(exp.name)}
             ${exp.fromRecurring ? '<span class="recurring-badge">↻ fixo</span>' : ''}
-            ${exp.fromCardInvoice ? '<span class="recurring-badge">💳 fatura</span>' : ''}
+            ${exp.fromCardInvoice ? '<span class="recurring-badge">fatura</span>' : ''}
           </div>
           <div class="expense-meta">${escapeHtml(catName)} · ${dateStr}</div>
         </div>
@@ -7670,7 +7702,7 @@
           <div class="goal-name">
             <span class="dot" style="background:${goal.color}"></span>
             ${escapeHtml(goal.name)}
-            ${isDefault ? '<span class="default-goal-badge" title="Meta padrão, recebe o saldo ao fechar o mês">⭐ padrão</span>' : ''}
+            ${isDefault ? '<span class="default-goal-badge" title="Meta padrão, recebe o saldo ao fechar o mês">padrão</span>' : ''}
           </div>
           <div class="goal-actions">
             <button data-action="edit" data-id="${goal.id}" title="Editar / Excluir">✎</button>
@@ -7734,7 +7766,7 @@
           if (!wasComplete && isNowComplete) {
             const rect = btn.getBoundingClientRect();
             emitConfetti({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, count: 36 });
-            setTimeout(() => showToast(`🎉 Meta "${g.name}" atingida! Parabéns!`, 'success'), 800);
+            setTimeout(() => showToast(`Meta "${g.name}" atingida! Parabéns!`, 'success'), 800);
           }
         }
       });
@@ -7754,16 +7786,14 @@
       } else {
         const totalSpent = months.reduce((s, ym) => s + Number(state.history[ym].totalSpent || 0), 0);
         const avgSpent = totalSpent / months.length;
-        const guardado = Number(state.savedBalance || 0);
         // melhor mês (mais poupou)
         let best = null;
         months.forEach(ym => { const h = state.history[ym]; const sv = Number(h.income || 0) - Number(h.totalSpent || 0); if (best === null || sv > best.sv) best = { ym, sv }; });
         const stat = (ic, v, l) => `<div class="hist-stat"><div class="ic">${ic}</div><div class="v">${v}</div><div class="l">${l}</div></div>`;
         statsEl.innerHTML =
-          stat('💰', fmtBRL(guardado), 'Guardado agora') +
-          stat('📅', String(months.length), months.length === 1 ? 'Mês fechado' : 'Meses fechados') +
-          stat('📊', fmtBRL(avgSpent), 'Gasto médio/mês') +
-          stat('🏆', best ? capitalize(fmtMonthName(best.ym)).split(' de ')[0] : '—', 'Mês que mais poupou');
+          stat(ICONS.calendar, String(months.length), months.length === 1 ? 'Mês fechado' : 'Meses fechados') +
+          stat(ICONS.barChart, fmtBRL(avgSpent), 'Gasto médio/mês') +
+          stat(ICONS.trophy, best ? capitalize(fmtMonthName(best.ym)).split(' de ')[0] : '—', 'Mês que mais poupou');
       }
     }
 
@@ -7967,12 +7997,31 @@
       const saved = Math.max(0, d.income - d.spent);
       const hSaved = (saved / max) * innerH;
       const ySaved = padT + innerH - hSaved;
-      out += `<rect class="bar" x="${x0}" y="${ySpent}" width="${subBarW - 2}" height="${hSpent}" rx="3"/>`;
-      out += `<rect class="bar bar-saved" x="${x0 + subBarW}" y="${ySaved}" width="${subBarW - 2}" height="${hSaved}" rx="3"/>`;
+      const tipLbl = capitalize(fmtMonthName(d.label)) + (d.isCurrent ? ' (atual)' : '');
+      out += `<rect class="bar" x="${x0}" y="${ySpent}" width="${subBarW - 2}" height="${hSpent}" rx="3" data-lbl="${tipLbl}" data-kind="Gastos" data-val="${d.spent}"/>`;
+      out += `<rect class="bar bar-saved" x="${x0 + subBarW}" y="${ySaved}" width="${subBarW - 2}" height="${hSaved}" rx="3" data-lbl="${tipLbl}" data-kind="Poupado" data-val="${saved}"/>`;
       const lbl = fmtShortMonth(d.label);
       out += `<text x="${leftOffset + i * barW + barW/2}" y="${H - padB + 18}" text-anchor="middle">${lbl}${d.isCurrent ? ' *' : ''}</text>`;
     });
     svg.innerHTML = out;
+    // Tooltip no hover — mostra o valor da barra sem precisar olhar pro eixo
+    const wrapEl = svg.parentElement;
+    const tip = document.getElementById('barTooltip');
+    if (tip && wrapEl) {
+      svg.onmousemove = (e) => {
+        const t = e.target;
+        if (t && t.classList && t.classList.contains('bar')) {
+          const r = wrapEl.getBoundingClientRect();
+          tip.innerHTML = `<strong>${t.dataset.lbl}</strong><span>${t.dataset.kind}: ${fmtBRL(Number(t.dataset.val))}</span>`;
+          tip.style.left = (e.clientX - r.left) + 'px';
+          tip.style.top = (e.clientY - r.top) + 'px';
+          tip.classList.add('show');
+        } else {
+          tip.classList.remove('show');
+        }
+      };
+      svg.onmouseleave = () => tip.classList.remove('show');
+    }
   }
 
   function fmtShortMonth(ym) {
@@ -8336,7 +8385,7 @@
       goalSection = `
         <div style="background:var(--success-soft); padding:14px; border-radius:10px; margin-bottom:14px; border-left:3px solid var(--success);">
           <div style="font-size:13px; font-weight:600; color:var(--success-dark); margin-bottom:10px;">
-            💰 Sobraram ${fmtBRL(saved)} este mês
+            Sobraram ${fmtBRL(saved)} este mês
           </div>
           <label style="display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text); cursor:pointer; user-select:none; padding:10px; background:var(--surface); border-radius:8px; border:2px solid var(--border); transition:all 0.15s ease;" id="closeMonthTransferLabel">
             <input type="checkbox" id="closeMonthTransferChk" ${hadDefault ? 'checked' : ''} style="width:auto; margin:2px 0 0; flex-shrink:0;" />
@@ -8362,7 +8411,7 @@
     } else if (saved > 0 && !hasGoals) {
       goalSection = `
         <div style="background:var(--success-soft, var(--primary-soft)); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
-          💰 O que sobrou <strong>rola pro próximo mês</strong> (continua no seu saldo). Se quiser mandar pra um objetivo específico, crie uma <strong>Meta</strong>.
+          O que sobrou <strong>rola pro próximo mês</strong> (continua no seu saldo). Se quiser mandar pra um objetivo específico, crie uma <strong>Meta</strong>.
         </div>
       `;
     } else if (saved <= 0) {
@@ -8577,11 +8626,11 @@
     });
 
     openModal(`
-      <h3>🏆 Conquistas e Stats</h3>
+      <h3>Conquistas e Stats</h3>
       <p class="modal-sub">Acompanhe seu progresso e desbloqueie marcos.</p>
 
       <div class="achievement-progress-bar">
-        <div class="icon">🏆</div>
+        <div class="icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
         <div class="info">
           <div><span class="count">${unlockedCount}</span> <span style="color:var(--text-mute); font-weight:500; font-size:14px;">/ ${totalCount}</span></div>
           <div class="label">conquistas desbloqueadas</div>
@@ -8593,7 +8642,7 @@
 
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-val">🔥 ${streakDays}</div>
+          <div class="stat-val">${streakDays}</div>
           <div class="stat-lbl">Streak atual${longestStreak > streakDays ? ` (recorde: ${longestStreak})` : ''}</div>
         </div>
         <div class="stat-card">
@@ -8632,7 +8681,7 @@
     const totalCount = (state.notes || []).length;
     const isUsingDefault = !currentUrl && DEFAULT_NOTES_WEBHOOK;
     openModal(`
-      <h3>📊 Conectar com Google Sheets</h3>
+      <h3>Conectar com Google Sheets</h3>
       <p class="modal-sub">Envia suas notas/feedback automaticamente para uma planilha do Google Sheets.</p>
 
       ${isUsingDefault ? `
@@ -8704,7 +8753,7 @@ function doGet() {
       </div>
 
       ${totalCount > 0 ? `<div style="background:var(--primary-soft); padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px; color:var(--text-soft);">
-        💡 Você tem <strong>${totalCount}</strong> nota(s) no total, <strong>${pendingCount}</strong> ainda não sincronizada(s).
+        Você tem <strong>${totalCount}</strong> nota(s) no total, <strong>${pendingCount}</strong> ainda não sincronizada(s).
       </div>` : ''}
 
       <div class="modal-actions" style="flex-wrap:wrap; gap:6px;">
@@ -8829,7 +8878,7 @@ function doGet() {
     track('close_month');
     const novoMes = capitalize(fmtMonthName(state.currentMonth));
     if (transferred) {
-      showToast(`Mês fechado! 💰 ${fmtBRL(transferred.amount)} pra "${transferred.name}". Você começa ${novoMes} com ${fmtBRL(newBalance)}. Agora adicione a renda de ${novoMes}.`, 'success');
+      showToast(`Mês fechado! ${fmtBRL(transferred.amount)} pra "${transferred.name}". Você começa ${novoMes} com ${fmtBRL(newBalance)}. Agora adicione a renda de ${novoMes}.`, 'success');
       setTimeout(() => emitConfetti({ count: 30 }), 100);
     } else if (newBalance > 0) {
       showToast(`Mês fechado! Você começa ${novoMes} com ${fmtBRL(newBalance)} que sobrou. Agora adicione a renda de ${novoMes}.`, 'success');
@@ -10045,13 +10094,13 @@ function doGet() {
     const note = document.getElementById('onbSaveNote');
     if (currentUser) {
       const first = currentUser.displayName ? ', ' + currentUser.displayName.split(' ')[0] : '';
-      if (emoji) emoji.textContent = '✨';
+      if (emoji) emoji.innerHTML = ICONS.check;
       if (title) title.textContent = 'Tudo pronto' + first + '!';
       if (text) text.innerHTML = 'Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.';
       if (btn) btn.textContent = 'Começar a usar';
       if (note) note.style.display = 'none';
     } else {
-      if (emoji) emoji.textContent = '💾';
+      if (emoji) emoji.innerHTML = ICONS.download;
       if (title) title.textContent = 'Falta só salvar!';
       if (text) text.innerHTML = 'Entre com sua conta pra <strong>guardar tudo</strong> e acessar de qualquer aparelho. Sem login, seus dados somem se você limpar o navegador.';
       if (btn) btn.textContent = 'Entrar com Google e salvar';
@@ -10106,7 +10155,7 @@ function doGet() {
     document.getElementById('onbFinishBtn').addEventListener('click', () => {
       if (currentUser) {
         finishOnboarding();
-        showToast('Bora! Seu painel está pronto. 🍃', 'success');
+        showToast('Pronto! Seu painel está montado.', 'success');
       } else {
         _onbAwaitingLogin = true;
         loginWithGoogle(); // ao logar, loadUserData migra renda+método pra conta
@@ -10526,7 +10575,7 @@ function doGet() {
       saveState();
       incPromptInput.value = '';
       renderAll();
-      showToast(`Renda de ${capitalize(fmtMonthName(state.currentMonth))} adicionada! 🍃`, 'success');
+      showToast(`Renda de ${capitalize(fmtMonthName(state.currentMonth))} adicionada.`, 'success');
     };
     if (incPromptBtn) incPromptBtn.addEventListener('click', submitIncomePrompt);
     if (incPromptInput) incPromptInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitIncomePrompt(); } });
@@ -10774,7 +10823,7 @@ function doGet() {
           state = defaultState();
           await saveStateToCloud();
           track('sign_up', { from: 'direto' });
-          showToast('Bem-vindo ao Munny! 💰', 'success');
+          showToast('Bem-vindo ao Munny!', 'success');
         }
       }
       // Configura listener em tempo real (sync entre dispositivos)
@@ -11561,7 +11610,7 @@ function doGet() {
         type: 'success',
         icon: ICONS.flame,
         title: `Streak de ${streakDays} dias!`,
-        html: `Você abriu o Munny <strong>${streakDays} dias seguidos</strong>${streakDays >= 7 ? ' 🔥' : ''}. Constância é o segredo. Manter o hábito é metade da batalha.`
+        html: `Você abriu o Munny <strong>${streakDays} dias seguidos</strong>. Constância é o segredo. Manter o hábito é metade da batalha.`
       });
     }
 
@@ -11998,7 +12047,7 @@ function doGet() {
   setTimeout(() => {
     const due = getSchedulesDueToday();
     if (due.length > 0) {
-      showToast(`🔔 Você tem ${due.length} agendamento${due.length > 1 ? 's' : ''} vencendo hoje. Veja na Agenda.`, 'success');
+      showToast(`Você tem ${due.length} agendamento${due.length > 1 ? 's' : ''} vencendo hoje. Veja na Agenda.`, 'success');
     }
   }, 2200);
   if (!storageAvailable) {
@@ -12130,7 +12179,7 @@ function doGet() {
 
   // Disparado pelo botão "Instalar na área de trabalho" do menu de Configurações.
   async function triggerInstall() {
-    if (isAppInstalled()) { showToast('O Munny já está instalado neste aparelho. 🍃', 'success'); return; }
+    if (isAppInstalled()) { showToast('O Munny já está instalado neste aparelho.', 'success'); return; }
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       let outcome = 'dismissed';
@@ -12182,7 +12231,7 @@ function doGet() {
     deferredInstallPrompt = null;
     const banner = document.getElementById('installBanner');
     if (banner) banner.style.display = 'none';
-    showToast('🎉 Munny instalado! Abra pela tela inicial.', 'success');
+    showToast('Munny instalado! Abra pela tela inicial.', 'success');
   });
 
   (function wireInstallBanner() {
@@ -12221,7 +12270,7 @@ function doGet() {
             saveState();
             const onb = document.getElementById('onbBackdrop');
             if (onb) onb.style.display = 'none';
-            showToast('Pronto! Seus dados estão salvos na sua conta. 🍃', 'success');
+            showToast('Pronto! Seus dados estão salvos na sua conta.', 'success');
           }
         } else {
           currentUser = null;
