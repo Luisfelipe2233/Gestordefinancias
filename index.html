@@ -6296,6 +6296,11 @@
   let db = null;
   let currentUser = null;
   let userDocRef = null;
+
+  // Ferramentas só do dev (autor do app). Ex.: a config do Google Sheets, que é
+  // interna e não vai pra interface do público. Gateia por identidade, não remove.
+  const DEV_EMAIL = 'luisfelipemarchioro@gmail.com';
+  function isDev() { return !!(currentUser && (currentUser.email || '').toLowerCase() === DEV_EMAIL); }
   let unsubscribeUserDoc = null;
   let isApplyingRemoteUpdate = false;
   const sessionId = Math.random().toString(36).slice(2, 12);
@@ -8709,9 +8714,11 @@
         <div class="label">Engajamento</div>
         <button class="item" data-act="achievements"><span class="menu-icon">${ICONS.trophy}</span><span>Conquistas e Stats</span></button>
         <button class="item" data-act="notes"><span class="menu-icon">${ICONS.messageSquare}</span><span>Notas / Enviar feedback</span></button>
+        ${isDev() ? `
         <div class="divider"></div>
         <div class="label">Sincronização</div>
         <button class="item" data-act="syncConfig"><span class="menu-icon">${ICONS.sheets}</span><span>Conectar com Google Sheets (notas)</span></button>
+        ` : ''}
         ${currentUser ? `
           <div class="divider"></div>
           <div class="label">Conta</div>
@@ -8859,6 +8866,7 @@
 
   // ==================== SYNC CONFIG MODAL ====================
   function openSyncConfigModal() {
+    if (!isDev()) return; // ferramenta interna do dev; não abre pro público
     const currentUrl = state.notesWebhookUrl || '';
     const deviceName = state.deviceName || '';
     const pendingCount = (state.notes || []).filter(n => !n.syncedAt).length;
@@ -10046,6 +10054,9 @@ function doGet() {
     const list = document.getElementById('notesList');
     const countEl = document.getElementById('notesCount');
     if (!list || !countEl) return;
+    // O indicador de sync com Sheets é interno (dev); some pro público.
+    const syncDot = document.getElementById('notesSyncStatus');
+    if (syncDot) syncDot.style.display = isDev() ? '' : 'none';
     const notes = Array.isArray(state.notes) ? state.notes : [];
     countEl.textContent = String(notes.length);
     countEl.classList.toggle('show', notes.length > 0);
@@ -12013,7 +12024,9 @@ function doGet() {
       inp.onchange = (e) => { const f = e.target.files && e.target.files[0]; if (f) importBackup(f); };
       inp.click();
     }, keywords: 'importar backup carregar' });
-    cmds.push({ group: 'Dados', label: 'Conectar com Google Sheets', icon: ICONS.sheets, action: () => openSyncConfigModal(), keywords: 'sheets planilha sync webhook' });
+    if (isDev()) {
+      cmds.push({ group: 'Dados', label: 'Conectar com Google Sheets', icon: ICONS.sheets, action: () => openSyncConfigModal(), keywords: 'sheets planilha sync webhook' });
+    }
     if (currentUser) {
       cmds.push({ group: 'Conta', label: 'Sair da conta', icon: ICONS.logOut, action: () => logout(), keywords: 'logout sair deslogar' });
     }
