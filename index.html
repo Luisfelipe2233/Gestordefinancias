@@ -7551,19 +7551,28 @@
     duration = duration || 800;
     formatter = formatter || fmtBRL;
     easing = easing || _easeOutCubic;
-    const start = performance.now();
     const delta = to - from;
-    // Se diferença pequena, só atualiza
-    if (Math.abs(delta) < 0.5) { el.textContent = formatter(to); return; }
+    // Pula a animação e mostra o valor final direto quando: diferença mínima,
+    // aba oculta ou sem rAF. O requestAnimationFrame FICA PAUSADO em aba de fundo
+    // (e alguns celulares pausam em economia de energia); sem isso o número
+    // travaria no valor inicial (ex.: R$ 0,00) mesmo com dados carregados.
+    if (Math.abs(delta) < 0.5 || (typeof document !== 'undefined' && document.hidden) || typeof requestAnimationFrame !== 'function') {
+      el.textContent = formatter(to);
+      return;
+    }
+    const start = performance.now();
+    let done = false;
     function tick(now) {
       const elapsed = now - start;
       const t = Math.min(elapsed / duration, 1);
       const eased = easing(t);
-      const value = from + delta * eased;
-      el.textContent = formatter(value);
-      if (t < 1) requestAnimationFrame(tick);
+      el.textContent = formatter(from + delta * eased);
+      if (t < 1) requestAnimationFrame(tick); else done = true;
     }
     requestAnimationFrame(tick);
+    // Rede de segurança: se o rAF não completar no tempo esperado (throttle/pausa),
+    // crava o valor final. setTimeout não pausa como o rAF.
+    setTimeout(() => { if (!done) el.textContent = formatter(to); }, duration + 150);
   }
 
   // Cache dos valores anteriores pra animar a transição
@@ -8466,6 +8475,15 @@
       ? state.ui.defaultGoalId
       : (hasGoals ? state.goals[0].id : '');
 
+    // Contexto do modelo carteira: o que rolou dos meses anteriores e com quanto
+    // a pessoa começa o próximo mês (atualiza ao vivo se marcar transferir pra meta).
+    const carried = Number(state.savedBalance || 0);
+    const nextMonthName = capitalize(fmtMonthName(ymAddMonths(state.currentMonth, 1)));
+    const remembered = !!(state.ui.defaultGoalId && state.goals.find(g => g.id === state.ui.defaultGoalId));
+    const projectedKeep = Math.max(0, carried + saved);   // a sobra rola pro saldo
+    const projectedTransfer = Math.max(0, carried);       // a sobra inteira vai pra meta
+    const defaultProjected = (canTransfer && remembered) ? projectedTransfer : projectedKeep;
+
     let goalSection = '';
     if (canTransfer) {
       const goalOpts = state.goals.map(g => {
@@ -8537,6 +8555,15 @@
           <strong style="color:${saved >= 0 ? 'var(--success-dark)' : 'var(--danger)'}">${fmtBRL(saved)}</strong>
         </div>
       </div>
+      <div style="background:var(--primary-soft); padding:12px 14px; border-radius:10px; margin-bottom:14px;">
+        ${carried > 0 ? `<div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-mute); margin-bottom:6px;">
+          <span>De meses anteriores</span><span>${fmtBRL(carried)}</span>
+        </div>` : ''}
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+          <span style="font-size:13px; color:var(--text);">Você começa <strong>${nextMonthName}</strong> com</span>
+          <strong id="closeMonthProjected" style="font-size:18px; color:var(--text); letter-spacing:-0.02em; white-space:nowrap;">${fmtBRL(defaultProjected)}</strong>
+        </div>
+      </div>
       ${goalSection}
       <div class="modal-actions">
         <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
@@ -8551,6 +8578,7 @@
     const transferChk = modal.querySelector('#closeMonthTransferChk');
     const goalOptionsDiv = modal.querySelector('#closeMonthGoalOptions');
     const transferLabel = modal.querySelector('#closeMonthTransferLabel');
+    const projectedEl = modal.querySelector('#closeMonthProjected');
     if (transferChk && goalOptionsDiv) {
       // Visual feedback no label inteiro quando ativo
       const updateLabelStyle = () => {
@@ -8559,10 +8587,17 @@
           transferLabel.style.background = transferChk.checked ? 'var(--success-soft)' : 'var(--surface)';
         }
       };
+      // Saldo projetado do próximo mês reage à escolha: se transfere, a sobra vai
+      // pra meta e o saldo fica só com o acumulado; senão, a sobra rola pro saldo.
+      const updateProjected = () => {
+        if (projectedEl) projectedEl.textContent = fmtBRL(transferChk.checked ? projectedTransfer : projectedKeep);
+      };
       updateLabelStyle();
+      updateProjected();
       transferChk.addEventListener('change', () => {
         goalOptionsDiv.style.display = transferChk.checked ? 'block' : 'none';
         updateLabelStyle();
+        updateProjected();
       });
     }
 
