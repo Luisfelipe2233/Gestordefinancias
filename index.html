@@ -8441,6 +8441,24 @@
     const extras = totalExtraIncome();
     const incomeTotal = effectiveIncome();
     const saved = incomeTotal - totalSpent;
+
+    // TRAVA: não deixa fechar um mês que ainda não foi usado (sem renda lançada e sem gastos).
+    // Evita arquivar um mês fantasma no histórico e avançar o período por engano.
+    if (incomeTotal <= 0 && totalSpent <= 0) {
+      openModal(`
+        <h3>Este mês ainda não começou</h3>
+        <p class="modal-sub">Você ainda não lançou a renda de ${capitalize(fmtMonthName(state.currentMonth))} nem registrou nenhum gasto. Não há nada pra arquivar. Lance a renda do mês no painel antes de fechar.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-act="ok">Entendi</button>
+          <button type="button" class="btn-primary" data-act="goto">Ir pro painel</button>
+        </div>
+      `);
+      const gm = document.getElementById('modalContent');
+      gm.querySelector('[data-act="ok"]').addEventListener('click', closeModal);
+      gm.querySelector('[data-act="goto"]').addEventListener('click', () => { closeModal(); switchTab('painel'); });
+      return;
+    }
+
     const hasGoals = Array.isArray(state.goals) && state.goals.length > 0;
     const canTransfer = saved > 0 && hasGoals;
     // Decide a default selected goal: last-used if still exists, else first
@@ -8491,15 +8509,16 @@
       `;
     } else if (saved <= 0) {
       goalSection = `
-        <div style="background:var(--danger-bg); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--danger);">
-          ⚠ Não houve sobra este mês, nada será transferido pra metas.
+        <div style="display:flex; align-items:flex-start; gap:8px; background:var(--danger-bg); padding:12px; border-radius:10px; margin-bottom:14px; font-size:13px; color:var(--danger);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Não houve sobra este mês, nada será transferido pra metas.</span>
         </div>
       `;
     }
 
     openModal(`
       <h3>Fechar Mês de ${capitalize(fmtMonthName(state.currentMonth))}</h3>
-      <p class="modal-sub">Os dados deste mês serão arquivados no histórico. Sua renda base e categorias continuam. Despesas e entradas extras serão zeradas.</p>
+      <p class="modal-sub">Os dados deste mês vão pro histórico. Suas categorias e a divisão continuam. As despesas, as entradas extras e a renda deste mês zeram, e o que sobrou rola pro próximo mês.</p>
       <div style="background:var(--surface-alt); padding:14px; border-radius:10px; margin-bottom:14px;">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
           <span class="muted">Renda base:</span><strong>${fmtBRL(state.income)}</strong>
@@ -8521,7 +8540,7 @@
       ${goalSection}
       <div class="modal-actions">
         <button type="button" class="btn-secondary" data-act="cancel">Cancelar</button>
-        <button type="button" class="btn-primary" data-act="confirm">✓ Fechar Mês</button>
+        <button type="button" class="btn-primary" data-act="confirm"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>Fechar Mês</button>
       </div>
     `);
     // BUGFIX #12: scope to modal content
