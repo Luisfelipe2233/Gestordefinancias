@@ -4461,6 +4461,73 @@
   .hist-catrow .bar > span { display: block; height: 100%; border-radius: 3px; }
   .hist-catrow .vl { font-weight: 600; color: var(--text); flex-shrink: 0; }
 
+  /* ===== HISTÓRICO — entrada premium (cascata + mola) ===== */
+  /* Stat cards: sobem com escala e leve overshoot, um após o outro */
+  @keyframes histStatIn {
+    0%   { opacity: 0; transform: translateY(16px) scale(0.92); }
+    100% { opacity: 1; transform: translateY(0)    scale(1); }
+  }
+  .hist-stat {
+    animation: histStatIn 0.6s var(--ease-spring) both;
+    will-change: transform, opacity;
+  }
+  .hist-stat:nth-child(1) { animation-delay: 0.02s; }
+  .hist-stat:nth-child(2) { animation-delay: 0.10s; }
+  .hist-stat:nth-child(3) { animation-delay: 0.18s; }
+  /* O número dentro do card pulsa de leve ao assentar */
+  @keyframes histStatValuePop {
+    0%   { transform: scale(0.8); opacity: 0; }
+    70%  { transform: scale(1.06); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .hist-stat .v { transform-origin: left center; animation: histStatValuePop 0.5s var(--ease-out-bounce) both; }
+  .hist-stat:nth-child(1) .v { animation-delay: 0.22s; }
+  .hist-stat:nth-child(2) .v { animation-delay: 0.30s; }
+  .hist-stat:nth-child(3) .v { animation-delay: 0.38s; }
+
+  /* Cards de mês: entram deslizando de baixo com mola; o delay é setado por --i no JS */
+  @keyframes histMonthIn {
+    0%   { opacity: 0; transform: translateY(26px) scale(0.97); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .hist-month {
+    animation: histMonthIn 0.62s var(--ease-spring) both;
+    animation-delay: calc(0.28s + min(var(--i, 0), 9) * 0.075s);
+    will-change: transform, opacity;
+  }
+  /* Hover do card inteiro: eleva de leve (além do hover do cabeçalho) */
+  .hist-month:not(.open):hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
+  /* Reveal do conteúdo quando um mês é expandido — cada bloco entra em cascata */
+  @keyframes histReveal {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hist-month.open .hist-figs > div { animation: histReveal 0.42s var(--ease-out-smooth) both; }
+  .hist-month.open .hist-figs > div:nth-child(1) { animation-delay: 0.06s; }
+  .hist-month.open .hist-figs > div:nth-child(2) { animation-delay: 0.12s; }
+  .hist-month.open .hist-figs > div:nth-child(3) { animation-delay: 0.18s; }
+  .hist-month.open .hist-bar        { animation: histReveal 0.42s var(--ease-out-smooth) 0.20s both; }
+  .hist-month.open .hist-barlbl     { animation: histReveal 0.42s var(--ease-out-smooth) 0.26s both; }
+  .hist-month.open .hist-detail-title { animation: histReveal 0.42s var(--ease-out-smooth) 0.30s both; }
+  /* As linhas de categoria são divs irmãs do título (1º div), então começam no 2º */
+  .hist-month.open .hist-catrow     { animation: histReveal 0.42s var(--ease-out-smooth) both; }
+  .hist-month.open .hist-catrow:nth-of-type(2) { animation-delay: 0.34s; }
+  .hist-month.open .hist-catrow:nth-of-type(3) { animation-delay: 0.40s; }
+  .hist-month.open .hist-catrow:nth-of-type(4) { animation-delay: 0.46s; }
+  .hist-month.open .hist-catrow:nth-of-type(5) { animation-delay: 0.52s; }
+  .hist-month.open .hist-catrow:nth-of-type(n+6) { animation-delay: 0.56s; }
+  /* A barrinha de % da renda cresce da esquerda ao abrir */
+  .hist-month.open .hist-bar > span { transform-origin: left center; animation: histBarGrow 0.7s var(--ease-out-bounce) 0.28s both; }
+  @keyframes histBarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  /* As barras de categoria também crescem */
+  .hist-month.open .hist-catrow .bar > span { transform-origin: left center; animation: histBarGrow 0.6s var(--ease-out-bounce) both; }
+  .hist-month.open .hist-catrow:nth-of-type(2) .bar > span { animation-delay: 0.40s; }
+  .hist-month.open .hist-catrow:nth-of-type(3) .bar > span { animation-delay: 0.46s; }
+  .hist-month.open .hist-catrow:nth-of-type(4) .bar > span { animation-delay: 0.52s; }
+  .hist-month.open .hist-catrow:nth-of-type(n+5) .bar > span { animation-delay: 0.58s; }
+
   /* ==================== CHARTS ==================== */
   .chart-card {
     background: var(--surface);
@@ -7841,6 +7908,7 @@
 
       const card = document.createElement('div');
       card.className = 'hist-month';
+      card.style.setProperty('--i', String(idx)); // índice pra cascata de entrada
       card.innerHTML = `
         <button class="hist-month-head" type="button" aria-expanded="false">
           <span class="hist-month-title">
@@ -7867,6 +7935,13 @@
       head.addEventListener('click', () => {
         const open = card.classList.toggle('open');
         head.setAttribute('aria-expanded', String(open));
+      });
+      // Ao fim da entrada, limpa a animação pra liberar o transform do hover
+      card.addEventListener('animationend', function onEnd(e) {
+        if (e.animationName !== 'histMonthIn') return;
+        card.style.animation = 'none';
+        card.style.willChange = 'auto';
+        card.removeEventListener('animationend', onEnd);
       });
       wrap.appendChild(card);
     });
