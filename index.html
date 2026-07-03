@@ -5411,6 +5411,11 @@
     .fab-add { width: 54px; height: 54px; right: 14px; }
     .fab-add svg { width: 26px; height: 26px; }
   }
+  /* O FAB "+" e a bottom-nav são elementos de nível body (position:fixed), então
+     não somem quando #mainApp é escondido. Enquanto o app não está ativo (tela de
+     login), eles vazavam por cima do login no mobile. Gateia por .app-active. */
+  body:not(.app-active) .fab-add,
+  body:not(.app-active) .bottom-nav { display: none !important; }
 
   /* small util */
   .row { display: flex; gap: 8px; align-items: center; }
@@ -10892,10 +10897,12 @@ function doGet() {
   function showLoginScreen() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
+    document.body.classList.remove('app-active'); // esconde FAB e bottom-nav no login
   }
   function showMainApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
+    document.body.classList.add('app-active'); // libera FAB e bottom-nav dentro do app
     // Reavalia o banner de instalar agora que a pessoa está no app (e não mais no login/onboarding)
     setTimeout(() => { try { showInstallBanner(); } catch (_) {} }, 1200);
   }
