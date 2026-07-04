@@ -6046,7 +6046,7 @@
       <h2 id="onbFinalTitle">Tudo pronto<span id="onbName"></span>!</h2>
       <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
       <button type="button" class="btn-primary onb-next" id="onbFinishBtn" data-onb="finish">Começar a usar</button>
-      <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados, só você acessa. Login leva 1 clique.</p>
+      <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados, só você acessa. Sem cartão, leva segundos.</p>
     </div>
   </div>
 </div>
@@ -10301,9 +10301,9 @@ function doGet() {
       if (note) note.style.display = 'none';
     } else {
       if (emoji) emoji.innerHTML = ICONS.download;
-      if (title) title.textContent = 'Falta só salvar!';
-      if (text) text.innerHTML = 'Entre com sua conta pra <strong>guardar tudo</strong> e acessar de qualquer aparelho. Sem login, seus dados somem se você limpar o navegador.';
-      if (btn) btn.textContent = 'Entrar com Google e salvar';
+      if (title) title.textContent = 'Falta só salvar seu plano';
+      if (text) text.innerHTML = 'Você já dividiu sua renda e montou seu painel. Entre com o Google pra <strong>guardar tudo</strong> e abrir de qualquer aparelho, a qualquer hora. Sem isso, o que você montou some se fechar ou limpar o navegador.';
+      if (btn) btn.textContent = 'Salvar com o Google';
       if (note) note.style.display = '';
     }
   }
