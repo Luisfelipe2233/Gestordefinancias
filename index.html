@@ -1973,6 +1973,23 @@
   .cat-card.warning .progress-bar { box-shadow: 0 0 8px rgba(245, 158, 11, 0.35); }
   .cat-card.over .progress-bar { box-shadow: 0 0 12px rgba(239, 68, 68, 0.45); }
 
+  /* Destaque na categoria que acabou de receber um gasto (anel que some).
+     Usa ::after pra não conflitar com a animação de entrada/shake do card. */
+  .cat-card.just-added { position: relative; }
+  .cat-card.just-added::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+    pointer-events: none;
+    animation: catJustAddedRing 1.25s var(--ease-out-smooth) 0.1s forwards;
+  }
+  @keyframes catJustAddedRing {
+    0% { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+
   /* Modal entry refinado */
   .modal {
     animation: modalIn 0.35s var(--ease-out-bounce);
@@ -7419,6 +7436,8 @@
   // ==================== QUICK-ADD (bottom-sheet rápido) ====================
   let quickAddSelectedCat = null;
   let quickAddNameTouched = false;
+  // Categoria que acabou de receber um gasto — pra dar um destaque (pulse) no card
+  let _justAddedCatId = null;
 
   function openQuickAdd() {
     if (!state.categories || state.categories.length === 0) { goToAddExpense(); return; }
@@ -7445,6 +7464,20 @@
   function closeQuickAdd() {
     document.getElementById('quickAddBackdrop').classList.remove('show');
     document.body.style.overflow = '';
+  }
+
+  // Fecha o quick-add, mas confirma antes se houver um valor digitado e não salvo.
+  async function requestCloseQuickAdd() {
+    const v = parseNumber(document.getElementById('qaddValue').value);
+    if (v > 0) {
+      const ok = await confirmDialog({
+        title: 'Descartar esse gasto?',
+        message: 'Você digitou um valor mas ainda não salvou. Quer descartar?',
+        okLabel: 'Descartar', danger: true,
+      });
+      if (!ok) return;
+    }
+    closeQuickAdd();
   }
 
   function renderQuickAddPills() {
@@ -7483,6 +7516,7 @@
       timestamp: new Date(date).getTime() || Date.now(),
     });
     if (nameCheck.value) teach(nameCheck.value, quickAddSelectedCat);
+    _justAddedCatId = quickAddSelectedCat; // destaca a categoria que recebeu o gasto
     saveState();
     closeQuickAdd();
     const fab = document.getElementById('fabAdd');
@@ -7496,8 +7530,8 @@
     const back = document.getElementById('quickAddBackdrop');
     if (!back || back.dataset.wired) return;
     back.dataset.wired = '1';
-    back.addEventListener('click', (e) => { if (e.target === back) closeQuickAdd(); });
-    document.getElementById('qaddClose').addEventListener('click', closeQuickAdd);
+    back.addEventListener('click', (e) => { if (e.target === back) requestCloseQuickAdd(); });
+    document.getElementById('qaddClose').addEventListener('click', requestCloseQuickAdd);
     document.getElementById('qaddSave').addEventListener('click', saveQuickAdd);
     attachBRLFormat(document.getElementById('qaddValue'));
     // Enter no valor salva direto
@@ -7528,7 +7562,7 @@
     });
     // Esc fecha
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && back.classList.contains('show')) closeQuickAdd();
+      if (e.key === 'Escape' && back.classList.contains('show')) requestCloseQuickAdd();
     });
   }
 
@@ -7572,7 +7606,7 @@
       else if (pctUsed >= 80) status = 'warning';
 
       const card = document.createElement('div');
-      card.className = `cat-card ${status}`;
+      card.className = `cat-card ${status}${cat.id === _justAddedCatId ? ' just-added' : ''}`;
       const barColor = status === 'over' ? 'var(--danger)' : status === 'warning' ? 'var(--warning)' : cat.color;
       const barWidth = Math.min(pctUsed, 100);
 
@@ -7614,6 +7648,7 @@
       `;
       grid.appendChild(card);
     });
+    _justAddedCatId = null; // o destaque é aplicado uma vez só, no render logo após o gasto
 
     renderSummary();
   }
@@ -10720,8 +10755,9 @@ function doGet() {
         timestamp: new Date(date).getTime() || Date.now(),
       });
       teach(name, categoryId);
+      _justAddedCatId = categoryId; // destaca a categoria que recebeu o gasto
       saveState();
-      // 💸 Microcelebração: "-R$" sobe do botão
+      // Microcelebração: "-R$" sobe do botão
       const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) floatingMoney(value, submitBtn, false);
       document.getElementById('expName').value = '';
