@@ -722,6 +722,22 @@
     background: var(--surface);
     border-color: var(--border);
   }
+  /* Unidade (R$ / %) dentro do campo, pra nunca digitar no modo errado */
+  .percent-row .pct-input-wrap { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+  .percent-row .pct-input-wrap .pct-unit {
+    position: absolute; font-size: 12px; font-weight: 700; color: var(--text-soft);
+    pointer-events: none; top: 50%; transform: translateY(-50%);
+  }
+  .percent-row .pct-input-wrap[data-mode="fixed"] .pct-unit { left: 9px; }
+  .percent-row .pct-input-wrap[data-mode="pct"] .pct-unit { right: 9px; }
+  .percent-row .pct-input-wrap[data-mode="fixed"] .pct-input { width: 92px; padding-left: 26px; }
+  .percent-row .pct-input-wrap[data-mode="pct"] .pct-input { padding-right: 20px; }
+  /* Passou de 100% numa categoria: destaca o campo em vermelho */
+  .percent-row .pct-input.pct-over {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: var(--danger-soft, color-mix(in srgb, var(--danger) 10%, transparent));
+  }
   .percent-row .pct-del {
     background: transparent;
     border: none;
@@ -7174,13 +7190,19 @@
       const displayValue = mode === 'fixed'
         ? (value > 0 ? value.toFixed(2).replace('.', ',') : '')
         : value;
+      // Passou de 100% da renda numa única categoria: quase sempre é engano
+      // (ex: digitar 360 achando que é R$ 360, mas o campo está em modo %).
+      const overPct = mode !== 'fixed' && Number(value) > 100;
       const isLocked = !!cat.locked;
       const row = document.createElement('div');
       row.className = 'percent-row' + (isLocked ? ' locked' : '');
       row.innerHTML = `
         <button type="button" class="color-swatch-btn" data-idx="${idx}" style="background:${cat.color}" title="Mudar cor" aria-label="Mudar cor"></button>
         <input type="text" class="pct-name-input" data-idx="${idx}" value="${escapeHtml(cat.name)}" placeholder="Nome" maxlength="40" ${isLocked ? 'readonly' : ''} />
-        <input type="text" class="pct-input" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" ${isLocked ? 'readonly' : ''} />
+        <span class="pct-input-wrap" data-mode="${mode}">
+          <span class="pct-unit" aria-hidden="true">${mode === 'fixed' ? 'R$' : '%'}</span>
+          <input type="text" class="pct-input${overPct ? ' pct-over' : ''}" data-idx="${idx}" inputmode="decimal" value="${displayValue}" placeholder="${mode === 'fixed' ? '0,00' : '0'}" ${isLocked ? 'readonly' : ''} title="${mode === 'fixed' ? 'Valor fixo em reais' : 'Porcentagem da renda'}" />
+        </span>
         <div class="mode-toggle">
           <button type="button" data-mode-idx="${idx}" data-mode-val="pct" class="${mode === 'pct' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Porcentagem da renda">%</button>
           <button type="button" data-mode-idx="${idx}" data-mode-val="fixed" class="${mode === 'fixed' ? 'active' : ''}" ${isLocked ? 'disabled' : ''} title="Valor fixo em reais">R$</button>
@@ -7228,6 +7250,8 @@
         } else {
           cat.pct = val;
         }
+        // Avisa (vermelho) se uma categoria passar de 100% da renda — quase sempre engano de modo
+        e.target.classList.toggle('pct-over', cat.mode !== 'fixed' && val > 100);
         saveState();
         renderPercentTotal();
         renderCategories();
@@ -7261,6 +7285,9 @@
         renderPercentTotal();
         renderCategories();
         renderPieChart();
+        // Depois de re-renderizar, foca e seleciona o campo daquela linha pra digitar por cima
+        const freshInput = document.querySelector(`#percentEditor .pct-input[data-idx="${idx}"]`);
+        if (freshInput && !state.categories[idx].locked) { freshInput.focus(); freshInput.select(); }
       });
     });
     // Toggle de cadeado por linha
