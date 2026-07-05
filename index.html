@@ -7266,7 +7266,7 @@
         const cat = state.categories[idx];
         if (cat.mode === newMode || (!cat.mode && newMode === 'pct')) return; // já está
         // Converter valor entre modos (preserva intenção do usuário)
-        const income = Number(state.income) || 0;
+        const income = effectiveIncome(); // base + extras (consistente com o orçamento das categorias)
         if (newMode === 'fixed') {
           // % → R$: calcula o valor com base na renda atual
           if (income > 0 && (cat.pct || 0) > 0) {
@@ -7328,7 +7328,7 @@
   }
 
   function renderPercentTotal() {
-    const income = Number(state.income) || 0;
+    const income = effectiveIncome(); // base + extras (consistente com o orçamento das categorias)
     let pctTotal = 0;
     let fixedTotal = 0;
     state.categories.forEach(c => {
@@ -10606,7 +10606,7 @@ function doGet() {
 
     // Normalize percentages
     document.getElementById('normalizeBtn').addEventListener('click', () => {
-      const income = Number(state.income) || 0;
+      const income = effectiveIncome(); // base + extras (consistente com o orçamento das categorias)
       // Separa em bloqueadas e livres. Categorias em R$ fixo são tratadas como bloqueadas
       // (já que têm valor próprio que não deve ser mexido por % automático).
       const lockedCats = state.categories.filter(c => c.locked || c.mode === 'fixed');
@@ -10670,7 +10670,7 @@ function doGet() {
 
     // Atalhos: tudo em % ou tudo em R$
     document.getElementById('allPctBtn').addEventListener('click', () => {
-      const income = Number(state.income) || 0;
+      const income = effectiveIncome(); // base + extras (consistente com o orçamento das categorias)
       state.categories.forEach(c => {
         if (c.mode === 'fixed' && income > 0 && (c.fixedAmount || 0) > 0) {
           c.pct = Math.round(((c.fixedAmount || 0) / income) * 1000) / 10;
@@ -10683,7 +10683,7 @@ function doGet() {
     });
 
     document.getElementById('allFixedBtn').addEventListener('click', () => {
-      const income = Number(state.income) || 0;
+      const income = effectiveIncome(); // base + extras (consistente com o orçamento das categorias)
       state.categories.forEach(c => {
         if (c.mode !== 'fixed' && income > 0 && (c.pct || 0) > 0) {
           c.fixedAmount = (income * (c.pct || 0)) / 100;
