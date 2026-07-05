@@ -990,6 +990,12 @@
     font-weight: 600;
     opacity: 0.95;
   }
+  /* "Quanto você tem" é clicável: abre o detalhamento de onde vem o número */
+  .summary-tile.remaining { cursor: pointer; }
+  .summary-tile.remaining:hover { box-shadow: var(--shadow-lg); }
+  .summary-tile.remaining .lbl { display: inline-flex; align-items: center; gap: 5px; }
+  .summary-tile.remaining .lbl-info { width: 13px; height: 13px; opacity: 0.6; flex-shrink: 0; }
+  .summary-tile.remaining:hover .lbl-info { opacity: 1; }
   .summary-tile.remaining.negative {
     background: var(--danger-bg);
   }
@@ -5651,8 +5657,8 @@
         <div class="lbl">Total Gasto</div>
         <div class="val" id="sumSpent">R$ 0,00</div>
       </div>
-      <div class="summary-tile remaining" id="sumRemainingTile">
-        <div class="lbl">Quanto você tem</div>
+      <div class="summary-tile remaining" id="sumRemainingTile" role="button" tabindex="0" title="Ver de onde vem esse número">
+        <div class="lbl">Quanto você tem <svg class="lbl-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
         <div class="val" id="sumRemaining">R$ 0,00</div>
       </div>
     </div>
@@ -7725,6 +7731,38 @@
       guardadoVal.textContent = fmtBRL(carried);
       guardadoCard.style.display = carried > 0 ? 'flex' : 'none';
     }
+  }
+
+  // Detalhamento do "Quanto você tem" — explica de onde o número vem (modelo carteira).
+  function openBalanceBreakdown() {
+    const base = Number(state.income || 0);
+    const extras = totalExtraIncome();
+    const income = base + extras;
+    const spent = state.expenses.reduce((s, e) => s + Number(e.value || 0), 0);
+    const carried = Number(state.savedBalance || 0);
+    const total = carried + income - spent;
+    const row = (label, val, color) => `<div style="display:flex; justify-content:space-between; gap:12px; margin-bottom:8px;">
+        <span class="muted">${label}</span><strong${color ? ` style="color:${color}"` : ''}>${val}</strong>
+      </div>`;
+    const incomeLabel = extras > 0 ? `Renda do mês (base ${fmtBRL(base)} + extras ${fmtBRL(extras)})` : 'Renda do mês';
+    openModal(`
+      <h3>Quanto você tem</h3>
+      <p class="modal-sub">Esse é o seu dinheiro livre agora. De onde ele vem:</p>
+      <div style="background:var(--surface-alt); padding:14px; border-radius:10px; margin-bottom:14px;">
+        ${carried > 0 ? row('De meses anteriores (rolou)', '+ ' + fmtBRL(carried)) : ''}
+        ${row(incomeLabel, '+ ' + fmtBRL(income))}
+        ${row('Gastos do mês', '- ' + fmtBRL(spent))}
+        <div style="display:flex; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid var(--border);">
+          <strong>Quanto você tem</strong>
+          <strong style="color:${total >= 0 ? 'var(--success-dark)' : 'var(--danger)'}">${fmtBRL(total)}</strong>
+        </div>
+      </div>
+      <p class="modal-sub" style="margin-bottom:0;">O que sobrar no fim do mês rola pro próximo. Nada some.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" data-act="ok" style="width:100%;">Entendi</button>
+      </div>
+    `);
+    document.getElementById('modalContent').querySelector('[data-act="ok"]').addEventListener('click', closeModal);
   }
 
   // Divulgação progressiva: aplica estado aberto/fechado das categorias detalhadas
@@ -10872,6 +10910,15 @@ function doGet() {
 
     // Settings
     document.getElementById('settingsBtn').addEventListener('click', (e) => openSettingsMenu(e.currentTarget));
+
+    // "Quanto você tem" e "De meses anteriores" abrem o detalhamento do saldo
+    const remainingTile = document.getElementById('sumRemainingTile');
+    if (remainingTile) {
+      remainingTile.addEventListener('click', openBalanceBreakdown);
+      remainingTile.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBalanceBreakdown(); } });
+    }
+    const guardadoCardEl = document.getElementById('guardadoCard');
+    if (guardadoCardEl) { guardadoCardEl.style.cursor = 'pointer'; guardadoCardEl.addEventListener('click', openBalanceBreakdown); }
 
     // ============ ENTRADAS EXTRAS ============
     document.getElementById('extraToggle').addEventListener('click', () => toggleExtraBlock());
