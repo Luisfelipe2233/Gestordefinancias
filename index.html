@@ -6278,27 +6278,28 @@
 
   // ==================== CONQUISTAS ====================
   // Definições de todas as conquistas — adicionar novas é fácil
+  // O ícone visível de cada conquista vem de ACHIEVEMENT_ICON_MAP (SVG); aqui não há emoji.
   const ACHIEVEMENTS = [
-    { id: 'income_set', name: 'Renda Definida', desc: 'Configure sua renda mensal pela primeira vez', icon: '💰', check: (s) => Number(s.income || 0) > 0 },
-    { id: 'first_expense', name: 'Primeiro Passo', desc: 'Registre sua primeira despesa', icon: '💸', check: (s) => (s.expenses || []).length >= 1 },
-    { id: 'first_goal', name: 'Sonhador', desc: 'Crie sua primeira meta de poupança', icon: '🎯', check: (s) => (s.goals || []).length >= 1 },
-    { id: 'first_recurring', name: 'Automação Ativa', desc: 'Configure sua primeira despesa recorrente', icon: '🔄', check: (s) => (s.recurring || []).length >= 1 },
-    { id: 'first_extra', name: 'Bônus Recebido', desc: 'Adicione sua primeira entrada extra', icon: '🎁', check: (s) => (s.extraIncomes || []).length >= 1 },
-    { id: 'first_month_closed', name: 'Mês Fechado', desc: 'Arquive seu primeiro mês', icon: '📅', check: (s) => Object.keys(s.history || {}).length >= 1 },
-    { id: 'expense_10', name: 'Pegou o Ritmo', desc: 'Registre 10 despesas', icon: '📊', check: (s) => (s.expenses || []).length >= 10 },
-    { id: 'expense_50', name: 'Disciplinado', desc: 'Registre 50 despesas', icon: '✍', check: (s) => (s.expenses || []).length >= 50 },
-    { id: 'recurring_3', name: 'Tudo Automatizado', desc: 'Configure 3 despesas recorrentes', icon: '⚙', check: (s) => (s.recurring || []).length >= 3 },
-    { id: 'months_3', name: 'Constante', desc: 'Feche 3 meses consecutivos', icon: '🔥', check: (s) => Object.keys(s.history || {}).length >= 3 },
-    { id: 'months_6', name: 'Semestre Completo', desc: 'Feche 6 meses', icon: '📈', check: (s) => Object.keys(s.history || {}).length >= 6 },
-    { id: 'months_12', name: 'Ano Fechado', desc: 'Feche 12 meses', icon: '🏆', check: (s) => Object.keys(s.history || {}).length >= 12 },
-    { id: 'goal_completed', name: 'Sonho Realizado', desc: 'Atinja uma meta de poupança 100%', icon: '⭐', check: (s) => (s.goals || []).some(g => Number(g.target) > 0 && Number(g.current || 0) >= Number(g.target)) },
-    { id: 'goal_3', name: 'Visionário', desc: 'Crie 3 metas diferentes', icon: '🌟', check: (s) => (s.goals || []).length >= 3 },
-    { id: 'saved_1k', name: 'Investidor Iniciante', desc: 'Acumule R$ 1.000 em metas', icon: '💎', check: (s) => (s.goals || []).reduce((sum, g) => sum + Number(g.current || 0), 0) >= 1000 },
-    { id: 'saved_10k', name: 'Cinco Dígitos', desc: 'Acumule R$ 10.000 em metas', icon: '💠', check: (s) => (s.goals || []).reduce((sum, g) => sum + Number(g.current || 0), 0) >= 10000 },
-    { id: 'fixed_amount', name: 'Calculista', desc: 'Use modo R$ fixo em uma categoria', icon: '🧮', check: (s) => (s.categories || []).some(c => c.mode === 'fixed') },
-    { id: 'dark_mode', name: 'Coruja Financeira', desc: 'Use o tema escuro', icon: '🌙', check: (s) => s.theme === 'dark' },
-    { id: 'feedback_sent', name: 'Voz Ativa', desc: 'Deixe sua primeira nota de feedback', icon: '📝', check: (s) => (s.notes || []).length >= 1 },
-    { id: 'method_explorer', name: 'Explorador', desc: 'Experimente os 3 métodos de orçamento', icon: '🧭', check: (s) => Array.isArray(s._methodsTried) && s._methodsTried.length >= 3 },
+    { id: 'income_set', name: 'Renda Definida', desc: 'Configure sua renda mensal pela primeira vez', check: (s) => Number(s.income || 0) > 0 },
+    { id: 'first_expense', name: 'Primeiro Passo', desc: 'Registre sua primeira despesa', check: (s) => (s.expenses || []).length >= 1 },
+    { id: 'first_goal', name: 'Sonhador', desc: 'Crie sua primeira meta de poupança', check: (s) => (s.goals || []).length >= 1 },
+    { id: 'first_recurring', name: 'Automação Ativa', desc: 'Configure sua primeira despesa recorrente', check: (s) => (s.recurring || []).length >= 1 },
+    { id: 'first_extra', name: 'Bônus Recebido', desc: 'Adicione sua primeira entrada extra', check: (s) => (s.extraIncomes || []).length >= 1 },
+    { id: 'first_month_closed', name: 'Mês Fechado', desc: 'Arquive seu primeiro mês', check: (s) => Object.keys(s.history || {}).length >= 1 },
+    { id: 'expense_10', name: 'Pegou o Ritmo', desc: 'Registre 10 despesas', check: (s) => (s.expenses || []).length >= 10 },
+    { id: 'expense_50', name: 'Disciplinado', desc: 'Registre 50 despesas', check: (s) => (s.expenses || []).length >= 50 },
+    { id: 'recurring_3', name: 'Tudo Automatizado', desc: 'Configure 3 despesas recorrentes', check: (s) => (s.recurring || []).length >= 3 },
+    { id: 'months_3', name: 'Constante', desc: 'Feche 3 meses consecutivos', check: (s) => Object.keys(s.history || {}).length >= 3 },
+    { id: 'months_6', name: 'Semestre Completo', desc: 'Feche 6 meses', check: (s) => Object.keys(s.history || {}).length >= 6 },
+    { id: 'months_12', name: 'Ano Fechado', desc: 'Feche 12 meses', check: (s) => Object.keys(s.history || {}).length >= 12 },
+    { id: 'goal_completed', name: 'Sonho Realizado', desc: 'Atinja uma meta de poupança 100%', check: (s) => (s.goals || []).some(g => Number(g.target) > 0 && Number(g.current || 0) >= Number(g.target)) },
+    { id: 'goal_3', name: 'Visionário', desc: 'Crie 3 metas diferentes', check: (s) => (s.goals || []).length >= 3 },
+    { id: 'saved_1k', name: 'Investidor Iniciante', desc: 'Acumule R$ 1.000 em metas', check: (s) => (s.goals || []).reduce((sum, g) => sum + Number(g.current || 0), 0) >= 1000 },
+    { id: 'saved_10k', name: 'Cinco Dígitos', desc: 'Acumule R$ 10.000 em metas', check: (s) => (s.goals || []).reduce((sum, g) => sum + Number(g.current || 0), 0) >= 10000 },
+    { id: 'fixed_amount', name: 'Calculista', desc: 'Use modo R$ fixo em uma categoria', check: (s) => (s.categories || []).some(c => c.mode === 'fixed') },
+    { id: 'dark_mode', name: 'Coruja Financeira', desc: 'Use o tema escuro', check: (s) => s.theme === 'dark' },
+    { id: 'feedback_sent', name: 'Voz Ativa', desc: 'Deixe sua primeira nota de feedback', check: (s) => (s.notes || []).length >= 1 },
+    { id: 'method_explorer', name: 'Explorador', desc: 'Experimente os 3 métodos de orçamento', check: (s) => Array.isArray(s._methodsTried) && s._methodsTried.length >= 3 },
   ];
 
   // ==================== FIREBASE INIT ====================
