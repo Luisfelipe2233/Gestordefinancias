@@ -4872,6 +4872,74 @@
   .modal-actions .btn-secondary,
   .modal-actions .btn-danger { flex: 0 0 auto; }
 
+  /* ==================== PAYWALL / ASSINATURA ==================== */
+  .paywall-overlay {
+    position: fixed; inset: 0;
+    background: var(--backdrop, rgba(15,23,42,0.6));
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1700; padding: 20px;
+    overflow-y: auto;
+    animation: backdropIn 0.25s ease;
+  }
+  .paywall-card {
+    position: relative;
+    background: var(--surface);
+    border-radius: calc(var(--radius) + 4px);
+    padding: 30px 24px 22px;
+    max-width: 420px; width: 100%;
+    box-shadow: var(--shadow-lg);
+    max-height: 94vh; overflow-y: auto;
+    animation: modalIn 0.3s var(--ease-out-bounce);
+  }
+  .paywall-close {
+    position: absolute; top: 14px; right: 14px;
+    background: transparent; border: none; color: var(--text-mute);
+    cursor: pointer; padding: 6px; border-radius: 8px; display: inline-flex;
+  }
+  .paywall-close svg { width: 20px; height: 20px; }
+  .paywall-close:hover { background: var(--surface-alt); color: var(--text); }
+  .paywall-dev-tag {
+    position: absolute; top: 16px; left: 16px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--warning); background: var(--warning-soft);
+    padding: 3px 8px; border-radius: 999px;
+  }
+  .paywall-head { text-align: center; margin-bottom: 20px; }
+  .paywall-brand {
+    width: 52px; height: 52px; border-radius: 15px; margin: 6px auto 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+  }
+  .paywall-brand svg { width: 26px; height: 26px; }
+  .paywall-head h2 { margin: 0 0 6px; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+  .paywall-head p { margin: 0; font-size: 13.5px; color: var(--text-mute); line-height: 1.4; }
+  .paywall-plans { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .paywall-plan {
+    position: relative; text-align: left;
+    display: grid; grid-template-columns: 1fr auto; align-items: center; row-gap: 2px;
+    background: var(--surface-alt); border: 2px solid var(--border);
+    border-radius: 14px; padding: 14px 16px; cursor: pointer;
+    font-family: inherit; transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  }
+  .paywall-plan:active { transform: scale(0.99); }
+  .paywall-plan.selected { border-color: var(--primary); background: var(--primary-soft); }
+  .paywall-plan-name { font-size: 15px; font-weight: 800; color: var(--text); }
+  .paywall-price { grid-row: 1 / span 2; grid-column: 2; text-align: right; align-self: center; color: var(--text); }
+  .paywall-price strong { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .paywall-price .per { font-size: 12px; color: var(--text-mute); font-weight: 600; }
+  .paywall-plan-sub { grid-column: 1; font-size: 12px; color: var(--text-mute); }
+  .paywall-plan-save { grid-column: 1; font-size: 12px; font-weight: 700; color: var(--success-dark, var(--success)); margin-top: 3px; }
+  .paywall-badge {
+    position: absolute; top: -9px; left: 16px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: #fff; background: var(--primary); padding: 3px 9px; border-radius: 999px;
+  }
+  .paywall-features { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 9px; }
+  .paywall-features li { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--text); line-height: 1.35; }
+  .paywall-features li svg { width: 17px; height: 17px; color: var(--success-dark, var(--success)); flex-shrink: 0; margin-top: 1px; }
+  .paywall-cta { width: 100%; padding: 14px; font-size: 15px; font-weight: 700; }
+  .paywall-fine { text-align: center; font-size: 11.5px; color: var(--text-soft); margin: 12px 0 0; }
+
   /* ==================== ONBOARDING (primeiro uso) ==================== */
   .onb-backdrop {
     position: fixed;
@@ -6071,6 +6139,41 @@
 <!-- ============ MODAIS ============ -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- ============ PAYWALL / ASSINATURA (scaffold, dev-only por enquanto) ============ -->
+<div class="paywall-overlay" id="paywallOverlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Assinar o Munny">
+  <div class="paywall-card">
+    <button class="paywall-close" id="paywallClose" type="button" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <span class="paywall-dev-tag" id="paywallDevTag">Prévia (dev)</span>
+    <div class="paywall-head">
+      <div class="paywall-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <h2>Tenha o Munny completo</h2>
+      <p>Seu dinheiro sob controle, sem planilha. Acesso total em qualquer aparelho.</p>
+    </div>
+    <div class="paywall-plans">
+      <button type="button" class="paywall-plan selected" data-plan="anual">
+        <span class="paywall-badge">Mais econômico</span>
+        <span class="paywall-plan-name">Anual</span>
+        <span class="paywall-price"><strong>R$ 16,99</strong><span class="per">/mês</span></span>
+        <span class="paywall-plan-sub">R$ 203,88 cobrado uma vez por ano</span>
+        <span class="paywall-plan-save">Economize R$ 36 no ano</span>
+      </button>
+      <button type="button" class="paywall-plan" data-plan="mensal">
+        <span class="paywall-plan-name">Mensal</span>
+        <span class="paywall-price"><strong>R$ 19,99</strong><span class="per">/mês</span></span>
+        <span class="paywall-plan-sub">Cobrado todo mês</span>
+        <span class="paywall-plan-save">Cancele quando quiser</span>
+      </button>
+    </div>
+    <ul class="paywall-features" id="paywallFeatures"></ul>
+    <button type="button" class="btn-primary paywall-cta" id="paywallCta">Assinar o plano anual</button>
+    <p class="paywall-fine">Pagamento seguro via Mercado Pago. Cancele quando quiser.</p>
+  </div>
 </div>
 
 <!-- ============ ONBOARDING (primeiro uso) ============ -->
@@ -7565,6 +7668,64 @@
     showToast('Gasto adicionado.', 'success');
   }
 
+  // ==================== PAYWALL / ASSINATURA (scaffold, dev-only) ====================
+  // Planos: mensal R$19,99/mês; anual R$16,99/mês cobrado à vista (R$203,88/ano).
+  // Por enquanto o CTA NÃO dispara checkout de verdade (Mercado Pago ainda não ativo).
+  // Quando MP + Firebase Blaze estiverem prontos, o CTA chama o checkout real do plano.
+  const PAYWALL_PLANS = {
+    anual:  { label: 'Assinar o plano anual' },
+    mensal: { label: 'Assinar o plano mensal' },
+  };
+  const PAYWALL_FEATURES = [
+    'Divisão automática da renda (50/30/20 ou potes)',
+    'Controle de gastos, metas e cartão de crédito',
+    'Histórico e evolução mês a mês',
+    'Dados salvos e privados, em qualquer aparelho',
+  ];
+  let _paywallPlan = 'anual';
+  function updatePaywallSelection() {
+    document.querySelectorAll('#paywallOverlay .paywall-plan').forEach(p => {
+      p.classList.toggle('selected', p.dataset.plan === _paywallPlan);
+    });
+    const cta = document.getElementById('paywallCta');
+    if (cta) cta.textContent = (PAYWALL_PLANS[_paywallPlan] || PAYWALL_PLANS.anual).label;
+  }
+  function openPaywall() {
+    const ov = document.getElementById('paywallOverlay');
+    if (!ov) return;
+    const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    const feats = document.getElementById('paywallFeatures');
+    if (feats) feats.innerHTML = PAYWALL_FEATURES.map(f => `<li>${check}<span>${escapeHtml(f)}</span></li>`).join('');
+    const devTag = document.getElementById('paywallDevTag');
+    if (devTag) devTag.style.display = isDev() ? '' : 'none';
+    _paywallPlan = 'anual';
+    updatePaywallSelection();
+    ov.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closePaywall() {
+    const ov = document.getElementById('paywallOverlay');
+    if (ov) ov.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function setupPaywall() {
+    const ov = document.getElementById('paywallOverlay');
+    if (!ov || ov.dataset.wired) return;
+    ov.dataset.wired = '1';
+    document.getElementById('paywallClose').addEventListener('click', closePaywall);
+    ov.addEventListener('click', (e) => { if (e.target === ov) closePaywall(); });
+    ov.querySelectorAll('.paywall-plan').forEach(p => {
+      p.addEventListener('click', () => { _paywallPlan = p.dataset.plan; updatePaywallSelection(); });
+    });
+    document.getElementById('paywallCta').addEventListener('click', () => {
+      // TODO: com o Mercado Pago ativo, iniciar aqui o checkout do plano `_paywallPlan`.
+      showToast('Checkout do Mercado Pago ainda não está ativo. Liga quando a conta MP e o Firebase Blaze estiverem prontos.', 'success');
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && ov.style.display === 'flex') closePaywall();
+    });
+  }
+
   function setupQuickAdd() {
     const back = document.getElementById('quickAddBackdrop');
     if (!back || back.dataset.wired) return;
@@ -8855,8 +9016,9 @@
         <button class="item" data-act="notes"><span class="menu-icon">${ICONS.messageSquare}</span><span>Notas / Enviar feedback</span></button>
         ${isDev() ? `
         <div class="divider"></div>
-        <div class="label">Sincronização</div>
+        <div class="label">Dev</div>
         <button class="item" data-act="syncConfig"><span class="menu-icon">${ICONS.sheets}</span><span>Conectar com Google Sheets (notas)</span></button>
+        <button class="item" data-act="paywallPreview"><span class="menu-icon">${ICONS.creditCard}</span><span>Ver tela de assinatura</span></button>
         ` : ''}
         ${currentUser ? `
           <div class="divider"></div>
@@ -8888,6 +9050,8 @@
     if (themePickerBtn) themePickerBtn.addEventListener('click', () => { closeModal(); openThemePicker(); });
     const syncBtn = modal.querySelector('[data-act="syncConfig"]'); // só existe pro dev (isDev)
     if (syncBtn) syncBtn.addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
+    const paywallBtn = modal.querySelector('[data-act="paywallPreview"]'); // dev-only: prévia da tela de assinatura
+    if (paywallBtn) paywallBtn.addEventListener('click', () => { closeModal(); openPaywall(); });
     const installBtn = modal.querySelector('[data-act="install"]');
     if (installBtn) installBtn.addEventListener('click', () => { closeModal(); triggerInstall(); });
     const achBtn = modal.querySelector('[data-act="achievements"]');
@@ -10614,6 +10778,7 @@ function doGet() {
     const painelAddBtn = document.getElementById('painelAddBtn');
     if (painelAddBtn) painelAddBtn.addEventListener('click', openQuickAdd);
     setupQuickAdd();
+    setupPaywall();
 
     // Configuração recolhida (renda + método) — toggle
     const configToggle = document.getElementById('configToggle');
