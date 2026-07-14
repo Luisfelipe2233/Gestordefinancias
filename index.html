@@ -1493,6 +1493,19 @@
 
   /* ==================== EXPENSES ==================== */
   .form-row { margin-bottom: 12px; }
+  /* Toggle "Repetir todo mês" dentro do form de despesa */
+  .repeat-toggle {
+    display: flex; align-items: flex-start; gap: 11px; cursor: pointer; user-select: none;
+    padding: 12px 14px; margin: 4px 0 14px;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .repeat-toggle:hover { border-color: var(--primary); }
+  .repeat-toggle input { width: 18px; height: 18px; margin: 1px 0 0; flex-shrink: 0; accent-color: var(--primary); cursor: pointer; }
+  .repeat-toggle:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+  .repeat-text { display: flex; flex-direction: column; gap: 2px; }
+  .repeat-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .repeat-sub { font-size: 12px; color: var(--text-mute); line-height: 1.4; }
   .form-grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -5927,21 +5940,27 @@
             <div class="quick-chips" id="quickChips"></div>
             <select id="expCategory" required></select>
           </div>
-          <button type="submit" class="btn-primary">+ Adicionar Despesa</button>
+          <label class="repeat-toggle" id="expRepeatLabel">
+            <input type="checkbox" id="expRepeat" />
+            <span class="repeat-text">
+              <span class="repeat-title">Repetir todo mês</span>
+              <span class="repeat-sub" id="expRepeatSub">Pra contas fixas: aluguel, Netflix, internet. O Munny lança sozinho todo mês.</span>
+            </span>
+          </label>
+          <button type="submit" class="btn-primary" id="expSubmitBtn">+ Adicionar Despesa</button>
         </form>
     </div>
 
     <details class="recurring-details mt-12" id="recurringDetails">
       <summary class="recurring-summary">
         <span class="rec-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
-        Despesas recorrentes
+        Suas despesas recorrentes
         <span class="rec-count" id="recCount" style="display:none;"></span>
         <span class="rec-chev"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
       </summary>
       <div class="recurring-body">
-        <p class="subtitle">Aluguel, assinaturas, contas fixas. Renovam todo mês automaticamente.</p>
+        <p class="subtitle">As que se repetem todo mês. Pra criar uma, marque "Repetir todo mês" ao adicionar a despesa acima. Toque numa pra editar.</p>
         <ul class="expenses-list" id="recurringList"></ul>
-        <button class="btn-ghost mt-12" id="addRecurringBtn" type="button" style="width:100%;">+ Nova Recorrente</button>
       </div>
     </details>
 
@@ -6533,10 +6552,14 @@
   }
 
   // Paleta orgânica — tons de cerâmica, linho e sálvia (briefing de design)
+  // Paleta do seletor de cores (cartões, categorias, metas). Cores vibrantes e bem
+  // distintas entre si — a paleta antiga era toda dessaturada, então tudo ficava
+  // parecido e era difícil diferenciar um cartão do outro.
   const COLOR_PALETTE = [
-    '#6F8E7F', '#C97A6A', '#B5915F', '#8A7CA8', '#7E9BB3',
-    '#93955C', '#A26769', '#6E9C92', '#C9A88C', '#8C8678',
-    '#557163', '#9D6B53', '#7B8FA3', '#A8916E', '#5F7470',
+    '#2563EB', '#0EA5E9', '#06B6D4', '#14B8A6', '#10B981',
+    '#22C55E', '#84CC16', '#EAB308', '#F59E0B', '#F97316',
+    '#EF4444', '#EC4899', '#D946EF', '#A855F7', '#6366F1',
+    '#6F8E7F', '#C97A6A', '#78716C',
   ];
 
   const METHODS = {
@@ -8585,6 +8608,18 @@
     });
   }
 
+  // Recorrente agora se cria pelo checkbox "Repetir todo mês" no form de despesa.
+  // Este helper leva a pessoa pra lá com o checkbox já marcado.
+  function focusExpenseAsRecurring() {
+    switchTab('despesas');
+    setTimeout(() => {
+      const chk = document.getElementById('expRepeat');
+      if (chk && !chk.checked) { chk.checked = true; chk.dispatchEvent(new Event('change')); }
+      const name = document.getElementById('expName');
+      if (name) { name.focus({ preventScroll: true }); name.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }, 240);
+  }
+
   function openRecurringModal(rec) {
     const isNew = !rec;
     rec = rec || { name: '', value: 0, categoryId: state.categories[0]?.id, dayOfMonth: 1 };
@@ -10338,11 +10373,7 @@ function doGet() {
         if (btn) btn.click();
       }, 300);
     } else if (action === 'addRecurring') {
-      switchTab('despesas');
-      setTimeout(() => {
-        const btn = document.getElementById('addRecurringBtn');
-        if (btn) btn.click();
-      }, 300);
+      focusExpenseAsRecurring();
     } else if (action === 'addCard') {
       switchTab('cartao');
       setTimeout(() => {
@@ -10986,6 +11017,31 @@ function doGet() {
       const categoryId = document.getElementById('expCategory').value;
       if (value <= 0) { showToast('Valor deve ser maior que zero.', 'error'); return; }
       if (!categoryId) { showToast('Selecione uma categoria.', 'error'); return; }
+      const repeat = document.getElementById('expRepeat');
+      const isRecurring = repeat && repeat.checked;
+
+      if (isRecurring) {
+        // "Repetir todo mês": vira uma despesa recorrente (o dia vem da data escolhida)
+        const dayOfMonth = Math.max(1, Math.min(31, Number((date || todayISO()).slice(8, 10)) || 1));
+        const rec = { id: newId('r'), name, value, categoryId, dayOfMonth };
+        state.recurring.push(rec);
+        applyRecurringForCurrentMonth(rec); // já lança a deste mês se o dia chegou
+        teach(name, categoryId);
+        _justAddedCatId = categoryId;
+        repeat.checked = false;
+        repeat.dispatchEvent(new Event('change')); // volta o form ao normal
+        saveState();
+        document.getElementById('expName').value = '';
+        document.getElementById('expValue').value = '';
+        document.getElementById('expDate').value = todayISO();
+        document.getElementById('suggestHint').classList.remove('show');
+        renderAll();
+        track('add_expense');
+        showToast(`Recorrente criada. Todo dia ${dayOfMonth} o Munny lança sozinho.`, 'success');
+        document.getElementById('expName').focus();
+        return;
+      }
+
       state.expenses.push({
         id: newId('e'),
         name,
@@ -11009,6 +11065,22 @@ function doGet() {
       showToast('Despesa adicionada.', 'success');
       document.getElementById('expName').focus();
     });
+
+    // Checkbox "Repetir todo mês": ajusta o form (rótulos) pro modo recorrente
+    const expRepeat = document.getElementById('expRepeat');
+    if (expRepeat) {
+      expRepeat.addEventListener('change', () => {
+        const on = expRepeat.checked;
+        const btn = document.getElementById('expSubmitBtn');
+        if (btn) btn.textContent = on ? '+ Adicionar recorrente' : '+ Adicionar Despesa';
+        const dateLbl = document.querySelector('label[for="expDate"]');
+        if (dateLbl) dateLbl.textContent = on ? 'Todo dia' : 'Data';
+        const sub = document.getElementById('expRepeatSub');
+        if (sub) sub.textContent = on
+          ? 'O Munny lança sozinho todo mês, no dia escolhido acima.'
+          : 'Pra contas fixas: aluguel, Netflix, internet. O Munny lança sozinho todo mês.';
+      });
+    }
 
     // Auto-suggest
     document.getElementById('expName').addEventListener('input', (e) => {
@@ -11057,7 +11129,6 @@ function doGet() {
     });
 
     // Recurring
-    document.getElementById('addRecurringBtn').addEventListener('click', () => openRecurringModal());
 
     // Cartões
     document.getElementById('addCardBtn').addEventListener('click', () => openCardModal());
@@ -11540,9 +11611,11 @@ function doGet() {
     const monthLabel = document.getElementById('calMonthLabel');
     if (monthLabel) monthLabel.textContent = fmtMonthName(ym);
 
-    // Navegação — desabilita avançar se passou do mês atual
+    // Navegação — a Agenda serve pra AGENDAR pagamentos futuros, então precisa avançar de mês.
+    // (Antes o avançar ficava travado no mês atual, o que impedia agendar qualquer coisa pra frente.)
+    // Teto de 24 meses à frente só pra não virar navegação infinita.
     const nextBtn = document.getElementById('calNextBtn');
-    if (nextBtn) nextBtn.disabled = ym >= nowYM();
+    if (nextBtn) nextBtn.disabled = ym >= getRelativeYM(nowYM(), 24);
     // Histórico tem limite — desabilita voltar se não tem dados de meses anteriores
     const prevBtn = document.getElementById('calPrevBtn');
     if (prevBtn) {
@@ -12323,7 +12396,7 @@ function doGet() {
     // Ações
     cmds.push({ group: 'Ações', label: 'Adicionar despesa', icon: ICONS.receipt, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('expName').focus(), 200); }, keywords: 'nova adicionar despesa gasto novo' });
     cmds.push({ group: 'Ações', label: 'Criar nova meta', icon: ICONS.target, action: () => { switchTab('metas'); setTimeout(() => document.getElementById('addGoalBtn').click(), 200); }, keywords: 'nova meta sonho objetivo' });
-    cmds.push({ group: 'Ações', label: 'Adicionar despesa recorrente', icon: ICONS.refresh, action: () => { switchTab('despesas'); setTimeout(() => document.getElementById('addRecurringBtn').click(), 200); }, keywords: 'recorrente fixa mensal' });
+    cmds.push({ group: 'Ações', label: 'Adicionar despesa recorrente', icon: ICONS.refresh, action: () => focusExpenseAsRecurring(), keywords: 'recorrente fixa mensal' });
     cmds.push({ group: 'Ações', label: 'Lançar compra no cartão', icon: ICONS.creditCard, action: () => { switchTab('cartao'); setTimeout(() => openCardPurchaseModal(), 200); }, keywords: 'cartao compra parcelar parcela fatura credito' });
     cmds.push({ group: 'Ações', label: 'Agendar despesa / evento', icon: ICONS.calendar, action: () => openScheduleModal(state.ui.calendarSelectedDay || todayISO()), keywords: 'agendar futuro lembrete evento marcar aluguel salario aniversario' });
     cmds.push({ group: 'Ações', label: 'Fechar mês atual', icon: ICONS.calendarCheck, action: () => openCloseMonthModal(), keywords: 'fechar mes arquivar mes mes' });
