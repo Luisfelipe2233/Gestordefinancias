@@ -33,7 +33,7 @@
 <!-- Fonte premium Inter (mesma da Stripe, Linear, Vercel) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" />
 
 <!-- Conexões antecipadas pro CDN do Firebase (acelera o download em paralelo) -->
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
@@ -1724,25 +1724,8 @@
       0 4px 14px rgba(59, 130, 246, 0.5),
       0 0 0 1px rgba(255, 255, 255, 0.12);
   }
-  [data-theme="dark"] .login-card {
-    background: linear-gradient(180deg, var(--surface) 0%, rgba(30, 41, 59, 0.9) 100%);
-    box-shadow:
-      0 24px 60px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.05);
-  }
-  [data-theme="dark"] .login-google-btn {
-    background: #fff;
-    color: #1a2238;
-  }
-  [data-theme="dark"] .login-google-btn:hover {
-    background: #f0f3f9;
-  }
-  [data-theme="dark"] .login-screen {
-    background:
-      radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(52, 211, 153, 0.08) 0%, transparent 50%),
-      var(--bg);
-  }
+  /* Overrides do login antigo removidos: o redesign Linho escopa seus proprios
+     tokens claro/escuro em .login-screen (ver bloco "REDESIGN LINHO"). */
 
   /* ==================== MICROCELEBRAÇÕES (F) ==================== */
   /* Texto flutuante "+R$" */
@@ -3484,338 +3467,101 @@
   }
 
   /* ==================== TELA DE LOGIN (redesign A) ==================== */
+  /* ===================================================================
+     REDESIGN LINHO — login + assinatura (hero salvia / onda / folha creme)
+     Tokens escopados nos containers (--rl-*, --sage, --promo): nao vazam
+     pro resto do app. Escuro segue os temas escuros (dark/oled/forest/
+     sunset/ocean). Fonte Plus Jakarta Sans so nessas telas.
+     =================================================================== */
+  .login-screen, .paywall-overlay {
+    --sage:#6F8E7F; --sage-d:#54705F; --sage-l:#88A596; --sage-soft:#DEEBE5;
+    --terra:#BE6E5C; --promo:#C2673F; --promo-soft:rgba(194,103,63,0.10);
+    --rl-oat:#F7F3EA; --rl-cream:#FDFBF4; --rl-linen:#EFEAE0;
+    --rl-text:#2A251D; --rl-soft:#494130; --rl-mute:#6C6350; --rl-line:rgba(74,65,50,0.09);
+    --rl-sh-sm:0 1px 2px rgba(74,65,50,.04), 0 2px 8px rgba(74,65,50,.03);
+    --rl-sh-lg:0 8px 24px rgba(74,65,50,.06), 0 32px 64px rgba(74,65,50,.08);
+    --rl-font:"Plus Jakarta Sans","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  }
+  html[data-theme="dark"] .login-screen,  html[data-theme="dark"] .paywall-overlay,
+  html[data-theme="oled"] .login-screen,  html[data-theme="oled"] .paywall-overlay,
+  html[data-theme="forest"] .login-screen, html[data-theme="forest"] .paywall-overlay,
+  html[data-theme="sunset"] .login-screen, html[data-theme="sunset"] .paywall-overlay,
+  html[data-theme="ocean"] .login-screen,  html[data-theme="ocean"] .paywall-overlay {
+    --rl-oat:#181410; --rl-cream:#221D16; --rl-linen:#2C261D;
+    --rl-text:#F1EADE; --rl-soft:#CFC6B4; --rl-mute:#ADA28E;
+    --sage:#6F8E7F; --sage-d:#54705F; --sage-l:#8FAC9C; --sage-soft:rgba(143,172,156,.15);
+    --terra:#D68F7E; --promo:#E29A72; --promo-soft:rgba(226,154,114,.16); --rl-line:rgba(240,233,221,.10);
+    --rl-sh-sm:0 1px 3px rgba(0,0,0,.3); --rl-sh-lg:0 32px 64px rgba(0,0,0,.5);
+  }
+
   .login-screen {
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 60% at 50% 0%, var(--primary-soft) 0%, transparent 65%),
-      var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 20px;
-    z-index: 9999;
-    overflow-y: auto;
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--rl-oat);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 18px; overflow-y: auto;
+    font-family: var(--rl-font);
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Bolhas decorativas flutuantes no fundo */
-  .login-bubble {
-    position: absolute;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    opacity: 0.04;
-    filter: blur(40px);
-    animation: bubbleFloat 18s ease-in-out infinite;
-    pointer-events: none;
+  /* Cartao-folha compartilhado (login e assinatura falam a mesma lingua) */
+  .rl-card {
+    position: relative; width: 100%; max-width: 380px;
+    background: var(--rl-cream); color: var(--rl-text);
+    border-radius: 30px; overflow: hidden;
+    box-shadow: var(--rl-sh-lg); border: 1px solid var(--rl-line);
+    display: flex; flex-direction: column;
+    animation: rlCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .login-bubble.b1 { width: 280px; height: 280px; top: 10%; left: 8%; animation-delay: 0s; }
-  .login-bubble.b2 { width: 200px; height: 200px; top: 60%; right: 12%; animation-delay: -6s; background: linear-gradient(135deg, var(--warning) 0%, var(--success) 100%); opacity: 0.05; }
-  .login-bubble.b3 { width: 160px; height: 160px; bottom: 15%; left: 35%; animation-delay: -12s; background: linear-gradient(135deg, #8b5cf6 0%, var(--primary) 100%); opacity: 0.04; }
-  @keyframes bubbleFloat {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -20px) scale(1.05); }
-    66% { transform: translate(-20px, 25px) scale(0.95); }
-  }
-  [data-theme="dark"] .login-bubble { opacity: 0.15; }
-
-  .login-container {
-    position: relative;
-    max-width: 400px;
-    width: 100%;
-    z-index: 1;
+  @keyframes rlCardIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.99); }
+    to   { opacity: 1; transform: none; }
   }
 
-  /* HERO SIDE — fala sobre o produto */
-  .login-hero {
-    animation: heroFadeIn 0.6s var(--ease-out-smooth) 0.05s both;
+  .rl-hero {
+    position: relative; overflow: hidden; color: #FBFAF6;
+    background: linear-gradient(158deg, var(--sage-l), var(--sage) 55%, var(--sage-d));
+    padding: 34px 26px 0;
   }
-  @keyframes heroFadeIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
+  .rl-blob { position: absolute; border-radius: 50%; background: rgba(251,250,246,.10); pointer-events: none; }
+  .rl-blob.b1 { width: 140px; height: 140px; top: -44px; right: -32px; }
+  .rl-blob.b2 { width: 80px;  height: 80px;  top: 48px;  right: 56px; background: rgba(251,250,246,.06); }
+  .rl-blob.b3 { width: 110px; height: 110px; bottom: 8px; left: -44px; background: rgba(251,250,246,.05); }
+  .rl-hero-in { position: relative; z-index: 1; padding-bottom: 38px; }
+  .rl-mark {
+    width: 46px; height: 46px; border-radius: 15px;
+    background: rgba(251,250,246,.16); border: 1px solid rgba(251,250,246,.22);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
   }
-  @media (max-width: 820px) {
-    .login-hero { text-align: center; }
-    @keyframes heroFadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  }
+  .rl-mark svg { width: 23px; height: 23px; }
+  .rl-hero h1 { margin: 0; font-size: 25px; line-height: 1.12; font-weight: 800; letter-spacing: -0.03em; text-wrap: balance; color: #FBFAF6; }
+  .rl-hero p  { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; color: rgba(251,250,246,.85); max-width: 27ch; }
+  .rl-wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 38px; display: block; z-index: 1; }
 
-  .login-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--primary-soft);
-    color: var(--primary-dark);
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 18px;
-    border: 1px solid rgba(37, 99, 235, 0.15);
-  }
-  .login-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background: var(--success);
-    border-radius: 50%;
-    box-shadow: 0 0 6px var(--success);
-    animation: badgeBlink 2s ease-in-out infinite;
-  }
-  @keyframes badgeBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
+  .rl-sheet { flex: 1; display: flex; flex-direction: column; padding: 22px 26px 24px; }
+  .rl-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--rl-mute); margin: 0 0 12px; }
 
-  .login-hero h1 {
-    font-size: 64px;
-    font-weight: 800;
-    margin: 0 0 12px;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 8s ease infinite;
-    background-size: 200% auto;
+  /* Login — botao Google (pilula), visitante, seguranca, termos */
+  .rl-google {
+    width: 100%; border: 1.5px solid var(--rl-line); border-radius: 15px; padding: 15px;
+    background: var(--rl-cream); color: var(--rl-text);
+    font-family: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: var(--rl-sh-sm); transition: border-color .15s ease, transform .1s ease;
   }
-  @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+  .rl-google:hover { border-color: var(--sage); }
+  .rl-google:active { transform: scale(0.99); }
+  .rl-google:disabled { opacity: 0.55; cursor: default; }
+  .rl-google svg { width: 19px; height: 19px; flex-shrink: 0; }
+  .rl-guest {
+    width: 100%; margin-top: 12px; padding: 10px; background: none; border: none;
+    font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--sage-d); cursor: pointer;
   }
-  @media (max-width: 820px) { .login-hero h1 { font-size: 52px; } }
-  @media (max-width: 480px) { .login-hero h1 { font-size: 44px; } }
-
-  .login-hero-tagline {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 14px;
-    letter-spacing: -0.015em;
-    line-height: 1.25;
-  }
-  @media (max-width: 820px) { .login-hero-tagline { font-size: 19px; } }
-
-  .login-hero-desc {
-    font-size: 15px;
-    color: var(--text-soft);
-    margin: 0 0 28px;
-    line-height: 1.55;
-    max-width: 420px;
-  }
-  @media (max-width: 820px) { .login-hero-desc { margin-left: auto; margin-right: auto; } }
-
-  /* Features mini-cards */
-  .login-features {
-    display: grid;
-    gap: 14px;
-    margin-top: 28px;
-  }
-  .login-feature {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 0;
-    text-align: left;
-  }
-  .login-feature-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--success-soft) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-    flex-shrink: 0;
-  }
-  .login-feature-icon svg { width: 18px; height: 18px; }
-  .login-feature-text strong {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 2px;
-    letter-spacing: -0.005em;
-  }
-  .login-feature-text span {
-    font-size: 13px;
-    color: var(--text-mute);
-    line-height: 1.45;
-  }
-
-  /* LOGIN CARD SIDE */
-  .login-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 36px 32px;
-    width: 100%;
-    box-shadow:
-      0 20px 60px rgba(15, 23, 42, 0.08),
-      0 1px 0 rgba(255, 255, 255, 0.6) inset;
-    text-align: center;
-    position: relative;
-    animation: cardFadeIn 0.6s var(--ease-out-smooth) 0.15s both;
-  }
-  @keyframes cardFadeIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  /* Brilho sutil ao redor do card */
-  .login-card::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    opacity: 0.12;
-    filter: blur(20px);
-    z-index: -1;
-  }
-
-  .login-brand-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    margin: 0 auto 18px;
-    box-shadow: 0 10px 28px rgba(111, 142, 127, 0.30);
-    position: relative;
-  }
-  .login-brand-icon::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    opacity: 0.25;
-    filter: blur(10px);
-    z-index: -1;
-    animation: iconGlow 3s ease-in-out infinite;
-  }
-  @keyframes iconGlow {
-    0%, 100% { opacity: 0.25; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(1.05); }
-  }
-  .login-brand-icon svg { width: 32px; height: 32px; }
-
-  .login-title {
-    font-size: 30px;
-    font-weight: 800;
-    margin: 0 0 4px;
-    letter-spacing: -0.03em;
-    color: var(--text);
-  }
-
-  .login-tagline {
-    margin: 0 0 8px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  /* Uma linha concreta do que o app faz — clareza pra quem chega frio, sem virar hero */
-  .login-pitch {
-    margin: 0 auto 24px;
-    max-width: 300px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-mute);
-  }
-
-  .login-desc { display: none; }
-
-  /* Login com Google premium */
-  /* Link discreto "modo visitante" — saída secundária, abaixo do login */
-  .login-guest-link {
-    display: block;
-    width: 100%;
-    margin-top: 14px;
-    background: transparent;
-    border: none;
-    color: var(--text-mute);
-    font-size: 13px;
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    padding: 6px;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: var(--border-strong);
-    transition: color 0.15s ease;
-  }
-  .login-guest-link:hover { color: var(--text-soft); }
-
-  .login-google-btn {
-    width: 100%;
-    background: #fff;
-    color: #1a2238;
-    border: 1.5px solid #e3e8f0;
-    border-radius: 12px;
-    padding: 14px 18px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    transition: all 0.2s var(--ease-out-smooth);
-    box-shadow:
-      0 1px 3px rgba(15, 23, 42, 0.04),
-      0 4px 12px rgba(15, 23, 42, 0.06);
-    position: relative;
-    overflow: hidden;
-  }
-  .login-google-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.8s var(--ease-out-cubic);
-    pointer-events: none;
-  }
-  .login-google-btn:hover::before { transform: translateX(100%); }
-  .login-google-btn:hover {
-    transform: translateY(-2px);
-    border-color: #cbd5e1;
-    box-shadow:
-      0 2px 6px rgba(15, 23, 42, 0.06),
-      0 10px 28px rgba(37, 99, 235, 0.18);
-  }
-  .login-google-btn:active { transform: translateY(0); }
-  .login-google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .login-trust {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: center;
-    margin: 18px 0 0;
-    padding: 10px 14px;
-    background: var(--surface-alt);
-    border-radius: 10px;
-    font-size: 12px;
-    color: var(--text-soft);
-  }
-  .login-trust svg { width: 14px; height: 14px; color: var(--success); flex-shrink: 0; }
-
-  .login-footer {
-    margin: 16px 0 0;
-    font-size: 11px;
-    color: var(--text-mute);
-    line-height: 1.55;
-  }
+  .rl-guest:hover { text-decoration: underline; }
+  .rl-safe { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; font-size: 12px; color: var(--rl-mute); text-align: center; }
+  .rl-safe svg { width: 14px; height: 14px; color: var(--sage); flex-shrink: 0; }
+  .rl-terms { margin: 24px 0 0; font-size: 10.5px; color: var(--rl-mute); text-align: center; line-height: 1.55; }
+  .rl-terms .legal-link { background: none; border: none; font: inherit; color: var(--rl-soft); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; padding: 0; }
+  .rl-terms .legal-link:hover { color: var(--rl-text); }
 
   .login-loading {
     display: flex;
@@ -4887,71 +4633,83 @@
 
   /* ==================== PAYWALL / ASSINATURA ==================== */
   .paywall-overlay {
-    position: fixed; inset: 0;
-    background: var(--backdrop, rgba(15,23,42,0.6));
+    position: fixed; inset: 0; z-index: 1700;
+    background: rgba(46,41,32,0.55);
     display: flex; align-items: center; justify-content: center;
-    z-index: 1700; padding: 20px;
-    overflow-y: auto;
+    padding: 20px; overflow-y: auto;
+    font-family: var(--rl-font);
     animation: backdropIn 0.25s ease;
   }
   .paywall-card {
-    position: relative;
-    background: var(--surface);
-    border-radius: calc(var(--radius) + 4px);
-    padding: 30px 24px 22px;
-    max-width: 420px; width: 100%;
-    box-shadow: var(--shadow-lg);
-    max-height: 94vh; overflow-y: auto;
-    animation: modalIn 0.3s var(--ease-out-bounce);
+    position: relative; width: 100%; max-width: 384px;
+    background: var(--rl-cream); color: var(--rl-text);
+    border-radius: 28px; overflow: hidden;
+    box-shadow: var(--rl-sh-lg);
+    max-height: 96vh; overflow-y: auto;
+    animation: modalIn 0.35s var(--ease-out-bounce);
   }
   .paywall-close {
-    position: absolute; top: 14px; right: 14px;
-    background: transparent; border: none; color: var(--text-mute);
-    cursor: pointer; padding: 6px; border-radius: 8px; display: inline-flex;
+    position: absolute; top: 14px; right: 14px; z-index: 3;
+    background: rgba(251,250,246,.16); border: 1px solid rgba(251,250,246,.24);
+    color: #FBFAF6; cursor: pointer; padding: 7px; border-radius: 10px;
+    display: inline-flex; transition: background .15s ease;
   }
-  .paywall-close svg { width: 20px; height: 20px; }
-  .paywall-close:hover { background: var(--surface-alt); color: var(--text); }
+  .paywall-close:hover { background: rgba(251,250,246,.30); }
+  .paywall-close svg { width: 18px; height: 18px; }
   .paywall-dev-tag {
-    position: absolute; top: 16px; left: 16px;
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--warning); background: var(--warning-soft);
+    position: absolute; top: 16px; left: 16px; z-index: 3;
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #FBFAF6; background: rgba(251,250,246,.18); border: 1px solid rgba(251,250,246,.24);
     padding: 3px 8px; border-radius: 999px;
   }
-  .paywall-head { text-align: center; margin-bottom: 20px; }
-  .paywall-brand {
-    width: 52px; height: 52px; border-radius: 15px; margin: 6px auto 14px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: #fff; display: flex; align-items: center; justify-content: center;
-  }
-  .paywall-brand svg { width: 26px; height: 26px; }
-  .paywall-head h2 { margin: 0 0 6px; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
-  .paywall-head p { margin: 0; font-size: 13.5px; color: var(--text-mute); line-height: 1.4; }
-  .paywall-plans { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+
+  /* Planos empilhados: radio a esquerda, nome/detalhe no meio, preco a direita */
+  .paywall-plans { display: flex; flex-direction: column; gap: 8px; margin: 0; }
   .paywall-plan {
-    position: relative; text-align: left;
-    display: grid; grid-template-columns: 1fr auto; align-items: center; row-gap: 2px;
-    background: var(--surface-alt); border: 2px solid var(--border);
-    border-radius: 14px; padding: 14px 16px; cursor: pointer;
-    font-family: inherit; transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    font-family: inherit; cursor: pointer;
+    background: var(--rl-cream); border: 1.5px solid var(--rl-line); border-radius: 14px;
+    padding: 13px 15px; transition: border-color .15s ease, background .15s ease;
   }
-  .paywall-plan:active { transform: scale(0.99); }
-  .paywall-plan.selected { border-color: var(--primary); background: var(--primary-soft); }
-  .paywall-plan-name { font-size: 15px; font-weight: 800; color: var(--text); }
-  .paywall-price { grid-row: 1 / span 2; grid-column: 2; text-align: right; align-self: center; color: var(--text); }
-  .paywall-price strong { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
-  .paywall-price .per { font-size: 12px; color: var(--text-mute); font-weight: 600; }
-  .paywall-plan-sub { grid-column: 1; font-size: 12px; color: var(--text-mute); }
-  .paywall-plan-save { grid-column: 1; font-size: 12px; font-weight: 700; color: var(--success-dark, var(--success)); margin-top: 3px; }
-  .paywall-badge {
-    position: absolute; top: -9px; left: 16px;
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    color: #fff; background: var(--primary); padding: 3px 9px; border-radius: 999px;
+  .paywall-plan:hover { border-color: var(--sage); }
+  .paywall-plan.selected { border-color: var(--sage); background: var(--sage-soft); }
+  .paywall-plan .rl-radio { width: 19px; height: 19px; border-radius: 50%; border: 2px solid var(--rl-line); flex-shrink: 0; position: relative; transition: border-color .15s ease; }
+  .paywall-plan.selected .rl-radio { border-color: var(--sage); }
+  .paywall-plan.selected .rl-radio::after { content:""; position:absolute; inset:4px; border-radius:50%; background: var(--sage); }
+  /* Caixa da PROMO (Anual): borda terracota-laranja sempre destacada */
+  .paywall-plan.promo { border-width: 2px; border-color: var(--promo); padding: 12px 15px; }
+  .paywall-plan.promo:hover { border-color: var(--promo); }
+  .paywall-plan.promo.selected { border-color: var(--promo); background: var(--promo-soft); }
+  .paywall-plan.promo.selected .rl-radio { border-color: var(--promo); }
+  .paywall-plan.promo.selected .rl-radio::after { background: var(--promo); }
+  .paywall-plan .rl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .paywall-plan .rl-top { display: flex; align-items: center; gap: 8px; }
+  .paywall-plan .rl-nm { font-size: 14.5px; font-weight: 700; color: var(--rl-text); letter-spacing: -0.01em; line-height: 1.2; }
+  .paywall-plan .rl-chip { font-size: 10px; font-weight: 800; color: #FBFAF6; background: var(--promo); padding: 2px 7px; border-radius: 999px; white-space: nowrap; line-height: 1.4; letter-spacing: 0.02em; }
+  .paywall-plan .rl-nt { font-size: 11.5px; color: var(--rl-mute); font-variant-numeric: tabular-nums; line-height: 1.3; }
+  .paywall-plan .rl-pr { display: flex; align-items: baseline; gap: 2px; flex-shrink: 0; }
+  .paywall-plan .rl-pr strong { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--rl-text); }
+  .paywall-plan .rl-pr em { font-size: 11.5px; font-weight: 600; font-style: normal; color: var(--rl-mute); }
+
+  /* Bloco de acao — foco da tela */
+  .rl-action { margin-top: 24px; }
+  .rl-cta {
+    width: 100%; border: none; border-radius: 15px; padding: 16px;
+    font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; cursor: pointer;
+    color: #FBFAF6; background: linear-gradient(158deg, var(--sage), var(--sage-d));
+    box-shadow: var(--rl-sh-sm); transition: filter .15s ease, transform .1s ease;
   }
-  .paywall-features { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 9px; }
-  .paywall-features li { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--text); line-height: 1.35; }
-  .paywall-features li svg { width: 17px; height: 17px; color: var(--success-dark, var(--success)); flex-shrink: 0; margin-top: 1px; }
-  .paywall-cta { width: 100%; padding: 14px; font-size: 15px; font-weight: 700; }
-  .paywall-fine { text-align: center; font-size: 11.5px; color: var(--text-soft); margin: 12px 0 0; }
+  .rl-cta:hover { filter: brightness(1.05); }
+  .rl-cta:active { transform: scale(.985); }
+  .rl-undersub { margin: 8px 0 0; font-size: 11.5px; color: var(--rl-mute); text-align: center; font-variant-numeric: tabular-nums; }
+
+  /* Inclui — lista leve, agrupada */
+  .rl-includes { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--rl-line); }
+  .paywall-features { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .paywall-features li { display: flex; align-items: center; gap: 12px; font-size: 13.5px; color: var(--rl-soft); line-height: 1.35; }
+  .paywall-features li svg { width: 16px; height: 16px; color: var(--sage); flex-shrink: 0; }
+  .paywall-features li span { flex: 1; min-width: 0; }
+  .rl-trust { margin-top: 20px; padding-top: 20px; font-size: 11px; color: var(--rl-mute); text-align: center; }
 
   /* ==================== ONBOARDING (primeiro uso) ==================== */
   .onb-backdrop {
@@ -5604,27 +5362,24 @@
   </div>
 </div>
 
-<!-- ============ TELA DE LOGIN (redesign) ============ -->
+<!-- ============ TELA DE LOGIN (redesign Linho: hero/onda/folha) ============ -->
 <div class="login-screen" id="loginScreen">
-  <div class="login-bubble b1"></div>
-  <div class="login-bubble b2"></div>
-  <div class="login-bubble b3"></div>
-
-  <div class="login-container">
-
-    <!-- LOGIN CARD (único, centralizado, clean) -->
-    <div class="login-card">
-      <div class="login-brand-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 1v22"/>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
+  <div class="rl-card">
+    <div class="rl-hero">
+      <span class="rl-blob b1"></span><span class="rl-blob b2"></span><span class="rl-blob b3"></span>
+      <div class="rl-hero-in">
+        <div class="rl-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h1>Seu dinheiro, sob controle</h1>
+        <p>Divida a renda, acompanhe os gastos e veja quanto ainda sobra.</p>
       </div>
-      <h1 class="login-title">Munny</h1>
-      <p class="login-tagline">Seu dinheiro, sob controle.</p>
-      <p class="login-pitch">Divida sua renda, acompanhe os gastos e veja quanto ainda sobra. Sem planilha.</p>
+      <svg class="rl-wave" viewBox="0 0 344 38" preserveAspectRatio="none" aria-hidden="true"><path d="M0 16 C 80 -4, 150 30, 220 16 C 278 5, 312 12, 344 24 L344 38 L0 38 Z" fill="var(--rl-cream)"/></svg>
+    </div>
+    <div class="rl-sheet">
+      <p class="rl-lbl">Entrar</p>
 
-      <button class="login-google-btn" id="googleLoginBtn" type="button">
+      <button class="rl-google" id="googleLoginBtn" type="button">
         <svg width="20" height="20" viewBox="0 0 48 48">
           <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
           <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
@@ -5634,25 +5389,21 @@
         <span>Entrar com Google</span>
       </button>
 
-      <button class="login-guest-link" id="startPreviewBtn" type="button">Explorar no modo visitante</button>
+      <button class="rl-guest" id="startPreviewBtn" type="button">Explorar no modo visitante</button>
 
-      <div class="login-trust">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
+      <div class="rl-safe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span>Seus dados ficam privados, só você acessa.</span>
       </div>
 
-      <p class="login-footer">Ao continuar você concorda com nossos <button type="button" class="legal-link" data-legal="terms">Termos</button> e <button type="button" class="legal-link" data-legal="privacy">Política de Privacidade</button>.</p>
+      <p class="rl-terms">Ao continuar você concorda com nossos <button type="button" class="legal-link" data-legal="terms">Termos</button> e <button type="button" class="legal-link" data-legal="privacy">Política de Privacidade</button>.</p>
 
       <div class="login-loading hidden" id="loginLoading">
         <div class="spinner"></div>
         <span>Entrando...</span>
       </div>
     </div>
-
   </div>
-
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
@@ -6163,35 +5914,45 @@
 <!-- ============ PAYWALL / ASSINATURA (scaffold, dev-only por enquanto) ============ -->
 <div class="paywall-overlay" id="paywallOverlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Assinar o Munny">
   <div class="paywall-card">
+    <span class="paywall-dev-tag" id="paywallDevTag">Prévia (dev)</span>
     <button class="paywall-close" id="paywallClose" type="button" aria-label="Fechar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
-    <span class="paywall-dev-tag" id="paywallDevTag">Prévia (dev)</span>
-    <div class="paywall-head">
-      <div class="paywall-brand">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <div class="rl-hero">
+      <span class="rl-blob b1"></span><span class="rl-blob b2"></span><span class="rl-blob b3"></span>
+      <div class="rl-hero-in">
+        <div class="rl-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h1>Continue no controle do seu dinheiro</h1>
+        <p>Acesso completo ao Munny, por menos de R$ 0,60 por dia.</p>
       </div>
-      <h2>Tenha o Munny completo</h2>
-      <p>Seu dinheiro sob controle, sem planilha. Acesso total em qualquer aparelho.</p>
+      <svg class="rl-wave" viewBox="0 0 344 38" preserveAspectRatio="none" aria-hidden="true"><path d="M0 16 C 80 -4, 150 30, 220 16 C 278 5, 312 12, 344 24 L344 38 L0 38 Z" fill="var(--rl-cream)"/></svg>
     </div>
-    <div class="paywall-plans">
-      <button type="button" class="paywall-plan selected" data-plan="anual">
-        <span class="paywall-badge">Mais econômico</span>
-        <span class="paywall-plan-name">Anual</span>
-        <span class="paywall-price"><strong>R$ 16,99</strong><span class="per">/mês</span></span>
-        <span class="paywall-plan-sub">R$ 203,88 cobrado uma vez por ano</span>
-        <span class="paywall-plan-save">Economize R$ 36 no ano</span>
-      </button>
-      <button type="button" class="paywall-plan" data-plan="mensal">
-        <span class="paywall-plan-name">Mensal</span>
-        <span class="paywall-price"><strong>R$ 19,99</strong><span class="per">/mês</span></span>
-        <span class="paywall-plan-sub">Cobrado todo mês</span>
-        <span class="paywall-plan-save">Cancele quando quiser</span>
-      </button>
+    <div class="rl-sheet">
+      <p class="rl-lbl">Escolha seu plano</p>
+      <div class="paywall-plans">
+        <button type="button" class="paywall-plan promo selected" data-plan="anual">
+          <span class="rl-radio"></span>
+          <span class="rl-main"><span class="rl-top"><span class="rl-nm">Anual</span><span class="rl-chip">-15%</span></span><span class="rl-nt">R$ 203,88 por ano</span></span>
+          <span class="rl-pr"><strong>R$ 16,99</strong><em>/mês</em></span>
+        </button>
+        <button type="button" class="paywall-plan" data-plan="mensal">
+          <span class="rl-radio"></span>
+          <span class="rl-main"><span class="rl-top"><span class="rl-nm">Mensal</span></span><span class="rl-nt">cobrado todo mês</span></span>
+          <span class="rl-pr"><strong>R$ 19,99</strong><em>/mês</em></span>
+        </button>
+      </div>
+      <div class="rl-action">
+        <button type="button" class="rl-cta" id="paywallCta">Começar 7 dias grátis</button>
+        <p class="rl-undersub" id="paywallUndersub">Depois R$ 16,99/mês. Cancele quando quiser.</p>
+      </div>
+      <div class="rl-includes">
+        <p class="rl-lbl">Tudo incluso</p>
+        <ul class="paywall-features" id="paywallFeatures"></ul>
+      </div>
+      <p class="rl-trust">Pagamento seguro via Mercado Pago</p>
     </div>
-    <ul class="paywall-features" id="paywallFeatures"></ul>
-    <button type="button" class="btn-primary paywall-cta" id="paywallCta">Assinar o plano anual</button>
-    <p class="paywall-fine">Pagamento seguro via Mercado Pago. Cancele quando quiser.</p>
   </div>
 </div>
 
@@ -7696,8 +7457,8 @@
   // Por enquanto o CTA NÃO dispara checkout de verdade (Mercado Pago ainda não ativo).
   // Quando MP + Firebase Blaze estiverem prontos, o CTA chama o checkout real do plano.
   const PAYWALL_PLANS = {
-    anual:  { label: 'Assinar o plano anual' },
-    mensal: { label: 'Assinar o plano mensal' },
+    anual:  { undersub: 'Depois R$ 16,99/mês. Cancele quando quiser.' },
+    mensal: { undersub: 'Depois R$ 19,99/mês. Cancele quando quiser.' },
   };
   const PAYWALL_FEATURES = [
     'Divisão automática da renda (50/30/20 ou potes)',
@@ -7710,8 +7471,8 @@
     document.querySelectorAll('#paywallOverlay .paywall-plan').forEach(p => {
       p.classList.toggle('selected', p.dataset.plan === _paywallPlan);
     });
-    const cta = document.getElementById('paywallCta');
-    if (cta) cta.textContent = (PAYWALL_PLANS[_paywallPlan] || PAYWALL_PLANS.anual).label;
+    const sub = document.getElementById('paywallUndersub');
+    if (sub) sub.textContent = (PAYWALL_PLANS[_paywallPlan] || PAYWALL_PLANS.anual).undersub;
   }
   function openPaywall() {
     const ov = document.getElementById('paywallOverlay');
