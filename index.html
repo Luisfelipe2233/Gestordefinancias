@@ -4701,6 +4701,7 @@
   }
   .rl-cta:hover { filter: brightness(1.05); }
   .rl-cta:active { transform: scale(.985); }
+  .rl-cta:disabled { opacity: .65; cursor: default; }
   .rl-undersub { margin: 8px 0 0; font-size: 11.5px; color: var(--rl-mute); text-align: center; font-variant-numeric: tabular-nums; }
 
   /* Inclui — lista leve, agrupada */
@@ -7452,10 +7453,21 @@
     showToast('Gasto adicionado.', 'success');
   }
 
-  // ==================== PAYWALL / ASSINATURA (scaffold, dev-only) ====================
+  // ==================== PAYWALL / ASSINATURA ====================
   // Planos: mensal R$19,99/mês; anual R$16,99/mês cobrado à vista (R$203,88/ano).
-  // Por enquanto o CTA NÃO dispara checkout de verdade (Mercado Pago ainda não ativo).
-  // Quando MP + Firebase Blaze estiverem prontos, o CTA chama o checkout real do plano.
+  // Renovação automática via Assinaturas do Mercado Pago; o backend é o Worker
+  // do Cloudflare (worker.js neste repo: /api/checkout e /api/webhook).
+  //
+  // BILLING.enabled é o interruptor geral. Enquanto false, NADA bloqueia
+  // ninguém e o CTA só avisa (a tela segue dev-only pra prévia). Pra ligar a
+  // cobrança: 1) guardar os secrets no Worker (ver PAGAMENTOS.md),
+  // 2) definir launchDate como a data de HOJE (contas criadas antes dela
+  // ficam liberadas pra sempre: proteção dos testers), 3) enabled: true.
+  const BILLING = {
+    enabled: false,
+    launchDate: '2099-01-01',
+    trialDays: 7,
+  };
   const PAYWALL_PLANS = {
     anual:  { undersub: 'Depois R$ 16,99/mês. Cancele quando quiser.' },
     mensal: { undersub: 'Depois R$ 19,99/mês. Cancele quando quiser.' },
@@ -7467,6 +7479,58 @@
     'Dados salvos e privados, em qualquer aparelho',
   ];
   let _paywallPlan = 'anual';
+  let _paywallHard = false;   // paywall "duro": acesso expirou, não dá pra fechar
+  let _subInfo = null;        // assinatura vinda do Firestore (subscriptions/{uid})
+  let _unsubSubscription = null;
+
+  // Escuta a assinatura em tempo real: segundos depois do webhook confirmar o
+  // pagamento, o doc muda e o acesso libera sozinho, sem recarregar.
+  function listenSubscription(user) {
+    stopSubscriptionListener();
+    if (!db || !user) return;
+    _unsubSubscription = db.collection('subscriptions').doc(user.uid).onSnapshot((snap) => {
+      const d = snap.exists ? snap.data() : null;
+      _subInfo = d ? {
+        status: d.status || '',
+        plan: d.plan || '',
+        validUntil: d.validUntil ? (d.validUntil.toDate ? d.validUntil.toDate() : new Date(d.validUntil)) : null,
+      } : null;
+      enforceAccess();
+    }, (err) => { console.warn('Listener de assinatura falhou:', err && err.code); });
+  }
+  function stopSubscriptionListener() {
+    if (_unsubSubscription) { _unsubSubscription(); _unsubSubscription = null; }
+    _subInfo = null;
+  }
+
+  // Quem pode usar o app. Ordem importa: interruptor geral, dev, testers de
+  // antes do lançamento (grandfather), assinatura paga válida, trial de 7 dias
+  // contado da criação da conta. Visitante não entra aqui: o muro dele é o login.
+  function hasAccess() {
+    if (!BILLING.enabled) return true;
+    if (!currentUser) return true;
+    if (isDev()) return true;
+    const created = new Date((currentUser.metadata && currentUser.metadata.creationTime) || 0);
+    if (created < new Date(BILLING.launchDate + 'T00:00:00')) return true;
+    if (_subInfo && _subInfo.validUntil && _subInfo.validUntil > new Date()) return true;
+    if (Date.now() < created.getTime() + BILLING.trialDays * 86400000) return true;
+    return false;
+  }
+  function enforceAccess() {
+    if (hasAccess()) {
+      if (_paywallHard) {
+        _paywallHard = false;
+        closePaywall();
+        showToast('Assinatura ativa. Bom te ver por aqui.', 'success');
+      }
+      return;
+    }
+    if (!_paywallHard) {
+      _paywallHard = true;
+      openPaywall();
+    }
+  }
+
   function updatePaywallSelection() {
     document.querySelectorAll('#paywallOverlay .paywall-plan').forEach(p => {
       p.classList.toggle('selected', p.dataset.plan === _paywallPlan);
@@ -7481,17 +7545,45 @@
     const feats = document.getElementById('paywallFeatures');
     if (feats) feats.innerHTML = PAYWALL_FEATURES.map(f => `<li>${check}<span>${escapeHtml(f)}</span></li>`).join('');
     const devTag = document.getElementById('paywallDevTag');
-    if (devTag) devTag.style.display = isDev() ? '' : 'none';
+    if (devTag) devTag.style.display = (isDev() && !_paywallHard) ? '' : 'none';
+    const closeBtn = document.getElementById('paywallClose');
+    if (closeBtn) closeBtn.style.display = _paywallHard ? 'none' : '';
     _paywallPlan = 'anual';
     updatePaywallSelection();
     ov.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
   function closePaywall() {
+    if (_paywallHard) return; // acesso expirado: a saída é assinar
     const ov = document.getElementById('paywallOverlay');
     if (ov) ov.style.display = 'none';
     document.body.style.overflow = '';
   }
+
+  // Chama o Worker, que cria a Assinatura no Mercado Pago e devolve o link.
+  // O preço é decidido no servidor; daqui vai só o nome do plano e o ID token.
+  async function startCheckout(plan) {
+    const cta = document.getElementById('paywallCta');
+    const original = cta ? cta.textContent : '';
+    try {
+      if (cta) { cta.disabled = true; cta.textContent = 'Abrindo pagamento…'; }
+      const token = await currentUser.getIdToken();
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.init_point) throw new Error(data.error || ('HTTP ' + res.status));
+      track('checkout_started', { plan });
+      window.location.href = data.init_point;
+    } catch (e) {
+      console.error('Checkout falhou:', e);
+      showToast('Não deu pra abrir o pagamento agora. Tenta de novo em instantes.', 'error');
+      if (cta) { cta.disabled = false; cta.textContent = original; }
+    }
+  }
+
   function setupPaywall() {
     const ov = document.getElementById('paywallOverlay');
     if (!ov || ov.dataset.wired) return;
@@ -7502,12 +7594,21 @@
       p.addEventListener('click', () => { _paywallPlan = p.dataset.plan; updatePaywallSelection(); });
     });
     document.getElementById('paywallCta').addEventListener('click', () => {
-      // TODO: com o Mercado Pago ativo, iniciar aqui o checkout do plano `_paywallPlan`.
-      showToast('Checkout do Mercado Pago ainda não está ativo. Liga quando a conta MP e o Firebase Blaze estiverem prontos.', 'success');
+      if (!BILLING.enabled) {
+        showToast('Checkout ainda não está ativo. Falta guardar os secrets do Mercado Pago no Worker (ver PAGAMENTOS.md).', 'success');
+        return;
+      }
+      if (!currentUser) { showToast('Entra com sua conta pra assinar.', 'error'); return; }
+      startCheckout(_paywallPlan);
     });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && ov.style.display === 'flex') closePaywall();
     });
+    // Voltou do Mercado Pago (back_url): avisa que a confirmação chega sozinha
+    if (new URLSearchParams(location.search).get('assinatura') === 'voltou') {
+      history.replaceState(null, '', location.pathname);
+      showToast('Pagamento em processamento. Assim que o Mercado Pago confirmar, seu acesso libera sozinho.', 'success');
+    }
   }
 
   function setupQuickAdd() {
@@ -12617,6 +12718,10 @@ function doGet() {
           showMainApp();
           updateUserInfoBar(user);
           await loadUserData(user);
+          // Assinatura: escuta o doc no Firestore e aplica o gating de acesso
+          // (trial de 7 dias + grandfather). Com BILLING.enabled=false é no-op.
+          listenSubscription(user);
+          enforceAccess();
           // Veio do gate de login do onboarding: fecha o wizard e marca como concluído
           if (_onbAwaitingLogin) {
             _onbAwaitingLogin = false;
@@ -12628,6 +12733,8 @@ function doGet() {
           }
         } else {
           currentUser = null;
+          stopSubscriptionListener();
+          if (_paywallHard) { _paywallHard = false; closePaywall(); }
           showLoginScreen();
         }
       });

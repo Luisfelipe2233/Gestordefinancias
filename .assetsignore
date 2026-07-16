@@ -1,5 +1,10 @@
 .git/
+.wrangler/
+node_modules/
 *.md
 .gitignore
 .assetsignore
 wrangler.toml
+worker.js
+firestore.rules
+.dev.vars

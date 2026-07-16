@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore do Munny.
+// Onde colar: console.firebase.google.com > projeto munny-d72cd >
+// Firestore Database > aba "Regras" > substituir e Publicar.
+//
+// users/{uid}: os dados do app; cada pessoa lê e escreve só o próprio doc.
+// subscriptions/{uid}: quem tem assinatura ativa. A pessoa LÊ o próprio doc
+// (é assim que o app libera o acesso em tempo real), mas NINGUÉM escreve
+// pelo navegador; só o Worker escreve, com credencial de servidor (service
+// account), que passa por fora destas regras. Sem isso, qualquer um se
+// liberaria pelo console do navegador.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /subscriptions/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

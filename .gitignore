@@ -12,3 +12,10 @@ desktop.ini
 # Backup files
 *-backup-*.json
 backups/
+
+# Wrangler (dev local do Worker)
+.wrangler/
+node_modules/
+
+# Secrets de dev local (nunca commitar)
+.dev.vars
