@@ -95,9 +95,20 @@ async function handleCheckout(request, env) {
   const data = await res.json();
   if (!res.ok || !data.init_point) {
     console.error('MP preapproval falhou:', res.status, JSON.stringify(data).slice(0, 800));
-    // Só pro dev: devolve o motivo real do MP pra diagnosticar em tela.
+    // Diagnóstico: o token é válido pra uma chamada básica do MP? Se /users/me
+    // der 200, o token presta e o problema é permissão de Assinaturas; se der
+    // 401, o token em si está errado (colado incompleto, de teste, etc.).
+    let tokenCheck = null;
+    try {
+      const me = await fetch('https://api.mercadopago.com/users/me', {
+        headers: { 'Authorization': `Bearer ${env.MP_ACCESS_TOKEN}` },
+      });
+      const meData = await me.json().catch(() => ({}));
+      tokenCheck = { status: me.status, id: meData.id, nickname: meData.nickname, site: meData.site_id, type: (env.MP_ACCESS_TOKEN || '').slice(0, 8) };
+      console.error('Token check /users/me:', JSON.stringify(tokenCheck));
+    } catch (e) { console.error('Token check erro:', String(e)); }
     const devDetail = (user.email || '').toLowerCase() === DEV_EMAIL
-      ? { mp_status: res.status, mp_detail: data }
+      ? { mp_status: res.status, mp_detail: data, token_check: tokenCheck }
       : {};
     return json({ error: 'mp_error', ...devDetail }, 502);
   }
