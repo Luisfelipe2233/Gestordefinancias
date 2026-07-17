@@ -7495,6 +7495,11 @@
         plan: d.plan || '',
         validUntil: d.validUntil ? (d.validUntil.toDate ? d.validUntil.toDate() : new Date(d.validUntil)) : null,
       } : null;
+      // Feedback de teste só pro dev: mostra que o webhook gravou a assinatura.
+      if (isDev() && _subInfo) {
+        const vu = _subInfo.validUntil ? _subInfo.validUntil.toLocaleDateString('pt-BR') : 'sem data';
+        showToast(`Assinatura no Firestore: ${_subInfo.status || 'sem status'} (${_subInfo.plan || '-'}), vale até ${vu}.`, 'success');
+      }
       enforceAccess();
     }, (err) => { console.warn('Listener de assinatura falhou:', err && err.code); });
   }
@@ -7594,8 +7599,11 @@
       p.addEventListener('click', () => { _paywallPlan = p.dataset.plan; updatePaywallSelection(); });
     });
     document.getElementById('paywallCta').addEventListener('click', () => {
-      if (!BILLING.enabled) {
-        showToast('Checkout ainda não está ativo. Falta guardar os secrets do Mercado Pago no Worker (ver PAGAMENTOS.md).', 'success');
+      // Com a cobrança desligada, só o dev consegue disparar o checkout real
+      // (pra testar o fluxo ponta a ponta sem bloquear ninguém). Para o resto,
+      // enquanto BILLING.enabled=false, o CTA só avisa.
+      if (!BILLING.enabled && !isDev()) {
+        showToast('Checkout ainda não está ativo. Falta ligar a cobrança (ver PAGAMENTOS.md).', 'success');
         return;
       }
       if (!currentUser) { showToast('Entra com sua conta pra assinar.', 'error'); return; }
