@@ -23,6 +23,7 @@
 
 const FIREBASE_PROJECT_ID = 'munny-d72cd';
 const SITE_URL = 'https://munnygestorfinanceiro.com';
+const DEV_EMAIL = 'luisfelipemarchioro@gmail.com';
 
 // Preços fixados NO SERVIDOR. O client manda só o nome do plano; se mandar
 // qualquer outra coisa (ou tentar mandar preço), cai no 400.
@@ -93,8 +94,12 @@ async function handleCheckout(request, env) {
   });
   const data = await res.json();
   if (!res.ok || !data.init_point) {
-    console.error('MP preapproval falhou:', res.status, JSON.stringify(data).slice(0, 500));
-    return json({ error: 'mp_error' }, 502);
+    console.error('MP preapproval falhou:', res.status, JSON.stringify(data).slice(0, 800));
+    // Só pro dev: devolve o motivo real do MP pra diagnosticar em tela.
+    const devDetail = (user.email || '').toLowerCase() === DEV_EMAIL
+      ? { mp_status: res.status, mp_detail: data }
+      : {};
+    return json({ error: 'mp_error', ...devDetail }, 502);
   }
   return json({ init_point: data.init_point });
 }

@@ -7572,19 +7572,27 @@
     const original = cta ? cta.textContent : '';
     try {
       if (cta) { cta.disabled = true; cta.textContent = 'Abrindo pagamento…'; }
-      const token = await currentUser.getIdToken();
+      let token;
+      try { token = await currentUser.getIdToken(); }
+      catch (e) { throw new Error('falha ao obter token de login: ' + (e && e.message || e)); }
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ plan }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.init_point) throw new Error(data.error || ('HTTP ' + res.status));
+      if (!res.ok || !data.init_point) {
+        const extra = (isDev() && data.mp_detail) ? (' | MP[' + data.mp_status + ']: ' + JSON.stringify(data.mp_detail).slice(0, 300)) : '';
+        throw new Error((data.error || ('HTTP ' + res.status)) + extra);
+      }
       track('checkout_started', { plan });
       window.location.href = data.init_point;
     } catch (e) {
       console.error('Checkout falhou:', e);
-      showToast('Não deu pra abrir o pagamento agora. Tenta de novo em instantes.', 'error');
+      const msg = isDev()
+        ? ('Checkout falhou: ' + (e && e.message || e))
+        : 'Não deu pra abrir o pagamento agora. Tenta de novo em instantes.';
+      showToast(msg, 'error');
       if (cta) { cta.disabled = false; cta.textContent = original; }
     }
   }
