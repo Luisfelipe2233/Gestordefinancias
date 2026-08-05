@@ -43,6 +43,23 @@ Isso libera a leitura da própria assinatura e tranca a escrita (só o Worker es
 3. Eventos: marca **Planos e assinaturas** (subscription_preapproval e subscription_authorized_payment).
 4. Salva e copia a **assinatura secreta** que o painel mostra.
 
+> **ARMADILHA QUE JÁ NOS PEGOU (descoberta em 05/08/2026).** A tela de Webhooks
+> tem duas abas, **Modo de teste** e **Modo de produção**, e elas são
+> independentes. Em julho a URL foi preenchida só na aba de teste, e a de
+> produção ficou vazia: pagamento real nunca notificaria o Worker, e o sintoma
+> seria "a pessoa paga e o acesso não libera", sem erro nenhum em lugar nenhum.
+>
+> Pior: **cada aba tem a sua própria assinatura secreta**. Copiar a do modo de
+> teste para o `MP_WEBHOOK_SECRET` faz todo webhook de produção morrer em
+> `bad_signature` (401), com exatamente o mesmo sintoma visível. São dois erros
+> diferentes que parecem o mesmo problema.
+>
+> Ao conferir: abra a aba **Modo de produção**, veja se a URL está lá, e garanta
+> que o secret do Worker veio dessa aba. Para validar sem precisar de um
+> pagamento real, use o botão **Simular notificação** na aba de produção com o
+> `npx.cmd wrangler tail` aberto. Resposta 200 significa que a assinatura
+> validou; 401 significa que o secret é da aba errada.
+
 ## Passo 4 — Service account do Firebase
 
 1. Console do Firebase > engrenagem > **Configurações do projeto** > aba **Contas de serviço**.
