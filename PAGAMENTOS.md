@@ -1,8 +1,16 @@
 # Pagamentos do Munny — guia de ativação
 
-O código já está pronto e no ar, mas **dormindo**: nada cobra e nada bloqueia
-ninguém até você completar os passos abaixo e ligar o interruptor. Pode fazer
-com calma, em dias diferentes; nenhum passo intermediário quebra o site.
+> **STATUS: COBRANÇA LIGADA desde 05/08/2026.**
+> `BILLING.enabled: true`, `launchDate: '2026-08-06'`, `trialDays: 7`.
+> Toda conta criada até o fim de 05/08/2026 é grandfather e nunca será
+> bloqueada. Quem criar conta a partir de 06/08 tem 7 dias grátis contados da
+> criação e depois cai na tela de assinatura, sem poder fechar.
+> Os passos 1 a 6 abaixo já foram cumpridos; ficam como referência e para
+> diagnóstico. As seções "Como saber se está funcionando" e "O que fazer se
+> alguém pagar e não liberar", no fim, são as que valem no dia a dia agora.
+
+O histórico abaixo descreve a ativação passo a passo, de quando o código estava
+dormindo. Nenhum passo intermediário quebra o site.
 
 Arquitetura em uma linha: o CTA da tela de assinatura chama o Worker
 (`/api/checkout`), que cria a Assinatura no Mercado Pago; quando o pagamento
