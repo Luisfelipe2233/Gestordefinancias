@@ -52,6 +52,28 @@
   gtag('js', new Date());
   gtag('config', 'G-XEKNWD5PHK');
 </script>
+
+<!-- Meta Pixel — mede o funil dos anúncios pagos (ver PLANO-MIDIA-MUNNY.md na
+     pasta Criativos-munny). Fica INERTE enquanto META_PIXEL_ID estiver vazio,
+     então este código pode ir pro ar antes da conta de anúncios existir.
+     Pra ligar: colar o ID em business.facebook.com > Gerenciador de Eventos.
+     O ID do Pixel não é secreto; pode ficar no código, ao contrário do token
+     da API de Conversões, que vive só como secret no Worker. -->
+<script>
+  window.META_PIXEL_ID = ''; /* <<< COLAR O ID DO PIXEL AQUI PRA LIGAR */
+  if (window.META_PIXEL_ID) {
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', window.META_PIXEL_ID);
+    fbq('track', 'PageView');
+  }
+</script>
 <style>
   /* ==================== THEME ==================== */
   :root {
@@ -6271,6 +6293,28 @@
     try { if (window.gtag) window.gtag('event', event, params || {}); } catch (_) {}
   }
 
+  // Meta Pixel — espelha só os eventos do funil de anúncios (cadastro, planos,
+  // checkout). Nomes em PascalCase porque são os eventos padrão da Meta, e por
+  // isso ficam separados dos nomes do GA de propósito. No-op se o Pixel não
+  // estiver configurado ou se um bloqueador derrubar o script.
+  function metaTrack(event, params) {
+    try { if (window.fbq) window.fbq('track', event, params || {}); } catch (_) {}
+  }
+
+  // Lê os cookies que o Pixel cria (_fbp sempre, _fbc quando a visita veio de um
+  // anúncio). Precisam ser guardados no checkout porque a cobrança só acontece
+  // depois do trial, num webhook, quando não existe mais navegador nenhum: sem
+  // eles a Meta não liga a assinatura ao anúncio que trouxe a pessoa.
+  function metaBrowserIds() {
+    try {
+      const get = (name) => {
+        const m = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[2]) : '';
+      };
+      return { fbp: get('_fbp'), fbc: get('_fbc') };
+    } catch (_) { return { fbp: '', fbc: '' }; }
+  }
+
   // Confiabilidade — captura erros JS não tratados, avisa o usuário e nunca deixa
   // tela branca silenciosa. Os dados estão sempre salvos no localStorage.
   let _errorToastShown = false;
@@ -7468,9 +7512,11 @@
     launchDate: '2099-01-01',
     trialDays: 7,
   };
+  // amount é só pro valor do evento de anúncio (InitiateCheckout). O preço que
+  // vale continua sendo o do servidor, em PLANS no worker.js.
   const PAYWALL_PLANS = {
-    anual:  { undersub: 'R$ 203,88 por ano. Cancele quando quiser.' },
-    mensal: { undersub: 'R$ 19,99 por mês. Cancele quando quiser.' },
+    anual:  { undersub: 'R$ 203,88 por ano. Cancele quando quiser.', amount: 203.88 },
+    mensal: { undersub: 'R$ 19,99 por mês. Cancele quando quiser.', amount: 19.99 },
   };
   const PAYWALL_FEATURES = [
     'Divisão automática da renda (50/30/20 ou potes)',
@@ -7557,6 +7603,8 @@
     updatePaywallSelection();
     ov.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    track('view_plans', { hard: _paywallHard });
+    metaTrack('ViewContent', { content_name: 'planos', content_category: 'assinatura' });
   }
   function closePaywall() {
     if (_paywallHard) return; // acesso expirado: a saída é assinar
@@ -7575,10 +7623,13 @@
       let token;
       try { token = await currentUser.getIdToken(); }
       catch (e) { throw new Error('falha ao obter token de login: ' + (e && e.message || e)); }
+      // Os ids do Pixel viajam junto: o Worker guarda em adAttribution/{uid} e o
+      // webhook, dias depois, usa pra atribuir a compra ao anúncio de origem.
+      const fbIds = metaBrowserIds();
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, fbp: fbIds.fbp, fbc: fbIds.fbc }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.init_point) {
@@ -7586,6 +7637,11 @@
         throw new Error((data.error || ('HTTP ' + res.status)) + extra);
       }
       track('checkout_started', { plan });
+      metaTrack('InitiateCheckout', {
+        content_name: plan,
+        currency: 'BRL',
+        value: (PAYWALL_PLANS[plan] || {}).amount || 0,
+      });
       window.location.href = data.init_point;
     } catch (e) {
       console.error('Checkout falhou:', e);
@@ -11180,8 +11236,17 @@ function doGet() {
     loading.classList.remove('hidden');
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
-      .then(() => {
-        // onAuthStateChanged vai tratar
+      .then((result) => {
+        // onAuthStateChanged trata o resto. Aqui só marcamos a CONTA NOVA, que é
+        // o momento em que o trial de 7 dias começa e, por isso, o evento de
+        // conversão que os anúncios otimizam. Login de quem já tem conta não
+        // dispara nada: contaria a mesma pessoa várias vezes e envenenaria o
+        // custo por cadastro.
+        const isNew = !!(result && result.additionalUserInfo && result.additionalUserInfo.isNewUser);
+        if (isNew) {
+          track('sign_up', { method: 'google' });
+          metaTrack('CompleteRegistration', { content_name: 'conta_criada', status: 'trial' });
+        }
       })
       .catch((err) => {
         btn.disabled = false;

@@ -112,6 +112,25 @@ async function handleCheckout(request, env) {
       : {};
     return json({ error: 'mp_error', ...devDetail }, 502);
   }
+
+  // Guarda os dados de atribuição de anúncio. Vai numa coleção própria, e não em
+  // subscriptions/{uid}, por dois motivos: aquele doc tem um onSnapshot ligado no
+  // app (não faz sentido acordar o gating de acesso por causa de marketing), e as
+  // regras do Firestore negam por padrão tudo que está fora de users/ e
+  // subscriptions/, então o navegador não lê isto aqui.
+  // É best effort: falhar a gravação não pode derrubar um checkout que deu certo.
+  try {
+    await firestorePatch(env, `adAttribution/${user.uid}`, {
+      fbp: { stringValue: String((body && body.fbp) || '') },
+      fbc: { stringValue: String((body && body.fbc) || '') },
+      email: { stringValue: String(user.email || '') },
+      plan: { stringValue: String(body.plan) },
+      updatedAt: { timestampValue: new Date().toISOString() },
+    });
+  } catch (e) {
+    console.error('Falha ao guardar atribuição de anúncio:', String(e));
+  }
+
   return json({ init_point: data.init_point });
 }
 
@@ -167,6 +186,28 @@ async function handleWebhook(request, env) {
   }
 
   await firestorePatch(env, `subscriptions/${uid}`, fields);
+
+  // Purchase pro Meta. Tem que sair daqui, e não do site: a cobrança acontece
+  // depois do trial, quando o navegador da pessoa não está aberto, então o Pixel
+  // nunca veria esse evento. Só na PRIMEIRA ativação (a própria função cuida
+  // disso): mandar as renovações também infla o resultado e faz a Meta atribuir
+  // uma cobrança de meses depois ao clique original do anúncio.
+  // Envolvido em try porque falha de marketing não pode derrubar um pagamento.
+  if (pre.status === 'authorized') {
+    try {
+      await sendMetaPurchase(env, {
+        uid,
+        plan,
+        preapprovalId,
+        amount: Number(pre.auto_recurring && pre.auto_recurring.transaction_amount)
+          || (PLANS[plan] && PLANS[plan].amount) || 0,
+        payerEmail: pre.payer_email || '',
+      });
+    } catch (e) {
+      console.error('Meta CAPI falhou (a assinatura segue válida):', String(e));
+    }
+  }
+
   return json({ ok: true });
 }
 
@@ -272,6 +313,16 @@ async function getGoogleAccessToken(env) {
   return _gTokenCache.token;
 }
 
+async function firestoreGet(env, docPath) {
+  const token = await getGoogleAccessToken(env);
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${docPath}`;
+  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+  if (res.status === 404) return null; // doc ainda não existe, primeira passagem
+  if (!res.ok) { console.error(`Firestore GET ${docPath} falhou: ${res.status}`); return null; }
+  const data = await res.json();
+  return (data && data.fields) || null;
+}
+
 async function firestorePatch(env, docPath, fields) {
   const token = await getGoogleAccessToken(env);
   const mask = Object.keys(fields).map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
@@ -282,6 +333,75 @@ async function firestorePatch(env, docPath, fields) {
     body: JSON.stringify({ fields }),
   });
   if (!res.ok) throw new Error(`Firestore PATCH ${docPath} falhou: ${res.status} ${(await res.text()).slice(0, 300)}`);
+}
+
+// ================= Meta: API de Conversões (evento Purchase) ===============
+// Manda a compra direto pro Gerenciador de Eventos, server-side. Os dados de
+// correspondência (e-mail hasheado, cookies do Pixel) são o que permite a Meta
+// dizer qual anúncio gerou aquela assinatura. Sem eles a receita fica órfã.
+//
+// Secrets (npx wrangler secret put NOME):
+//   META_PIXEL_ID    ID do Pixel (o mesmo que fica no index.html)
+//   META_CAPI_TOKEN  Token da API de Conversões (este é secreto de verdade)
+// Enquanto os dois não existirem, a função inteira é no-op.
+
+const META_API_VERSION = 'v21.0';
+
+async function sendMetaPurchase(env, { uid, plan, preapprovalId, amount, payerEmail }) {
+  if (!env.META_PIXEL_ID || !env.META_CAPI_TOKEN) return;
+
+  const att = await firestoreGet(env, `adAttribution/${uid}`);
+  // Idempotência: o Mercado Pago reenvia webhook, e cada reenvio viraria uma
+  // compra nova no relatório.
+  if (att && att.metaPurchaseSent && att.metaPurchaseSent.booleanValue === true) return;
+
+  // O e-mail do login vale mais que o do Mercado Pago pra correspondência: é o
+  // do Google, e tem chance muito maior de ser o mesmo cadastrado no Facebook.
+  const email = (strField(att, 'email') || payerEmail || '').trim().toLowerCase();
+  const fbp = strField(att, 'fbp');
+  const fbc = strField(att, 'fbc');
+
+  const userData = { external_id: [await sha256Hex(uid)] };
+  if (email) userData.em = [await sha256Hex(email)];
+  if (fbp) userData.fbp = fbp;
+  if (fbc) userData.fbc = fbc;
+
+  const payload = {
+    data: [{
+      event_name: 'Purchase',
+      event_time: Math.floor(Date.now() / 1000),
+      // Id estável por assinatura: se o webhook repetir, a Meta deduplica.
+      event_id: `purchase_${preapprovalId}`,
+      action_source: 'website',
+      event_source_url: `${SITE_URL}/`,
+      user_data: userData,
+      custom_data: { currency: 'BRL', value: amount, content_name: plan },
+    }],
+  };
+
+  const res = await fetch(
+    `https://graph.facebook.com/${META_API_VERSION}/${env.META_PIXEL_ID}/events?access_token=${encodeURIComponent(env.META_CAPI_TOKEN)}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+  );
+  if (!res.ok) {
+    console.error('Meta CAPI recusou:', res.status, (await res.text()).slice(0, 300));
+    return; // sem marcar como enviado: o próximo webhook tenta de novo
+  }
+
+  await firestorePatch(env, `adAttribution/${uid}`, {
+    metaPurchaseSent: { booleanValue: true },
+    metaPurchaseAt: { timestampValue: new Date().toISOString() },
+  });
+}
+
+function strField(fields, name) {
+  const f = fields && fields[name];
+  return (f && f.stringValue) || '';
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ================================ Helpers ==================================
