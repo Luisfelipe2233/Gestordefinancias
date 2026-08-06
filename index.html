@@ -44,6 +44,10 @@
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 
+<!-- Verificação de domínio da Meta (Business Manager). Precisa ficar no <head>
+     estático, não pode ser injetada por JS, senão a verificação falha. -->
+<meta name="facebook-domain-verification" content="wyb7e2tjmpfji1x2t5bll1nznfxgrw" />
+
 <!-- Google Analytics (async, não bloqueia o render) — mede uso pra melhorar o app -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XEKNWD5PHK"></script>
 <script>
