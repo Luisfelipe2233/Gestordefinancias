@@ -17,6 +17,25 @@
   }catch(e){}
 })();
 </script>
+<!-- Meta Pixel (MESMO ID do app). Precisa estar na landing pra medir o primeiro
+     toque do anúncio e, sobretudo, gravar _fbp/_fbc no domínio pai
+     (.munnygestorfinanceiro.com), que o app lê depois. Sem isso a venda fica órfã.
+     Roda depois do guard (quem já é do app é redirecionado antes e nem dispara). -->
+<script>
+  window.META_PIXEL_ID = '1962042854510597';
+  if (window.META_PIXEL_ID) {
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', window.META_PIXEL_ID);
+    fbq('track', 'PageView');
+  }
+</script>
 <title>Munny: veja pra onde vai o seu dinheiro</title>
 <meta name="description" content="O Munny junta o que entra, o que sai e o que ainda vai vencer num lugar só. Você abre e enxerga na hora pra onde vai cada real. 7 dias grátis, sem cartão.">
 <meta name="theme-color" content="#FBF7EF">
