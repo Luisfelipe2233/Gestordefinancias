@@ -22,7 +22,9 @@
 // ============================================================================
 
 const FIREBASE_PROJECT_ID = 'munny-d72cd';
-const SITE_URL = 'https://munnygestorfinanceiro.com';
+const SITE_URL = 'https://munnygestorfinanceiro.com';   // raiz: a landing
+const APP_URL = 'https://app.munnygestorfinanceiro.com'; // subdomínio: o app
+const APP_HOST = 'app.munnygestorfinanceiro.com';
 const DEV_EMAIL = 'luisfelipemarchioro@gmail.com';
 
 // Preços fixados NO SERVIDOR. O client manda só o nome do plano; se mandar
@@ -52,6 +54,18 @@ export default {
         console.error('API error:', err && err.stack || err);
         return json({ error: 'internal' }, 500);
       }
+    }
+
+    // Fora de /api, roteia por host:
+    //  - app.munnygestorfinanceiro.com -> o app (index.html / SPA), como sempre.
+    //  - raiz e www                    -> a landing (landing.html) nas navegações;
+    //    arquivos reais (imagens, ícones, manifest) passam direto pros assets.
+    if (url.hostname === APP_HOST) {
+      return env.ASSETS.fetch(request);
+    }
+    const isFileRequest = /\.[a-zA-Z0-9]+$/.test(url.pathname);
+    if (url.pathname === '/' || !isFileRequest) {
+      return env.ASSETS.fetch(new Request(new URL('/landing.html', url).toString(), request));
     }
     return env.ASSETS.fetch(request);
   },
@@ -83,7 +97,7 @@ async function handleCheckout(request, env) {
       reason: plan.reason,
       external_reference: user.uid,
       payer_email: user.email,
-      back_url: `${SITE_URL}/?assinatura=voltou`,
+      back_url: `${APP_URL}/?assinatura=voltou`,
       auto_recurring: {
         frequency: plan.frequency,
         frequency_type: 'months',

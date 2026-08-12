@@ -4,7 +4,8 @@ compatibility_date = "2026-06-01"
 # Domínio próprio (a zona já está na conta Cloudflare, então o deploy provisiona DNS + HTTPS sozinho).
 routes = [
   { pattern = "munnygestorfinanceiro.com", custom_domain = true },
-  { pattern = "www.munnygestorfinanceiro.com", custom_domain = true }
+  { pattern = "www.munnygestorfinanceiro.com", custom_domain = true },
+  { pattern = "app.munnygestorfinanceiro.com", custom_domain = true }
 ]
 
 # O site continua estático (index.html + ícones + manifest), servido como assets.
@@ -16,4 +17,6 @@ main = "worker.js"
 directory = "."
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/api/*"]
+# O Worker roda antes dos assets em TODA requisição: ele decide, por host, se
+# serve o app (app.) ou a landing (raiz/www). As rotas /api/* seguem no Worker.
+run_worker_first = true

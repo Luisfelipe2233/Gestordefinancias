@@ -12794,12 +12794,34 @@ function doGet() {
     });
   })();
 
+  // Cookie de sessão no DOMÍNIO PAI (.munnygestorfinanceiro.com). A landing, na
+  // raiz, lê esse cookie pra mandar quem já tem conta direto pro app, sem passar
+  // pela landing. Só é setado em produção (o domínio bate); em localhost é no-op.
+  function setAuthCookie() {
+    try {
+      if (!/munnygestorfinanceiro\.com$/.test(location.hostname)) return;
+      document.cookie = 'munny_auth=1; domain=.munnygestorfinanceiro.com; path=/; max-age=31536000; secure; samesite=Lax';
+    } catch (_) {}
+  }
+  function clearAuthCookie() {
+    try {
+      if (!/munnygestorfinanceiro\.com$/.test(location.hostname)) return;
+      document.cookie = 'munny_auth=; domain=.munnygestorfinanceiro.com; path=/; max-age=0; secure; samesite=Lax';
+    } catch (_) {}
+  }
+
+  // Veio da landing pelo "Começar grátis" (?start=orcamento): abre o onboarding
+  // direto, sem a tela de login antes. Tratado uma vez só, pra não repetir no reload.
+  const _startOrcamento = new URLSearchParams(location.search).get('start') === 'orcamento';
+  let _startHandled = false;
+
   // Auth state listener — controla login screen vs app
   function setupAuth() {
     if (auth) {
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           currentUser = user;
+          setAuthCookie();
           showMainApp();
           updateUserInfoBar(user);
           await loadUserData(user);
@@ -12818,9 +12840,19 @@ function doGet() {
           }
         } else {
           currentUser = null;
+          clearAuthCookie();
           stopSubscriptionListener();
           if (_paywallHard) { _paywallHard = false; closePaywall(); }
-          showLoginScreen();
+          // Vindo da landing (?start=orcamento): abre "Criar meu orçamento" direto,
+          // mas só pra visitante novo (sem dados locais), pra não atropelar ninguém.
+          if (_startOrcamento && !_startHandled
+              && state.income <= 0 && state.expenses.length === 0) {
+            _startHandled = true;
+            try { history.replaceState(null, '', location.pathname); } catch (_) {}
+            enterPreviewMode();
+          } else {
+            showLoginScreen();
+          }
         }
       });
     } else {
