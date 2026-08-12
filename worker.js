@@ -65,7 +65,15 @@ export default {
     }
     const isFileRequest = /\.[a-zA-Z0-9]+$/.test(url.pathname);
     if (url.pathname === '/' || !isFileRequest) {
-      return env.ASSETS.fetch(new Request(new URL('/landing.html', url).toString(), request));
+      // Busca a URL LIMPA (/landing), não /landing.html: o Cloudflare Assets
+      // redireciona .html -> URL limpa por padrão, e servir esse 307 aqui criava
+      // loop de redirecionamento na raiz. Se ainda vier um redirect, segue uma vez.
+      let res = await env.ASSETS.fetch(new Request(new URL('/landing', url).toString(), request));
+      if (res.status >= 300 && res.status < 400) {
+        const loc = res.headers.get('location');
+        if (loc) res = await env.ASSETS.fetch(new Request(new URL(loc, url).toString(), request));
+      }
+      return res;
     }
     return env.ASSETS.fetch(request);
   },
