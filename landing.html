@@ -326,6 +326,28 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
   .note:nth-child(5n){transform:rotate(1deg)}
   .rv-l,.rv-r{transform:translateY(24px)}
 }
+
+/* app de verdade (prints reais) */
+.shots{margin-top:54px;display:flex;justify-content:center;gap:30px;flex-wrap:wrap}
+.phone{width:274px;flex:0 0 auto;border-radius:38px;overflow:hidden;border:9px solid var(--ink);background:var(--ink);box-shadow:var(--sh-lift)}
+.phone img{display:block;width:100%;height:566px;object-fit:cover;object-position:top}
+@media(max-width:900px){.shots{gap:22px}.phone{width:248px}.phone img{height:512px}}
+@media(max-width:600px){.phone{width:236px}.phone img{height:486px}}
+
+/* comparação / diferencial */
+.cmp{margin-top:54px;display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:940px;margin-left:auto;margin-right:auto}
+.cmp-col{background:var(--card);border:1px solid var(--card-line);border-radius:24px;padding:34px 36px}
+.cmp-col.munny{border:2px solid var(--sage);box-shadow:var(--sh)}
+.cmp-cap{display:flex;align-items:center;gap:.6rem;font-family:var(--disp);font-weight:800;font-size:1.32rem;letter-spacing:-.02em;color:var(--ink);padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.cmp-col.old .cmp-cap{color:var(--muted)}
+.cmp-cap .mk{width:32px;height:32px;border-radius:9px;background:var(--sage);color:#fff;display:grid;place-items:center;font-size:1rem}
+.cmp-col ul{list-style:none;display:flex;flex-direction:column;gap:17px}
+.cmp-col li{display:flex;gap:.75rem;align-items:flex-start;font-size:1.04rem;line-height:1.38;color:var(--muted)}
+.cmp-col.munny li{color:var(--ink);font-weight:600}
+.cmp-col li svg{flex:0 0 auto;margin-top:3px}
+.cmp-col.old li svg{color:var(--faint)}
+.cmp-col.munny li svg{color:var(--sage)}
+@media(max-width:760px){.cmp{grid-template-columns:1fr;gap:18px}}
 </style>
 
 <div class="page">
@@ -454,6 +476,19 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
     </div>
   </section>
 
+  <!-- APP DE VERDADE (prints reais) -->
+  <section>
+    <div class="wrap">
+      <div class="shead mid rv"><span class="eyebrow">O app de verdade</span><h2>Não é maquete. É o que você abre.</h2>
+        <p class="ss">Quanto entrou, quanto já foi e quanto ainda dá pra gastar em cada categoria. Tudo num lugar só, na hora.</p></div>
+      <div class="shots rv">
+        <div class="phone"><img loading="lazy" width="982" height="3000" src="/lp-painel.png" alt="Painel do Munny com renda, saldo e categorias"></div>
+        <div class="phone"><img loading="lazy" width="982" height="3000" src="/lp-despesas.png" alt="Lista de despesas no Munny"></div>
+        <div class="phone"><img loading="lazy" width="982" height="3000" src="/lp-historico.png" alt="Histórico e agenda de contas no Munny"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- DIFERENCIAIS -->
   <section>
     <div class="wrap">
@@ -488,6 +523,36 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
   </section>
 
   <!-- FEEDBACKS: oculto até termos 3 depoimentos reais (texto + nome + foto). Restaurar aqui. -->
+
+  <!-- DIFERENCIAL / COMPARAÇÃO -->
+  <section class="soft">
+    <div class="wrap">
+      <div class="shead mid rv"><span class="eyebrow tr">A diferença</span><h2>Por que não uma planilha? Por que não um app gigante?</h2>
+        <p class="ss">Planilha dá trabalho e quebra. App cheio de recurso confunde e cobra caro. O Munny fica no ponto: simples, rápido e feito pra usar todo dia.</p></div>
+      <div class="cmp">
+        <div class="cmp-col old rv-l">
+          <div class="cmp-cap">Planilha ou app gigante</div>
+          <ul>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Lançar um gasto vira fórmula na mão ou menu atrás de menu</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Pede pra conectar o banco e dar senha</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Você monta tudo do zero ou encara um manual</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Cansa em duas semanas e você larga</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Ou é "grátis" e trabalhoso, ou é caro demais</li>
+          </ul>
+        </div>
+        <div class="cmp-col munny rv-r">
+          <div class="cmp-cap"><span class="mk">$</span>Munny</div>
+          <ul>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Um gasto em 3 segundos: abre, digita, pronto</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Não conecta banco nenhum, você que lança</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Abre e já usa, sem configurar nada</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Feito pra usar todo dia, sem cansar</li>
+            <li><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Menos que dois cafés por mês</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- PREÇO -->
   <section id="preco">
