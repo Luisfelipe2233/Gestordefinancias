@@ -364,9 +364,19 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
 .is-win .wbody b{font-family:var(--disp);font-weight:800;font-size:1.24rem;letter-spacing:-.02em}
 .is-mk{width:36px;height:36px;border-radius:11px;background:var(--sage);color:#FFFDF9;display:grid;place-items:center;font-family:var(--disp);font-weight:800;font-size:1.15rem;flex:0 0 auto}
 /* celular bem-feito */
-.is-phone{position:relative;z-index:2;width:268px;aspect-ratio:268/552;border-radius:48px;background:var(--ink);padding:11px;box-shadow:var(--sh-lift);transform:rotate(-3deg)}
-.is-screen{position:relative;height:100%;border-radius:38px;overflow:hidden;display:flex;flex-direction:column;
+.is-shadow{position:absolute;left:50%;top:50%;width:252px;height:452px;border-radius:50%;pointer-events:none;z-index:1;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(36,31,24,.30),rgba(36,31,24,.12) 52%,transparent 73%);
+  filter:blur(30px);transform:translate(calc(-50% + 20px),calc(-50% + 48px)) rotate(-3deg) scaleX(.92)}
+.is-phone{position:relative;z-index:2;width:268px;aspect-ratio:268/552;border-radius:48px;background:var(--ink);padding:11px;transform:rotate(-3deg);
+  box-shadow:0 3px 8px rgba(36,31,24,.12),0 26px 44px -20px rgba(36,31,24,.34),0 62px 94px -46px rgba(36,31,24,.5),inset 0 0 0 1.4px rgba(255,255,255,.05),inset 0 1.6px 2px rgba(255,255,255,.10)}
+.is-phone::before{content:"";position:absolute;left:-3px;top:23%;width:3.5px;height:94px;border-radius:3px 0 0 3px;z-index:1;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 76%,#000),color-mix(in srgb,var(--ink) 94%,#000))}
+.is-phone::after{content:"";position:absolute;right:-3px;top:32%;width:3.5px;height:62px;border-radius:0 3px 3px 0;z-index:1;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 76%,#000),color-mix(in srgb,var(--ink) 94%,#000))}
+.is-screen{position:relative;height:100%;border-radius:38px;overflow:hidden;display:flex;flex-direction:column;box-shadow:inset 0 0 0 1px rgba(0,0,0,.26);
   background:linear-gradient(168deg,var(--band),color-mix(in srgb,var(--sage) 24%,var(--band)) 55%,color-mix(in srgb,var(--accent) 18%,var(--band)))}
+.is-screen::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:linear-gradient(125deg,rgba(255,255,255,.18),rgba(255,255,255,.05) 24%,transparent 48%)}
 .is-island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:84px;height:25px;border-radius:99px;background:var(--ink);z-index:4}
 .is-status{display:flex;justify-content:space-between;align-items:center;padding:17px 22px 0;font-size:.74rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .is-status .r{display:flex;align-items:center;gap:6px}
@@ -616,6 +626,7 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
           <div class="bar"><i></i><i></i><i></i></div>
           <div class="wbody"><span class="is-mk">$</span><b>Munny</b></div>
         </div>
+        <div class="is-shadow"></div>
         <div class="is-phone">
           <div class="is-screen">
             <span class="is-island"></span>
