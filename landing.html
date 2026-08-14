@@ -346,6 +346,24 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
 .qa .ans b{color:var(--ink);font-weight:600}
 @media(max-width:600px){.qa summary{padding:18px 22px;font-size:1rem}.qa .ans{padding:0 22px 20px}}
 
+/* marquee (faixas em movimento, estilo ticker) */
+.marquee-wrap{position:relative;z-index:2;padding:0}
+.marquee{--mq-gap:2.4rem;position:relative;overflow:hidden;background:var(--sage);color:var(--on-accent);
+  padding:30px 0;display:flex;flex-direction:column;gap:18px;user-select:none;
+  border-top:1px solid color-mix(in srgb,var(--ink) 8%,transparent);border-bottom:1px solid color-mix(in srgb,var(--ink) 8%,transparent)}
+.mq-row{display:flex;width:max-content;will-change:transform;animation:mq-scroll var(--mq-dur,42s) linear infinite}
+.mq-row.rev{animation-direction:reverse}
+.marquee:hover .mq-row{animation-play-state:paused}
+.mq-seg{display:flex;align-items:center;gap:var(--mq-gap);padding-right:var(--mq-gap)}
+.mq-tx{font-family:var(--disp);font-weight:800;font-size:clamp(1.55rem,3.2vw,2.7rem);letter-spacing:-.03em;white-space:nowrap;line-height:1}
+.mq-mk{width:clamp(38px,3.6vw,52px);height:clamp(38px,3.6vw,52px);flex:0 0 auto;border-radius:14px;
+  background:var(--on-accent);color:var(--sage);display:grid;place-items:center;
+  font-family:var(--disp);font-weight:800;font-size:clamp(1.1rem,1.7vw,1.5rem)}
+.mq-img{width:clamp(46px,4.6vw,64px);height:clamp(46px,4.6vw,64px);flex:0 0 auto;border-radius:14px;
+  object-fit:cover;object-position:top center;border:2px solid var(--on-accent);background:var(--card)}
+@keyframes mq-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.marquee{gap:0}.mq-row{animation:none}.mq-row.rev,.mq-row+.mq-row{display:none}}
+
 /* diferencial (transformação: jeito antigo -> Munny) */
 .diff{max-width:860px;margin:52px auto 0;display:flex;flex-direction:column;gap:14px}
 .diffrow{display:grid;grid-template-columns:1fr auto 1.25fr;align-items:center;gap:24px;background:var(--card);border:1px solid var(--card-line);border-radius:18px;padding:24px 30px;box-shadow:var(--sh);transition:transform .2s cubic-bezier(.16,1,.3,1)}
@@ -560,6 +578,48 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
           <div class="from">caro, ou grátis e trabalhoso</div>
           <div class="ar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></div>
           <div class="to"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Menos que dois cafés por mês</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAIXAS EM MOVIMENTO (ticker) -->
+  <section class="marquee-wrap" aria-label="Munny em uma frase">
+    <div class="marquee">
+      <div class="mq-row" style="--mq-dur:44s">
+        <div class="mq-seg">
+          <span class="mq-tx">Organize a sua vida financeira com o Munny</span>
+          <span class="mq-mk">$</span>
+          <span class="mq-tx">Veja pra onde vai cada real</span>
+          <img class="mq-img" loading="lazy" src="/lp-painel.png" alt="">
+          <span class="mq-tx">Um gasto em 3 segundos</span>
+          <span class="mq-mk">$</span>
+        </div>
+        <div class="mq-seg" aria-hidden="true">
+          <span class="mq-tx">Organize a sua vida financeira com o Munny</span>
+          <span class="mq-mk">$</span>
+          <span class="mq-tx">Veja pra onde vai cada real</span>
+          <img class="mq-img" loading="lazy" src="/lp-painel.png" alt="">
+          <span class="mq-tx">Um gasto em 3 segundos</span>
+          <span class="mq-mk">$</span>
+        </div>
+      </div>
+      <div class="mq-row rev" style="--mq-dur:54s">
+        <div class="mq-seg">
+          <span class="mq-tx">Sem planilha, sem conectar banco</span>
+          <img class="mq-img" loading="lazy" src="/lp-despesas.png" alt="">
+          <span class="mq-tx">O seu dinheiro, organizado sozinho</span>
+          <span class="mq-mk">$</span>
+          <span class="mq-tx">Feito pra usar todo dia</span>
+          <img class="mq-img" loading="lazy" src="/lp-historico.png" alt="">
+        </div>
+        <div class="mq-seg" aria-hidden="true">
+          <span class="mq-tx">Sem planilha, sem conectar banco</span>
+          <img class="mq-img" loading="lazy" src="/lp-despesas.png" alt="">
+          <span class="mq-tx">O seu dinheiro, organizado sozinho</span>
+          <span class="mq-mk">$</span>
+          <span class="mq-tx">Feito pra usar todo dia</span>
+          <img class="mq-img" loading="lazy" src="/lp-historico.png" alt="">
         </div>
       </div>
     </div>
