@@ -4657,6 +4657,47 @@
   .modal-actions .btn-secondary,
   .modal-actions .btn-danger { flex: 0 0 auto; }
 
+  /* ==================== RÉGUA DE TRIAL (faixa no Painel) ==================== */
+  /* Faixa discreta durante o teste de 7 dias: conta os dias, mostra o valor já
+     gerado e leva pro assinar em um toque. Escala de sálvia (calma) pra
+     terracota (últimos dias). Some quando o trial acaba (aí o muro é o paywall). */
+  .trial-banner {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .trial-banner.mid { border-left-color: var(--warning); }
+  .trial-banner.urgent { border-left-color: var(--danger); background: var(--danger-bg); }
+  .trial-banner .tb-ic {
+    width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px;
+    background: var(--primary-soft); color: var(--primary-dark);
+    display: grid; place-items: center;
+  }
+  .trial-banner.mid .tb-ic { background: var(--warning-soft); color: var(--warning); }
+  .trial-banner.urgent .tb-ic { background: var(--danger-soft); color: var(--danger-dark); }
+  .trial-banner .tb-ic svg { width: 20px; height: 20px; }
+  .trial-banner .tb-body { flex: 1; min-width: 0; }
+  .trial-banner .tb-title { font-size: 14.5px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1.25; }
+  .trial-banner .tb-sub { font-size: 12.5px; color: var(--text-mute); line-height: 1.38; margin-top: 3px; }
+  .trial-banner .tb-sub b { color: var(--text-soft); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .trial-banner .tb-cta {
+    flex-shrink: 0; font-size: 13px; font-weight: 700; cursor: pointer;
+    border: none; border-radius: 10px; padding: 9px 15px;
+    background: var(--primary); color: #FDFBF4; transition: background .15s ease;
+    white-space: nowrap;
+  }
+  .trial-banner .tb-cta:hover { background: var(--primary-dark); }
+  .trial-banner.urgent .tb-cta { background: var(--danger); }
+  .trial-banner.urgent .tb-cta:hover { background: var(--danger-dark); }
+  .trial-banner .tb-cta.ghost { background: transparent; color: var(--primary-dark); padding: 9px 10px; }
+  .trial-banner .tb-cta.ghost:hover { background: var(--primary-soft); }
+  @media (max-width: 520px) {
+    .trial-banner { flex-wrap: wrap; }
+    .trial-banner .tb-cta { flex-basis: 100%; margin-top: 2px; }
+  }
+
   /* ==================== PAYWALL / ASSINATURA ==================== */
   .paywall-overlay {
     position: fixed; inset: 0; z-index: 1700;
@@ -5503,6 +5544,9 @@
 
   <!-- ============ PAINEL ============ -->
   <div class="tab-panel active" id="tab-painel">
+
+    <!-- Régua de trial: contagem + valor + assinar em um toque (só durante o teste) -->
+    <div class="trial-banner" id="trialBanner" style="display:none;"></div>
 
     <!-- 0. RENDA DO MÊS — destaque quando ainda não foi lançada (ex: depois de fechar o mês) -->
     <div class="income-prompt" id="incomePrompt" style="display:none;">
@@ -7572,6 +7616,7 @@
     return false;
   }
   function enforceAccess() {
+    renderTrialBanner(); // mantém a faixa em dia quando a assinatura muda
     if (hasAccess()) {
       if (_paywallHard) {
         _paywallHard = false;
@@ -7615,6 +7660,77 @@
     const ov = document.getElementById('paywallOverlay');
     if (ov) ov.style.display = 'none';
     document.body.style.overflow = '';
+  }
+
+  // ===== RÉGUA DE TRIAL =====
+  // Estado do teste pra faixa do Painel. Só é "inTrial" quem de fato está em
+  // teste pagante: cobrança ligada, logado, não-dev, conta pós-lançamento
+  // (grandfather sai fora) e sem assinatura ativa. Espelha o hasAccess() de
+  // propósito, pra faixa e muro nunca se contradizerem.
+  function trialInfo() {
+    const off = { inTrial: false, daysLeft: 0 };
+    if (!BILLING.enabled || !currentUser || isDev()) return off;
+    const created = new Date((currentUser.metadata && currentUser.metadata.creationTime) || 0);
+    if (isNaN(created.getTime())) return off;
+    if (created < new Date(BILLING.launchDate + 'T00:00:00')) return off; // grandfather
+    if (_subInfo && _subInfo.validUntil && _subInfo.validUntil > new Date()) return off; // já assinante
+    const endMs = created.getTime() + BILLING.trialDays * 86400000;
+    const msLeft = endMs - Date.now();
+    if (msLeft <= 0) return off; // teste acabou: quem cuida é o paywall duro
+    return { inTrial: true, daysLeft: Math.ceil(msLeft / 86400000), endMs };
+  }
+
+  // Desenha a faixa. Escala o tom (sálvia → terracota) e a mensagem conforme os
+  // dias que faltam. Antes de ativar (sem renda e sem gasto) empurra a ativação,
+  // não a assinatura, porque quem não viu valor não converte.
+  function renderTrialBanner() {
+    const el = document.getElementById('trialBanner');
+    if (!el) return;
+    const t = trialInfo();
+    if (!t.inTrial || state.activeTab !== 'painel') { el.style.display = 'none'; return; }
+    const n = t.daysLeft;
+    const nGastos = (state.expenses || []).length;
+    const renda = Number(state.income) || 0;
+    const activated = renda > 0 || nGastos > 0;
+    const clock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
+    const spark = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>';
+
+    let cls = '', title = '', sub = '', ctaLabel = '', ctaGhost = false, ic = clock;
+    if (!activated) {
+      ic = spark;
+      title = 'Seu teste começou, faltam ' + n + (n === 1 ? ' dia' : ' dias');
+      sub = 'Coloque sua renda ali embaixo e veja seu dinheiro se dividir sozinho.';
+      ctaLabel = 'Ver planos'; ctaGhost = true;
+    } else if (n >= 4) {
+      ic = spark;
+      title = 'Teste grátis, faltam ' + n + ' dias';
+      sub = 'Você já lançou <b>' + nGastos + (nGastos === 1 ? ' gasto' : ' gastos') + '</b> e organizou <b>' + fmtBRL(renda) + '</b>.';
+      ctaLabel = 'Ver planos'; ctaGhost = true;
+    } else if (n >= 2) {
+      cls = 'mid';
+      title = 'Faltam ' + n + ' dias do seu teste';
+      sub = 'Dá pra continuar com tudo por R$ 16,99/mês no plano anual.';
+      ctaLabel = 'Continuar no Munny';
+    } else {
+      cls = 'urgent';
+      title = 'Último dia do teste';
+      sub = (n <= 0 ? 'Hoje' : 'Amanhã') + ' o acesso pausa, mas seus dados ficam guardados esperando você.';
+      ctaLabel = 'Assinar agora';
+    }
+
+    el.className = 'trial-banner' + (cls ? ' ' + cls : '');
+    el.innerHTML =
+      '<span class="tb-ic">' + ic + '</span>' +
+      '<div class="tb-body"><div class="tb-title">' + escapeHtml(title) + '</div>' +
+      '<div class="tb-sub">' + sub + '</div></div>' +
+      '<button type="button" class="tb-cta' + (ctaGhost ? ' ghost' : '') + '" id="trialCta">' + escapeHtml(ctaLabel) + '</button>';
+    el.style.display = 'flex';
+    const cta = document.getElementById('trialCta');
+    if (cta) cta.onclick = function () {
+      _paywallHard = false;
+      track('trial_banner_cta', { days_left: n });
+      openPaywall();
+    };
   }
 
   // Chama o Worker, que cria a Assinatura no Mercado Pago e devolve o link.
@@ -10667,6 +10783,8 @@ function doGet() {
     applyCatsCollapse();
     // Apply tab
     switchTabSilent(state.activeTab);
+    // Régua de trial: contagem + valor no topo do Painel (some fora do trial)
+    renderTrialBanner();
     // Set today's date as default for date input
     const dateInp = document.getElementById('expDate');
     if (!dateInp.value) dateInp.value = todayISO();
