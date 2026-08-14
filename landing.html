@@ -346,6 +346,41 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
 .qa .ans b{color:var(--ink);font-weight:600}
 @media(max-width:600px){.qa summary{padding:18px 22px;font-size:1rem}.qa .ans{padding:0 22px 20px}}
 
+/* instalar (colocar na tela inicial / área de trabalho) */
+.install-sec{display:grid;grid-template-columns:1.02fr .98fr;gap:48px;align-items:center}
+.install-sec h2{font-size:clamp(2.2rem,4.5vw,3.4rem);margin:1.1rem 0 1rem}
+.is-list{list-style:none;display:flex;flex-direction:column;gap:13px;margin:1.5rem 0 0;padding:0}
+.is-list li{display:flex;gap:.65rem;align-items:flex-start;color:var(--muted);font-size:1.04rem;line-height:1.4}
+.is-list li svg{flex:0 0 auto;margin-top:2px;color:var(--sage)}
+.is-cta{margin-top:2rem}
+.is-stage{position:relative;min-height:452px;display:flex;align-items:center;justify-content:center}
+.is-glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 62%);filter:blur(4px)}
+.is-win{position:absolute;top:22px;right:0;width:292px;max-width:76%;background:var(--card);border:1px solid var(--card-line);border-radius:16px;box-shadow:var(--sh);transform:rotate(3deg);overflow:hidden}
+.is-win .bar{display:flex;gap:6px;align-items:center;padding:11px 13px;border-bottom:1px solid var(--card-line);background:var(--bg2)}
+.is-win .bar i{width:9px;height:9px;border-radius:50%;background:var(--card-line)}
+.is-win .wbody{padding:30px 24px;display:flex;align-items:center;gap:11px;justify-content:center}
+.is-win .wbody b{font-family:var(--disp);font-weight:800;font-size:1.3rem;letter-spacing:-.02em}
+.is-mk{width:40px;height:40px;border-radius:12px;background:var(--sage);color:#FFFDF9;display:grid;place-items:center;font-family:var(--disp);font-weight:800;font-size:1.25rem;flex:0 0 auto}
+.is-phone{position:relative;z-index:2;width:236px;border-radius:36px;border:10px solid var(--ink);background:var(--ink);box-shadow:var(--sh-lift);transform:rotate(-2.5deg)}
+.is-scr{border-radius:26px;overflow:hidden;background:linear-gradient(165deg,var(--bg2),var(--band));padding:16px 15px 26px}
+.is-status{display:flex;justify-content:space-between;align-items:center;font-size:.68rem;color:var(--faint);font-weight:800;padding:2px 5px 16px;font-variant-numeric:tabular-nums}
+.is-status .bars{display:flex;gap:3px;align-items:flex-end}
+.is-status .bars i{width:3px;background:var(--faint);border-radius:1px}
+.is-status .bars i:nth-child(1){height:5px}.is-status .bars i:nth-child(2){height:8px}.is-status .bars i:nth-child(3){height:11px}
+.is-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px 13px}
+.is-ic{aspect-ratio:1;border-radius:13px;background:color-mix(in srgb,var(--faint) 20%,var(--card))}
+.is-ic.a{background:color-mix(in srgb,var(--accent) 20%,var(--card))}
+.is-ic.b{background:color-mix(in srgb,var(--ouro) 24%,var(--card))}
+.is-ic.c{background:color-mix(in srgb,var(--sage) 22%,var(--card))}
+.is-ic.munny{position:relative;background:var(--sage);display:grid;place-items:center;color:#FFFDF9;font-family:var(--disp);font-weight:800;font-size:1.55rem;box-shadow:0 10px 20px -8px var(--sage)}
+.is-ic.munny .is-lbl{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 5px);font-size:.62rem;font-weight:800;color:var(--ink);white-space:nowrap;letter-spacing:-.01em}
+.is-chip{position:absolute;left:-6px;bottom:30px;background:var(--card);border:1px solid var(--card-line);border-radius:13px;padding:.6rem .85rem;display:flex;align-items:center;gap:.6rem;box-shadow:var(--sh);z-index:5}
+.is-chip .p{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);display:grid;place-items:center;font-weight:800;font-family:var(--disp);font-size:1.05rem}
+.is-chip b{font-size:.8rem;font-weight:700;display:block;line-height:1.15}
+.is-chip span{font-size:.7rem;color:var(--faint)}
+@media(max-width:900px){.install-sec{grid-template-columns:1fr;gap:36px}.is-stage{min-height:auto;padding:20px 0 6px}}
+@media(max-width:600px){.is-win{display:none}.is-phone{transform:none}.is-chip{left:auto;right:-4px}}
+
 /* marquee (frases em movimento, sem faixa: só o texto grande correndo) */
 .marquee-wrap{position:relative;z-index:2;padding:clamp(30px,6vw,64px) 0}
 .marquee{--mq-gap:clamp(1rem,2.2vw,2rem);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:clamp(2px,.4vw,10px);user-select:none}
@@ -544,6 +579,45 @@ footer{margin-top:100px;border-top:1px solid var(--line)}
   </section>
 
   <!-- FEEDBACKS: oculto até termos 3 depoimentos reais (texto + nome + foto). Restaurar aqui. -->
+
+  <!-- INSTALAR (na tela inicial / área de trabalho) -->
+  <section id="instalar" class="soft">
+    <div class="wrap install-sec">
+      <div class="is-copy rv-l">
+        <span class="eyebrow">Sempre à mão</span>
+        <h2>Deixe o Munny na sua tela.</h2>
+        <p class="ss">No celular ele vira um ícone na tela inicial. No computador, abre em janela própria, como um programa. Sem baixar da loja, sem ocupar espaço, sempre a um toque.</p>
+        <ul class="is-list">
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Abre direto, sem procurar aba no navegador</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Ocupa quase nada, é o próprio site na sua tela</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Vale pra Android, iPhone e computador</li>
+        </ul>
+        <div class="is-cta"><a class="btn btn-p" href="https://app.munnygestorfinanceiro.com/?ref=lp&start=orcamento">Começar grátis</a></div>
+      </div>
+      <div class="is-stage rv-r" aria-hidden="true">
+        <div class="is-glow"></div>
+        <div class="is-win">
+          <div class="bar"><i></i><i></i><i></i></div>
+          <div class="wbody"><span class="is-mk">$</span><b>Munny</b></div>
+        </div>
+        <div class="is-phone">
+          <div class="is-scr">
+            <div class="is-status"><span>9:41</span><span class="bars"><i></i><i></i><i></i></span></div>
+            <div class="is-grid">
+              <span class="is-ic a"></span><span class="is-ic c"></span><span class="is-ic"></span><span class="is-ic b"></span>
+              <span class="is-ic"></span><span class="is-ic b"></span><span class="is-ic c"></span><span class="is-ic a"></span>
+              <span class="is-ic c"></span><span class="is-ic"></span><span class="is-ic a"></span><span class="is-ic b"></span>
+              <span class="is-ic munny">$<span class="is-lbl">Munny</span></span><span class="is-ic"></span><span class="is-ic c"></span><span class="is-ic a"></span>
+            </div>
+          </div>
+        </div>
+        <div class="is-chip">
+          <span class="p">+</span>
+          <span><b>Adicionar à tela</b><span>leva um toque</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- DIFERENCIAL / COMPARAÇÃO -->
   <section class="soft">
