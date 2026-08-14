@@ -5781,14 +5781,14 @@
         <span class="rec-chev"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
       </summary>
       <div class="recurring-body">
-        <p class="subtitle">As que se repetem todo mês. Pra criar uma, marque "Repetir todo mês" ao adicionar a despesa acima. Toque numa pra editar.</p>
+        <p class="subtitle">As que se repetem todo mês. Pra criar uma, marque "Repetir todo mês" ao adicionar a despesa acima. Abra uma pra editar.</p>
         <ul class="expenses-list" id="recurringList"></ul>
       </div>
     </details>
 
     <div class="card mt-12">
       <h2>Histórico de Despesas</h2>
-      <p class="subtitle">Toque numa despesa pra editar ou excluir.</p>
+      <p class="subtitle">Abra uma despesa pra editar ou excluir.</p>
       <div class="filters-bar">
         <div class="search-wrap">
           <input type="search" id="expSearch" placeholder="Buscar despesa..." maxlength="60" />
@@ -5949,7 +5949,7 @@
 
     <div class="card mt-12">
       <h2>Meses Anteriores</h2>
-      <p class="subtitle">Toque num mês pra ver pra onde o dinheiro foi.</p>
+      <p class="subtitle">Abra um mês pra ver pra onde o dinheiro foi.</p>
       <div class="hist-months" id="historyList"></div>
     </div>
   </div>
@@ -6073,7 +6073,7 @@
     <div class="onb-step" data-step="3" style="display:none;">
       <div class="onb-emoji" id="onbFinalEmoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <h2 id="onbFinalTitle">Tudo pronto<span id="onbName"></span>!</h2>
-      <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
+      <p id="onbFinalText">Seu painel já está montado. Agora é só ir lançando seus gastos: use o botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.</p>
       <button type="button" class="btn-primary onb-next" id="onbFinishBtn" data-onb="finish">Começar a usar</button>
       <p class="onb-save-note" id="onbSaveNote" style="display:none;">Seus dados ficam privados, só você acessa. Sem cartão, leva segundos.</p>
     </div>
@@ -9244,7 +9244,7 @@
       </div>
 
       <h4 style="margin:0 0 4px; font-size:14px; letter-spacing:-0.01em;">Conquistas</h4>
-      <p style="margin:0 0 4px; font-size:12px; color:var(--text-mute);">Toque em uma desbloqueada pra relembrar.</p>
+      <p style="margin:0 0 4px; font-size:12px; color:var(--text-mute);">Abra uma desbloqueada pra relembrar.</p>
       <div class="achievements-grid">
         ${cards.map(c => c.html).join('')}
       </div>
@@ -10679,7 +10679,7 @@ function doGet() {
       const first = currentUser.displayName ? ', ' + currentUser.displayName.split(' ')[0] : '';
       if (emoji) emoji.innerHTML = ICONS.check;
       if (title) title.textContent = 'Tudo pronto' + first + '!';
-      if (text) text.innerHTML = 'Seu painel já está montado. Agora é só ir lançando seus gastos: toque no botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.';
+      if (text) text.innerHTML = 'Seu painel já está montado. Agora é só ir lançando seus gastos: use o botão <strong>+</strong> ou vá na aba <strong>Despesas</strong>.';
       if (btn) btn.textContent = 'Começar a usar';
       if (note) note.style.display = 'none';
     } else {
