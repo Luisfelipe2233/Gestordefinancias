@@ -36,6 +36,17 @@
     fbq('track', 'PageView');
   }
 </script>
+<!-- Google Analytics 4 (mesmo ID do app: G-BXP39XGNNQ / propriedade munny-d72cd).
+     Mede a landing, pra onde os anúncios apontam. Roda depois do guard (quem já é
+     do app é redirecionado antes e nem dispara). Mesmo registrável do app, então
+     a sessão atravessa raiz -> app na mesma propriedade. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXP39XGNNQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXP39XGNNQ');
+</script>
 <title>Munny: veja pra onde vai o seu dinheiro</title>
 <meta name="description" content="O Munny junta o que entra, o que sai e o que ainda vai vencer num lugar só. Você abre e enxerga na hora pra onde vai cada real. 7 dias grátis, sem cartão.">
 <meta name="theme-color" content="#FBF7EF">
