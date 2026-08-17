@@ -20,3 +20,13 @@ not_found_handling = "single-page-application"
 # O Worker roda antes dos assets em TODA requisição: ele decide, por host, se
 # serve o app (app.) ou a landing (raiz/www). As rotas /api/* seguem no Worker.
 run_worker_first = true
+
+# Régua de e-mails de retorno: roda todo dia às 13:00 UTC (10:00 de Brasília).
+# O handler scheduled() em worker.js fica inerte até o RESEND_API_KEY existir.
+[triggers]
+crons = ["0 13 * * *"]
+
+# Remetente dos e-mails (precisa ser um domínio verificado no Resend). Não é
+# segredo. A chave da API vai como secret: npx wrangler secret put RESEND_API_KEY
+[vars]
+RESEND_FROM = "Munny <ola@munnygestorfinanceiro.com>"

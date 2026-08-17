@@ -11416,6 +11416,14 @@ function doGet() {
     const payload = JSON.parse(JSON.stringify(state)); // deep clone, remove referências
     payload.lastModifiedAt = firebase.firestore.FieldValue.serverTimestamp();
     payload.lastModifiedBy = sessionId;
+    // Campos usados pela régua de e-mails de retorno (o Worker lê via service
+    // account). Ficam no próprio doc do usuário, que ele já pode escrever.
+    payload.email = (currentUser && currentUser.email) || '';
+    payload.lastSeenAt = firebase.firestore.FieldValue.serverTimestamp();
+    if (currentUser && currentUser.metadata && currentUser.metadata.creationTime) {
+      const created = new Date(currentUser.metadata.creationTime);
+      if (!isNaN(created)) payload.signupAt = firebase.firestore.Timestamp.fromDate(created);
+    }
     userDocRef.set(payload)
       .then(() => setCloudSyncStatus('ok'))
       .catch((err) => {
@@ -11446,6 +11454,16 @@ function doGet() {
   async function loadUserData(user) {
     if (!db) return;
     userDocRef = db.collection('users').doc(user.uid);
+    // Marca o retorno (e-mail, cadastro, último acesso) mesmo se a pessoa só abrir
+    // e não mexer em nada. Merge pra não apagar o estado já salvo na nuvem.
+    try {
+      const meta = { email: user.email || '', lastSeenAt: firebase.firestore.FieldValue.serverTimestamp() };
+      if (user.metadata && user.metadata.creationTime) {
+        const created = new Date(user.metadata.creationTime);
+        if (!isNaN(created)) meta.signupAt = firebase.firestore.Timestamp.fromDate(created);
+      }
+      userDocRef.set(meta, { merge: true });
+    } catch (_) {}
     try {
       const doc = await userDocRef.get();
       if (doc.exists) {

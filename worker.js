@@ -77,6 +77,12 @@ export default {
     }
     return env.ASSETS.fetch(request);
   },
+
+  // Cron diário (definido em wrangler.toml [triggers]). Dispara a régua de
+  // e-mails de retorno. Inerte enquanto RESEND_API_KEY não existir.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runRetention(env));
+  },
 };
 
 // ============================== /api/checkout ==============================
@@ -425,6 +431,175 @@ async function sha256Hex(value) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ==================== Régua de e-mails de retenção ==========================
+// Roda 1x por dia (cron). Traz de volta quem cadastrou e sumiu, e empurra a
+// conversão no fim do trial. Inerte sem RESEND_API_KEY.
+//
+// Secrets/vars (npx wrangler secret put / [vars] no wrangler.toml):
+//   RESEND_API_KEY  chave da API do Resend (secret)
+//   RESEND_FROM     remetente verificado, ex: "Munny <ola@munnygestorfinanceiro.com>"
+//
+// Anti-estouro do plano grátis (limite de subrequests): lê users, subscriptions
+// e userMeta UMA vez cada (não um GET por usuário) e monta tudo em memória. Só
+// gasta requisição de rede por e-mail realmente enviado no dia.
+
+const LAUNCH_DATE = new Date('2026-08-06T00:00:00Z'); // contas antes disso = grandfather
+
+async function runRetention(env) {
+  if (!env.RESEND_API_KEY) { console.log('Retenção: sem RESEND_API_KEY (no-op).'); return; }
+  const now = Date.now();
+
+  const users = await listAll(env, 'users', ['email', 'signupAt', 'lastSeenAt']);
+  const subs  = await listAll(env, 'subscriptions', ['validUntil']);
+  const metas = await listAll(env, 'userMeta', ['retentionSent']);
+
+  const activeSub = new Set();
+  for (const d of subs) {
+    const vu = tsField(d.fields, 'validUntil');
+    if (vu && vu.getTime() > now) activeSub.add(idOf(d));
+  }
+  const sentMap = {};
+  for (const d of metas) {
+    const m = d.fields && d.fields.retentionSent && d.fields.retentionSent.mapValue && d.fields.retentionSent.mapValue.fields;
+    sentMap[idOf(d)] = m || {};
+  }
+
+  let sent = 0;
+  for (const d of users) {
+    try {
+      const uid = idOf(d);
+      const f = d.fields || {};
+      const email = strField(f, 'email').trim();
+      if (!email || email.indexOf('@') < 1) continue;      // sem e-mail utilizável
+      if (activeSub.has(uid)) continue;                     // já paga: não incomoda
+      const signupAt = tsField(f, 'signupAt');
+      if (!signupAt) continue;                              // conta antiga sem o campo (pega no próximo login)
+      const lastSeenAt = tsField(f, 'lastSeenAt') || signupAt;
+      const dSignup = Math.floor((now - signupAt.getTime()) / 86400000);
+      const dSeen   = Math.floor((now - lastSeenAt.getTime()) / 86400000);
+      const stage = pickStage(dSignup, dSeen, signupAt);
+      if (!stage) continue;
+      if ((sentMap[uid] || {})[stage]) continue;            // já mandou esse
+      const tpl = EMAILS[stage];
+      if (!tpl) continue;
+      const ok = await sendEmail(env, { to: email, subject: tpl.subject, html: tpl.html(stage) });
+      if (ok) { await markSent(env, uid, stage); sent++; }
+    } catch (e) {
+      console.error('Retenção: erro num usuário:', String(e));
+    }
+  }
+  console.log(`Retenção: ${users.length} usuários varridos, ${sent} e-mails enviados.`);
+}
+
+// Qual e-mail cabe hoje pra essa pessoa. Um por fase; não faz backfill (quem já
+// está no dia 6 quando o sistema liga recebe o do dia 6, não o de boas-vindas).
+function pickStage(dSignup, dSeen, signupAt) {
+  const postLaunch = signupAt.getTime() >= LAUNCH_DATE.getTime();
+  if (postLaunch) {
+    if (dSignup >= 1 && dSignup <= 2) return 'welcome';
+    if (dSignup >= 3 && dSignup <= 5) return 'value';
+    if (dSignup === 6 || dSignup === 7) return 'trial_end_soon';
+    if (dSignup >= 8 && dSignup <= 13) return 'trial_ended';
+  }
+  if (dSeen >= 14) return 'winback';
+  return null;
+}
+
+function idOf(doc) { return String(doc.name || '').split('/').pop(); }
+
+function tsField(fields, name) {
+  const f = fields && fields[name];
+  const v = f && f.timestampValue;
+  return v ? new Date(v) : null;
+}
+
+async function listAll(env, collection, masks) {
+  const out = [];
+  let pageToken = '';
+  do {
+    const token = await getGoogleAccessToken(env);
+    const params = new URLSearchParams();
+    params.set('pageSize', '300');
+    if (pageToken) params.set('pageToken', pageToken);
+    for (const m of (masks || [])) params.append('mask.fieldPaths', m);
+    const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${collection}?${params.toString()}`;
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) { console.error('Firestore list falhou:', collection, res.status); break; }
+    const data = await res.json();
+    (data.documents || []).forEach(x => out.push(x));
+    pageToken = data.nextPageToken || '';
+  } while (pageToken);
+  return out;
+}
+
+// Marca a fase como enviada sem apagar as outras (field path aninhado no map).
+async function markSent(env, uid, stage) {
+  const token = await getGoogleAccessToken(env);
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/userMeta/${uid}?updateMask.fieldPaths=${encodeURIComponent('retentionSent.' + stage)}`;
+  const body = { fields: { retentionSent: { mapValue: { fields: { [stage]: { timestampValue: new Date().toISOString() } } } } } };
+  const res = await fetch(url, { method: 'PATCH', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) console.error('markSent falhou:', uid, stage, res.status);
+}
+
+async function sendEmail(env, { to, subject, html }) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: env.RESEND_FROM || 'Munny <ola@munnygestorfinanceiro.com>', to, subject, html }),
+  });
+  if (!res.ok) { console.error('Resend falhou:', res.status, (await res.text()).slice(0, 300)); return false; }
+  return true;
+}
+
+function ctaUrl(k) { return `${APP_URL}/?utm_source=email&utm_medium=lifecycle&utm_campaign=${encodeURIComponent(k)}`; }
+
+function emailShell(heading, bodyHtml, ctaText, ctaHref) {
+  return `<!doctype html><html><body style="margin:0;background:#FBF7EF;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#241F18;">`
+    + `<div style="max-width:520px;margin:0 auto;padding:32px 20px;">`
+    + `<div style="font-weight:800;font-size:20px;letter-spacing:-.02em;margin-bottom:22px;">`
+    + `<span style="display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;background:#6F8E7F;color:#fff;border-radius:7px;vertical-align:middle;margin-right:8px;">$</span>Munny</div>`
+    + `<div style="background:#FFFDF9;border:1px solid #EBE2D2;border-radius:16px;padding:28px 26px;">`
+    + `<h1 style="margin:0 0 12px;font-size:22px;line-height:1.25;letter-spacing:-.02em;color:#241F18;">${heading}</h1>`
+    + `<div style="font-size:15px;line-height:1.55;color:#5A5347;">${bodyHtml}</div>`
+    + `<a href="${ctaHref}" style="display:inline-block;margin-top:22px;background:#C2673F;color:#FFFDF9;text-decoration:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:12px;">${ctaText}</a>`
+    + `</div>`
+    + `<p style="font-size:12px;color:#8A7C67;margin-top:18px;line-height:1.5;">Você recebe este e-mail porque criou uma conta no Munny. Se não quiser mais lembretes, responda com "sair".</p>`
+    + `</div></body></html>`;
+}
+
+const EMAILS = {
+  welcome: {
+    subject: 'Seu painel do Munny já está te esperando',
+    html: (k) => emailShell('Bora ver pra onde vai o seu dinheiro',
+      '<p style="margin:0 0 10px;">Você criou sua conta, agora falta o principal: coloque sua renda e lance o primeiro gasto. Leva uns 3 segundos e o Munny já divide tudo sozinho em Necessidades, Desejos e Poupança.</p>',
+      'Abrir o Munny', ctaUrl(k)),
+  },
+  value: {
+    subject: 'Quanto ainda dá pra gastar este mês?',
+    html: (k) => emailShell('O Munny responde isso na hora',
+      '<p style="margin:0 0 10px;">Cada gasto que você lança já entra na categoria certa. Assim você sempre sabe quanto ainda cabe, sem ficar fazendo conta na cabeça.</p>',
+      'Ver meu painel', ctaUrl(k)),
+  },
+  trial_end_soon: {
+    subject: 'Seu teste do Munny está acabando',
+    html: (k) => emailShell('Faltam poucos dias do seu teste',
+      '<p style="margin:0 0 10px;">Pra continuar com tudo, dá pra assinar por R$ 16,99/mês no plano anual. Sua carteira e seu histórico ficam exatamente do jeito que estão.</p>',
+      'Continuar no Munny', ctaUrl(k)),
+  },
+  trial_ended: {
+    subject: 'Seu teste acabou, mas seus dados estão guardados',
+    html: (k) => emailShell('Volta em um clique',
+      '<p style="margin:0 0 10px;">Seu histórico e sua carteira continuam salvos esperando você. Assine pra voltar a acompanhar seu mês de onde parou.</p>',
+      'Assinar agora', ctaUrl(k)),
+  },
+  winback: {
+    subject: 'Faz tempo que você não aparece no Munny',
+    html: (k) => emailShell('Seu dinheiro continua acontecendo',
+      '<p style="margin:0 0 10px;">Que tal uma olhada rápida em como está o mês? Em poucos segundos você atualiza seus gastos e vê quanto ainda dá pra gastar.</p>',
+      'Voltar pro Munny', ctaUrl(k)),
+  },
+};
 
 // ================================ Helpers ==================================
 
