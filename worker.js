@@ -49,6 +49,9 @@ export default {
         if (url.pathname === '/api/webhook' && request.method === 'POST') {
           return await handleWebhook(request, env);
         }
+        if (url.pathname === '/api/unsub' && request.method === 'GET') {
+          return await handleUnsub(request, env);
+        }
         return json({ error: 'not_found' }, 404);
       } catch (err) {
         console.error('API error:', err && err.stack || err);
@@ -452,7 +455,7 @@ async function runRetention(env) {
 
   const users = await listAll(env, 'users', ['email', 'signupAt', 'lastSeenAt']);
   const subs  = await listAll(env, 'subscriptions', ['validUntil']);
-  const metas = await listAll(env, 'userMeta', ['retentionSent']);
+  const metas = await listAll(env, 'userMeta', ['retentionSent', 'unsubscribed']);
 
   const activeSub = new Set();
   for (const d of subs) {
@@ -460,9 +463,12 @@ async function runRetention(env) {
     if (vu && vu.getTime() > now) activeSub.add(idOf(d));
   }
   const sentMap = {};
+  const unsub = new Set();
   for (const d of metas) {
+    const uid = idOf(d);
     const m = d.fields && d.fields.retentionSent && d.fields.retentionSent.mapValue && d.fields.retentionSent.mapValue.fields;
-    sentMap[idOf(d)] = m || {};
+    sentMap[uid] = m || {};
+    if (d.fields && d.fields.unsubscribed && d.fields.unsubscribed.booleanValue === true) unsub.add(uid);
   }
 
   let sent = 0;
@@ -473,6 +479,7 @@ async function runRetention(env) {
       const email = strField(f, 'email').trim();
       if (!email || email.indexOf('@') < 1) continue;      // sem e-mail utilizável
       if (activeSub.has(uid)) continue;                     // já paga: não incomoda
+      if (unsub.has(uid)) continue;                         // pediu pra sair da lista
       const signupAt = tsField(f, 'signupAt');
       if (!signupAt) continue;                              // conta antiga sem o campo (pega no próximo login)
       const lastSeenAt = tsField(f, 'lastSeenAt') || signupAt;
@@ -483,7 +490,8 @@ async function runRetention(env) {
       if ((sentMap[uid] || {})[stage]) continue;            // já mandou esse
       const tpl = EMAILS[stage];
       if (!tpl) continue;
-      const ok = await sendEmail(env, { to: email, subject: tpl.subject, html: tpl.html(stage) });
+      const unsubHref = `${SITE_URL}/api/unsub?u=${encodeURIComponent(uid)}&t=${await unsubToken(env, uid)}`;
+      const ok = await sendEmail(env, { to: email, subject: tpl.subject, html: tpl.html(stage, unsubHref) });
       if (ok) { await markSent(env, uid, stage); sent++; }
     } catch (e) {
       console.error('Retenção: erro num usuário:', String(e));
@@ -554,7 +562,7 @@ async function sendEmail(env, { to, subject, html }) {
 
 function ctaUrl(k) { return `${APP_URL}/?utm_source=email&utm_medium=lifecycle&utm_campaign=${encodeURIComponent(k)}`; }
 
-function emailShell(heading, bodyHtml, ctaText, ctaHref) {
+function emailShell(heading, bodyHtml, ctaText, ctaHref, unsubHref) {
   return `<!doctype html><html><body style="margin:0;background:#FBF7EF;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#241F18;">`
     + `<div style="max-width:520px;margin:0 auto;padding:32px 20px;">`
     + `<div style="font-weight:800;font-size:20px;letter-spacing:-.02em;margin-bottom:22px;">`
@@ -564,42 +572,81 @@ function emailShell(heading, bodyHtml, ctaText, ctaHref) {
     + `<div style="font-size:15px;line-height:1.55;color:#5A5347;">${bodyHtml}</div>`
     + `<a href="${ctaHref}" style="display:inline-block;margin-top:22px;background:#C2673F;color:#FFFDF9;text-decoration:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:12px;">${ctaText}</a>`
     + `</div>`
-    + `<p style="font-size:12px;color:#8A7C67;margin-top:18px;line-height:1.5;">Você recebe este e-mail porque criou uma conta no Munny. Se não quiser mais lembretes, responda com "sair".</p>`
+    + `<p style="font-size:12px;color:#8A7C67;margin-top:18px;line-height:1.5;">Você recebe este e-mail porque criou uma conta no Munny.${unsubHref ? ` Não quer mais? <a href="${unsubHref}" style="color:#8A7C67;text-decoration:underline;">Descadastrar</a>.` : ''}</p>`
     + `</div></body></html>`;
 }
 
 const EMAILS = {
   welcome: {
     subject: 'Seu painel do Munny já está te esperando',
-    html: (k) => emailShell('Bora ver pra onde vai o seu dinheiro',
+    html: (k, unsub) => emailShell('Bora ver pra onde vai o seu dinheiro',
       '<p style="margin:0 0 10px;">Você criou sua conta, agora falta o principal: coloque sua renda e lance o primeiro gasto. Leva uns 3 segundos e o Munny já divide tudo sozinho em Necessidades, Desejos e Poupança.</p>',
-      'Abrir o Munny', ctaUrl(k)),
+      'Abrir o Munny', ctaUrl(k), unsub),
   },
   value: {
     subject: 'Quanto ainda dá pra gastar este mês?',
-    html: (k) => emailShell('O Munny responde isso na hora',
+    html: (k, unsub) => emailShell('O Munny responde isso na hora',
       '<p style="margin:0 0 10px;">Cada gasto que você lança já entra na categoria certa. Assim você sempre sabe quanto ainda cabe, sem ficar fazendo conta na cabeça.</p>',
-      'Ver meu painel', ctaUrl(k)),
+      'Ver meu painel', ctaUrl(k), unsub),
   },
   trial_end_soon: {
     subject: 'Seu teste do Munny está acabando',
-    html: (k) => emailShell('Faltam poucos dias do seu teste',
+    html: (k, unsub) => emailShell('Faltam poucos dias do seu teste',
       '<p style="margin:0 0 10px;">Pra continuar com tudo, dá pra assinar por R$ 16,99/mês no plano anual. Sua carteira e seu histórico ficam exatamente do jeito que estão.</p>',
-      'Continuar no Munny', ctaUrl(k)),
+      'Continuar no Munny', ctaUrl(k), unsub),
   },
   trial_ended: {
     subject: 'Seu teste acabou, mas seus dados estão guardados',
-    html: (k) => emailShell('Volta em um clique',
+    html: (k, unsub) => emailShell('Volta em um clique',
       '<p style="margin:0 0 10px;">Seu histórico e sua carteira continuam salvos esperando você. Assine pra voltar a acompanhar seu mês de onde parou.</p>',
-      'Assinar agora', ctaUrl(k)),
+      'Assinar agora', ctaUrl(k), unsub),
   },
   winback: {
     subject: 'Faz tempo que você não aparece no Munny',
-    html: (k) => emailShell('Seu dinheiro continua acontecendo',
+    html: (k, unsub) => emailShell('Seu dinheiro continua acontecendo',
       '<p style="margin:0 0 10px;">Que tal uma olhada rápida em como está o mês? Em poucos segundos você atualiza seus gastos e vê quanto ainda dá pra gastar.</p>',
-      'Voltar pro Munny', ctaUrl(k)),
+      'Voltar pro Munny', ctaUrl(k), unsub),
   },
 };
+
+// Descadastro: token assinado (HMAC com a chave da service account, que é
+// secreta e nunca sai do servidor). Sem isso, qualquer um tiraria os outros da
+// lista só trocando o uid na URL.
+async function unsubToken(env, uid) {
+  const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode('munny-unsub:' + sa.private_key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(String(uid)));
+  return [...new Uint8Array(mac)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+}
+
+async function handleUnsub(request, env) {
+  const url = new URL(request.url);
+  const uid = url.searchParams.get('u') || '';
+  const t = url.searchParams.get('t') || '';
+  if (!uid || !t || !env.FIREBASE_SERVICE_ACCOUNT) return unsubPage('Link inválido', 'Esse link de descadastro não é válido.');
+  if (!timingSafeEqual(t, await unsubToken(env, uid))) return unsubPage('Link inválido', 'Esse link de descadastro não é válido ou já mudou.');
+  try {
+    await firestorePatch(env, `userMeta/${uid}`, {
+      unsubscribed: { booleanValue: true },
+      unsubscribedAt: { timestampValue: new Date().toISOString() },
+    });
+  } catch (e) {
+    console.error('unsub falhou:', String(e));
+    return unsubPage('Ops', 'Não consegui processar agora. Tenta de novo em instantes.');
+  }
+  return unsubPage('Pronto', 'Você não vai mais receber os e-mails de lembrete do Munny. Se mudar de ideia, é só voltar a usar o app normalmente.');
+}
+
+function unsubPage(title, msg) {
+  const body = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} — Munny</title></head>`
+    + `<body style="margin:0;background:#FBF7EF;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#241F18;">`
+    + `<div style="max-width:460px;margin:0 auto;padding:64px 24px;text-align:center;">`
+    + `<div style="font-weight:800;font-size:22px;margin-bottom:20px;"><span style="display:inline-block;width:30px;height:30px;line-height:30px;background:#6F8E7F;color:#fff;border-radius:8px;margin-right:8px;">$</span>Munny</div>`
+    + `<h1 style="font-size:24px;margin:0 0 10px;letter-spacing:-.02em;">${title}</h1>`
+    + `<p style="color:#5A5347;font-size:16px;line-height:1.55;">${msg}</p>`
+    + `</div></body></html>`;
+  return new Response(body, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
 
 // ================================ Helpers ==================================
 
