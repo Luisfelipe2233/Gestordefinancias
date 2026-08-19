@@ -1597,6 +1597,7 @@
   .day-header .dh-date { font-size: 12.5px; font-weight: 700; color: var(--text-soft); letter-spacing: .01em; }
   .day-header .dh-total { font-size: 11.5px; font-weight: 500; color: var(--text-mute); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .day-header .dh-total b { font-weight: 700; color: var(--text-soft); }
+  .day-header .dh-total.neg b { color: var(--danger); }
   .expense-dot {
     width: 10px;
     height: 10px;
@@ -8108,20 +8109,28 @@
 
     const dayOf = (e) => e.date || new Date(e.timestamp).toISOString().slice(0, 10);
 
-    // Total gasto por dia (respeita os filtros já aplicados na lista).
-    const dayTotals = {};
-    list.forEach(e => { const d = dayOf(e); dayTotals[d] = (dayTotals[d] || 0) + (Number(e.value) || 0); });
+    // Saldo corrido por dia ("quanto você tinha no fim daquele dia"), estilo
+    // extrato. Usa a mesma conta do Painel (rolou + renda - gastos) e considera
+    // TODAS as despesas do mês, não o filtro da tela, senão o saldo mentiria.
+    const carried = Number(state.savedBalance || 0);
+    const incomeMonth = effectiveIncome();
+    const spentByDay = {};
+    state.expenses.forEach(e => { const d = dayOf(e); spentByDay[d] = (spentByDay[d] || 0) + (Number(e.value) || 0); });
+    const balanceEnd = {};
+    let cum = 0;
+    Object.keys(spentByDay).sort().forEach(d => { cum += spentByDay[d]; balanceEnd[d] = carried + incomeMonth - cum; });
 
     let currentDay = null;
     list.forEach(exp => {
       const date = dayOf(exp);
       if (date !== currentDay) {
         currentDay = date;
+        const bal = balanceEnd[date];
         const hdr = document.createElement('li');
         hdr.className = 'day-header';
         hdr.innerHTML = `
           <span class="dh-date">${escapeHtml(dayLabel(date))}</span>
-          <span class="dh-total">gasto no dia <b>${fmtBRL(dayTotals[date])}</b></span>
+          <span class="dh-total${bal < 0 ? ' neg' : ''}">saldo do dia <b>${fmtBRL(bal)}</b></span>
         `;
         ul.appendChild(hdr);
       }
