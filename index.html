@@ -1586,6 +1586,17 @@
   }
   .expense-item:hover { background: var(--surface-alt); border-radius: 8px; }
   .expense-item:last-child { border-bottom: none; }
+  /* Cabeçalho de dia no histórico: separa por data e mostra o total gasto no
+     dia, discreto, como um extrato. */
+  .day-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 8px 11px; margin: 16px 0 6px; border-radius: 9px;
+    background: var(--surface-alt);
+  }
+  .day-header:first-child { margin-top: 2px; }
+  .day-header .dh-date { font-size: 12.5px; font-weight: 700; color: var(--text-soft); letter-spacing: .01em; }
+  .day-header .dh-total { font-size: 11.5px; font-weight: 500; color: var(--text-mute); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .day-header .dh-total b { font-weight: 700; color: var(--text-soft); }
   .expense-dot {
     width: 10px;
     height: 10px;
@@ -8095,12 +8106,29 @@
       return;
     }
 
+    const dayOf = (e) => e.date || new Date(e.timestamp).toISOString().slice(0, 10);
+
+    // Total gasto por dia (respeita os filtros já aplicados na lista).
+    const dayTotals = {};
+    list.forEach(e => { const d = dayOf(e); dayTotals[d] = (dayTotals[d] || 0) + (Number(e.value) || 0); });
+
+    let currentDay = null;
     list.forEach(exp => {
+      const date = dayOf(exp);
+      if (date !== currentDay) {
+        currentDay = date;
+        const hdr = document.createElement('li');
+        hdr.className = 'day-header';
+        hdr.innerHTML = `
+          <span class="dh-date">${escapeHtml(dayLabel(date))}</span>
+          <span class="dh-total">gasto no dia <b>${fmtBRL(dayTotals[date])}</b></span>
+        `;
+        ul.appendChild(hdr);
+      }
+
       const cat = state.categories.find(c => c.id === exp.categoryId);
       const catName = cat ? cat.name : 'Sem categoria';
       const catColor = cat ? cat.color : '#9ca3af';
-      const date = exp.date || new Date(exp.timestamp).toISOString().slice(0, 10);
-      const dateStr = formatDateBR(date);
 
       const li = document.createElement('li');
       li.className = 'expense-item';
@@ -8113,13 +8141,26 @@
             ${exp.fromRecurring ? '<span class="recurring-badge">↻ fixo</span>' : ''}
             ${exp.fromCardInvoice ? '<span class="recurring-badge">fatura</span>' : ''}
           </div>
-          <div class="expense-meta">${escapeHtml(catName)} · ${dateStr}</div>
+          <div class="expense-meta">${escapeHtml(catName)}</div>
         </div>
         <div class="expense-value">${fmtBRL(exp.value)}</div>
       `;
       li.addEventListener('click', () => openEditExpenseModal(exp.id));
       ul.appendChild(li);
     });
+  }
+
+  // "Hoje" / "Ontem" / "4 de agosto de 2026", pro cabeçalho de dia do histórico.
+  function dayLabel(iso) {
+    if (!iso) return '';
+    const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const [y, m, d] = iso.split('-').map(Number);
+    const base = new Date(todayISO() + 'T00:00:00');
+    const that = new Date(iso + 'T00:00:00');
+    const diff = Math.round((base - that) / 86400000);
+    if (diff === 0) return 'Hoje';
+    if (diff === 1) return 'Ontem';
+    return `${d} de ${meses[m - 1]} de ${y}`;
   }
 
   function formatDateBR(iso) {
