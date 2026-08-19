@@ -52,6 +52,9 @@ export default {
         if (url.pathname === '/api/unsub' && request.method === 'GET') {
           return await handleUnsub(request, env);
         }
+        if (url.pathname === '/api/sales' && request.method === 'GET') {
+          return await handleSales(request, env);
+        }
         return json({ error: 'not_found' }, 404);
       } catch (err) {
         console.error('API error:', err && err.stack || err);
@@ -646,6 +649,40 @@ function unsubPage(title, msg) {
     + `<p style="color:#5A5347;font-size:16px;line-height:1.55;">${msg}</p>`
     + `</div></body></html>`;
   return new Response(body, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
+// ============================ /api/sales (dev) =============================
+// Contador de vendas pro dono, lido direto do Firestore (subscriptions). Só o
+// dev logado acessa: verifica o ID token e checa o e-mail. Assinatura ativa =
+// validUntil no futuro (mesma regra do acesso). Também conta quantos iniciaram
+// o checkout (adAttribution), como referência de funil.
+async function handleSales(request, env) {
+  const authHeader = request.headers.get('Authorization') || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  const user = await verifyFirebaseToken(idToken);
+  if (!user) return json({ error: 'unauthorized' }, 401);
+  if ((user.email || '').toLowerCase() !== DEV_EMAIL) return json({ error: 'forbidden' }, 403);
+
+  const now = Date.now();
+  const subs = await listAll(env, 'subscriptions', ['status', 'plan', 'validUntil']);
+  let active = 0, anual = 0, mensal = 0, mrr = 0;
+  for (const d of subs) {
+    const vu = tsField(d.fields, 'validUntil');
+    if (vu && vu.getTime() > now) {
+      active++;
+      if (strField(d.fields, 'plan') === 'anual') { anual++; mrr += PLANS.anual.amount / 12; }
+      else { mensal++; mrr += PLANS.mensal.amount; }
+    }
+  }
+  const att = await listAll(env, 'adAttribution', []);
+  return json({
+    activeCount: active,
+    anual,
+    mensal,
+    mrr: Math.round(mrr * 100) / 100,
+    totalSubs: subs.length,
+    startedCheckouts: att.length,
+  });
 }
 
 // ================================ Helpers ==================================

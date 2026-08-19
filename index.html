@@ -9158,6 +9158,7 @@
         <div class="label">Dev</div>
         <button class="item" data-act="syncConfig"><span class="menu-icon">${ICONS.sheets}</span><span>Conectar com Google Sheets (notas)</span></button>
         <button class="item" data-act="paywallPreview"><span class="menu-icon">${ICONS.creditCard}</span><span>Ver tela de assinatura</span></button>
+        <button class="item" data-act="salesCount"><span class="menu-icon">${ICONS.creditCard}</span><span>Ver vendas</span></button>
         ` : ''}
         ${currentUser ? `
           <div class="divider"></div>
@@ -9191,6 +9192,8 @@
     if (syncBtn) syncBtn.addEventListener('click', () => { closeModal(); openSyncConfigModal(); });
     const paywallBtn = modal.querySelector('[data-act="paywallPreview"]'); // dev-only: prévia da tela de assinatura
     if (paywallBtn) paywallBtn.addEventListener('click', () => { closeModal(); openPaywall(); });
+    const salesBtn = modal.querySelector('[data-act="salesCount"]'); // dev-only: contador de vendas
+    if (salesBtn) salesBtn.addEventListener('click', () => { closeModal(); openSalesModal(); });
     const installBtn = modal.querySelector('[data-act="install"]');
     if (installBtn) installBtn.addEventListener('click', () => { closeModal(); triggerInstall(); });
     const achBtn = modal.querySelector('[data-act="achievements"]');
@@ -9212,6 +9215,45 @@
       closeModal();
       showToast('Tudo apagado. Recomeçando do zero.', 'success');
     });
+  }
+
+  // ==================== VENDAS (dev) ====================
+  // Contador de assinantes ativos + MRR, lido do Firestore via /api/sales (só o
+  // dev acessa). Evita ter que caçar coleção no console do Firebase.
+  async function openSalesModal() {
+    if (!currentUser) { showToast('Entre na conta primeiro.', 'error'); return; }
+    const bindClose = () => { const b = document.querySelector('#modalContent [data-act="close"]'); if (b) b.addEventListener('click', closeModal); };
+    openModal(`<h3>Vendas</h3><p class="modal-sub">Lendo do Firestore…</p><div class="modal-actions"><button class="btn-secondary" data-act="close" style="width:100%;">Fechar</button></div>`);
+    bindClose();
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch('/api/sales', { headers: { Authorization: 'Bearer ' + token } });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || ('http ' + res.status));
+      const modal = document.getElementById('modalContent');
+      modal.innerHTML = `
+        <h3>Vendas</h3>
+        <p class="modal-sub">Assinaturas ativas agora, direto do Firestore.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin:10px 0 4px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;">
+            <span style="color:var(--text-soft);">Assinantes ativos</span>
+            <strong style="font-size:28px;font-weight:800;letter-spacing:-.02em;">${d.activeCount}</strong>
+          </div>
+          <div style="font-size:13px;color:var(--text-mute);">Anual ${d.anual} &middot; Mensal ${d.mensal}</div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--border);padding-top:12px;">
+            <span style="color:var(--text-soft);">Receita recorrente (MRR)</span>
+            <strong style="font-size:18px;font-weight:800;">${fmtBRL(d.mrr)}</strong>
+          </div>
+          <div style="font-size:12px;color:var(--text-mute);line-height:1.5;">Iniciaram o checkout: ${d.startedCheckouts}<br>Assinaturas já registradas (histórico): ${d.totalSubs}</div>
+        </div>
+        <div class="modal-actions"><button class="btn-secondary" data-act="close" style="width:100%;">Fechar</button></div>
+      `;
+      bindClose();
+    } catch (e) {
+      const modal = document.getElementById('modalContent');
+      modal.innerHTML = `<h3>Vendas</h3><p class="modal-sub">Não consegui carregar (${escapeHtml(String((e && e.message) || e))}).</p><div class="modal-actions"><button class="btn-secondary" data-act="close" style="width:100%;">Fechar</button></div>`;
+      bindClose();
+    }
   }
 
   // ==================== ACHIEVEMENTS MODAL ====================
