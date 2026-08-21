@@ -4785,6 +4785,12 @@
 
   /* Inclui — lista leve, agrupada */
   .rl-includes { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--rl-line); }
+  .rl-or { display: flex; align-items: center; gap: 10px; margin: 14px 0 4px; }
+  .rl-or::before, .rl-or::after { content: ""; flex: 1; height: 1px; background: var(--rl-line); }
+  .rl-or span { font-size: 11.5px; font-weight: 700; color: var(--rl-mute); }
+  .rl-cta-alt { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 16px; border-radius: 13px; border: 1.5px solid var(--sage); background: transparent; color: var(--sage); font-size: 14px; font-weight: 700; letter-spacing: -0.01em; cursor: pointer; transition: background .15s ease; }
+  .rl-cta-alt:hover { background: var(--sage-soft); }
+  .rl-cta-alt:disabled { opacity: .6; cursor: default; }
   .paywall-features { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .paywall-features li { display: flex; align-items: center; gap: 12px; font-size: 13.5px; color: var(--rl-soft); line-height: 1.35; }
   .paywall-features li svg { width: 16px; height: 16px; color: var(--sage); flex-shrink: 0; }
@@ -6029,6 +6035,11 @@
       <div class="rl-action">
         <button type="button" class="rl-cta" id="paywallCta">Assinar agora</button>
         <p class="rl-undersub" id="paywallUndersub">R$ 203,88 por ano. Cancele quando quiser.</p>
+        <div class="rl-or"><span>ou</span></div>
+        <button type="button" class="rl-cta-alt" id="paywallPix">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 12l9 9 9-9z"/></svg>
+          Pagar o anual no Pix, à vista
+        </button>
       </div>
       <div class="rl-includes">
         <p class="rl-lbl">Tudo incluso</p>
@@ -7785,6 +7796,41 @@
     }
   }
 
+  // Pix: sempre o plano ANUAL à vista (Pix não faz débito recorrente no MP). Abre
+  // a página hospedada do Mercado Pago só com Pix. Quando o Pix cai, o webhook
+  // grava a assinatura e o listener libera o acesso sozinho, igual ao cartão.
+  async function startPix() {
+    const btn = document.getElementById('paywallPix');
+    const original = btn ? btn.innerHTML : '';
+    try {
+      if (btn) { btn.disabled = true; btn.textContent = 'Abrindo Pix…'; }
+      let token;
+      try { token = await currentUser.getIdToken(); }
+      catch (e) { throw new Error('falha ao obter token de login: ' + (e && e.message || e)); }
+      const fbIds = metaBrowserIds();
+      const res = await fetch('/api/pix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ fbp: fbIds.fbp, fbc: fbIds.fbc }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.init_point) {
+        const extra = (isDev() && data.mp_detail) ? (' | MP[' + data.mp_status + ']: ' + JSON.stringify(data.mp_detail).slice(0, 300)) : '';
+        throw new Error((data.error || ('HTTP ' + res.status)) + extra);
+      }
+      track('checkout_started', { plan: 'anual', method: 'pix' });
+      metaTrack('InitiateCheckout', { content_name: 'anual_pix', currency: 'BRL', value: PAYWALL_PLANS.anual.amount });
+      window.location.href = data.init_point;
+    } catch (e) {
+      console.error('Pix falhou:', e);
+      const msg = isDev()
+        ? ('Pix falhou: ' + (e && e.message || e))
+        : 'Não deu pra abrir o Pix agora. Tenta de novo em instantes.';
+      showToast(msg, 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = original; }
+    }
+  }
+
   function setupPaywall() {
     const ov = document.getElementById('paywallOverlay');
     if (!ov || ov.dataset.wired) return;
@@ -7804,6 +7850,15 @@
       }
       if (!currentUser) { showToast('Entra com sua conta pra assinar.', 'error'); return; }
       startCheckout(_paywallPlan);
+    });
+    const pixBtn = document.getElementById('paywallPix');
+    if (pixBtn) pixBtn.addEventListener('click', () => {
+      if (!BILLING.enabled && !isDev()) {
+        showToast('Checkout ainda não está ativo. Falta ligar a cobrança (ver PAGAMENTOS.md).', 'success');
+        return;
+      }
+      if (!currentUser) { showToast('Entra com sua conta pra assinar.', 'error'); return; }
+      startPix();
     });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && ov.style.display === 'flex') closePaywall();

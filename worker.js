@@ -46,6 +46,9 @@ export default {
         if (url.pathname === '/api/checkout' && request.method === 'POST') {
           return await handleCheckout(request, env);
         }
+        if (url.pathname === '/api/pix' && request.method === 'POST') {
+          return await handlePix(request, env);
+        }
         if (url.pathname === '/api/webhook' && request.method === 'POST') {
           return await handleWebhook(request, env);
         }
@@ -168,6 +171,82 @@ async function handleCheckout(request, env) {
   return json({ init_point: data.init_point });
 }
 
+// ================================ /api/pix =================================
+// Pix não faz débito recorrente no Mercado Pago, então o Pix é sempre o plano
+// ANUAL pago à vista: uma cobrança, 12 meses de acesso. Cria uma preferência do
+// Checkout Pro (página hospedada do MP, que já cuida do QR, do copia-e-cola, do
+// CPF e da expiração) restrita a Pix, e devolve o init_point. Quando o Pix cai,
+// o webhook (ramo 'payment') grava a assinatura e o acesso libera sozinho.
+
+async function handlePix(request, env) {
+  if (!env.MP_ACCESS_TOKEN) return json({ error: 'billing_disabled' }, 503);
+
+  const authHeader = request.headers.get('Authorization') || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  const user = await verifyFirebaseToken(idToken);
+  if (!user) return json({ error: 'unauthorized' }, 401);
+
+  let body = null;
+  try { body = await request.json(); } catch (_) {}
+
+  const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.MP_ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': crypto.randomUUID(),
+    },
+    body: JSON.stringify({
+      items: [{
+        title: PLANS.anual.reason,
+        quantity: 1,
+        unit_price: PLANS.anual.amount,
+        currency_id: 'BRL',
+      }],
+      external_reference: user.uid,
+      payer: { email: user.email },
+      back_urls: {
+        success: `${APP_URL}/?assinatura=voltou`,
+        pending: `${APP_URL}/?assinatura=voltou`,
+        failure: `${APP_URL}/?assinatura=voltou`,
+      },
+      auto_return: 'approved',
+      notification_url: `${SITE_URL}/api/webhook`,
+      // Este botão é o caminho Pix: tira cartão e boleto pra sobrar Pix (e saldo MP).
+      payment_methods: {
+        excluded_payment_types: [{ id: 'credit_card' }, { id: 'debit_card' }, { id: 'ticket' }],
+        installments: 1,
+      },
+      metadata: { plan: 'anual', kind: 'pix', uid: user.uid },
+      statement_descriptor: 'MUNNY',
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.init_point) {
+    console.error('MP preference (pix) falhou:', res.status, JSON.stringify(data).slice(0, 800));
+    const devDetail = (user.email || '').toLowerCase() === DEV_EMAIL
+      ? { mp_status: res.status, mp_detail: data }
+      : {};
+    return json({ error: 'mp_error', ...devDetail }, 502);
+  }
+
+  // Mesma atribuição de anúncio do checkout de cartão (best effort).
+  try {
+    await firestorePatch(env, `adAttribution/${user.uid}`, {
+      fbp: { stringValue: String((body && body.fbp) || '') },
+      fbc: { stringValue: String((body && body.fbc) || '') },
+      email: { stringValue: String(user.email || '') },
+      plan: { stringValue: 'anual' },
+      method: { stringValue: 'pix' },
+      updatedAt: { timestampValue: new Date().toISOString() },
+    });
+  } catch (e) {
+    console.error('Falha ao guardar atribuição (pix):', String(e));
+  }
+
+  return json({ init_point: data.init_point });
+}
+
 // ============================== /api/webhook ===============================
 
 async function handleWebhook(request, env) {
@@ -192,6 +271,9 @@ async function handleWebhook(request, env) {
     // Cobrança recorrente do ciclo: busca o pagamento pra achar a assinatura
     const r = await mpGet(`https://api.mercadopago.com/authorized_payments/${dataId}`, env);
     preapprovalId = r && r.preapproval_id;
+  } else if (type === 'payment') {
+    // Pagamento avulso (Pix / Checkout Pro do plano anual à vista). Fluxo próprio.
+    return await handlePixPayment(dataId, env);
   } else {
     return json({ ok: true }); // outros eventos não interessam
   }
@@ -240,6 +322,43 @@ async function handleWebhook(request, env) {
     } catch (e) {
       console.error('Meta CAPI falhou (a assinatura segue válida):', String(e));
     }
+  }
+
+  return json({ ok: true });
+}
+
+// Pix / pagamento avulso aprovado: libera o plano anual (12 meses à vista). Só
+// age quando o pagamento está 'approved' (o Pix caiu de fato). validUntil é
+// calculado a partir da data de aprovação, então se o MP reenviar o webhook o
+// valor gravado é sempre o mesmo (idempotente, não estica o acesso a cada envio).
+async function handlePixPayment(paymentId, env) {
+  const pay = await mpGet(`https://api.mercadopago.com/v1/payments/${paymentId}`, env);
+  if (!pay || !pay.external_reference) return json({ ok: true });
+  if (pay.status !== 'approved') return json({ ok: true });
+
+  const uid = String(pay.external_reference);
+  const base = pay.date_approved ? new Date(pay.date_approved) : new Date();
+  const validUntil = new Date(addMonths(base, 12).getTime() + GRACE_DAYS * 86400000);
+
+  await firestorePatch(env, `subscriptions/${uid}`, {
+    status: { stringValue: 'authorized' },
+    plan: { stringValue: 'anual' },
+    method: { stringValue: 'pix' },
+    paymentId: { stringValue: String(paymentId) },
+    validUntil: { timestampValue: validUntil.toISOString() },
+    updatedAt: { timestampValue: new Date().toISOString() },
+  });
+
+  try {
+    await sendMetaPurchase(env, {
+      uid,
+      plan: 'anual',
+      preapprovalId: `pix_${paymentId}`,
+      amount: Number(pay.transaction_amount) || PLANS.anual.amount,
+      payerEmail: (pay.payer && pay.payer.email) || '',
+    });
+  } catch (e) {
+    console.error('Meta CAPI (pix) falhou (a assinatura segue válida):', String(e));
   }
 
   return json({ ok: true });
